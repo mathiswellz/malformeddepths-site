@@ -5811,7 +5811,9 @@ function initHUD(){
   onTap($('act'), () => { const o = G.nearObj; if(o && !uiBlocking()) interact(o); }, true);
   for(const id of ['buffs', 'bossfx']) $(id).addEventListener('pointerdown', e => { const d = e.target.closest && e.target.closest('.bf'); if(!d || !d._e) return; e.stopPropagation(); const x = d._e;
     toast(`${x.name}: ${x.desc}${x.t == null ? '' : ` (${Math.ceil(x.t)}s left)`}`, x.col, 3); });
-  if(isTouch){ $('touch').classList.remove('hide'); document.body.classList.add('touchui'); addEventListener('resize', () => { TOUCH.placed = false; }); }
+  if(isTouch){ $('touch').classList.remove('hide'); document.body.classList.add('touchui'); addEventListener('resize', () => { TOUCH.placed = false; });
+    addEventListener('orientationchange', () => { TOUCH.placed = false; }); if(window.visualViewport) visualViewport.addEventListener('resize', () => { TOUCH.placed = false; });
+    addEventListener('pageshow', () => { TOUCH.placed = false; }); }
 }
 // Phone controls: the five skills wrap around the attack button in an arc (left of it up to just past the top), so the right thumb
 // reaches every one from the attack button; the dodge and the oils sit at the foot of the arc, the action button (Talk, Read,
@@ -5981,6 +5983,12 @@ function updateHUD(dt){
   if(G.heroes && G.P !== G.heroes[0]) return asHero(G.heroes[0], () => updateHUD(dt));   // the main belt always shows the host
   const P = G.P, M = G.M; if(!P || !M) return;
   if(isTouch && !TOUCH.placed) layoutTouch();   // (re)place the phone controls once the HUD can be measured
+  // and again whenever the attack button they are all placed around has moved, or a control ended up off the screen. A phone's browser can
+  // still be settling its size when the game first measures (2026-11-15: on Mathis's iPhone the Roll, skill and Talk buttons were placed
+  // off the right edge and never came back; only the potions, which are kept on screen, showed)
+  if(isTouch && TOUCH.placed && (TOUCH.chk = (TOUCH.chk || 0) + 1) % 20 === 0){ const r = $('atk').getBoundingClientRect(), k = r.width ? Math.round(r.left) + ',' + Math.round(r.top) + ',' + innerWidth + ',' + innerHeight : null;
+    const off = [...$('skills').children, $('dodgeb')].some(el => { const q = el.getBoundingClientRect(); return q.width && (q.right > innerWidth + 2 || q.left < -2 || q.bottom > innerHeight + 2 || q.top < -2); });
+    if(k && (k !== TOUCH.atkKey || off)){ if(TOUCH.atkKey && !off && k === TOUCH.atkKey){} else { TOUCH.atkKey = k; TOUCH.placed = false; layoutTouch(); } } }
   if(UI.dirty){ UI.dirty = false; buildSkillBar(); UI.glyph = null; $('bChar').classList.toggle('alert', P.statPts > 0); $('bSkill').classList.toggle('alert', P.skillPts > 0 || !(P.slots || []).some(Boolean)); $('bPortal').classList.toggle('hide', !!M.isTown); }
   { const db = $('dodgeb'), cd = Math.max(0, (P.dodgeCd || 0)/DODGE_CD); setSty(db, '--cd', cd.toFixed(2)); db.classList.toggle('cd', cd > 0); const nm = (DODGE[P.cls] || DODGE.knight).name.split(' ').pop(); if(db.textContent !== nm) db.textContent = nm; }
   flaskUpd('hpf', clamp(P.hp/P.d.maxhp, 0, 1), 'hp', P.poisoned > 0); $('hpf').classList.toggle('poison', P.poisoned > 0);
