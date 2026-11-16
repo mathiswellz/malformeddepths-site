@@ -44,12 +44,23 @@ h2{font:400 clamp(34px,5vw,46px)/1.1 Pirata,serif;color:var(--gold);margin-botto
 .cta{text-align:center;padding-bottom:96px}
 .note{color:var(--dim);margin-top:14px;font-size:18px}
 footer{border-top:1px solid var(--line);text-align:center;color:var(--dim);font-size:17px;padding:28px 20px 40px}
+.notes{max-width:760px;margin:32px auto 0}
+.patch{border:1px solid var(--line);background:rgba(255,255,255,.02);padding:18px 22px;margin-bottom:16px}
+.patch h3{font:400 28px/1.1 Pirata,serif;color:var(--ink);letter-spacing:.02em}
+.patch .when{color:var(--dim);font-size:17px;margin:2px 0 10px}
+.patch ul{padding-left:22px}
+.patch li{margin:6px 0}
+.patch .why{display:block;color:var(--dim);font-size:17px}
+.nav{position:absolute;top:14px;right:18px;z-index:2}
+.nav a{color:var(--dim);text-decoration:none;font-size:19px;border-bottom:1px solid transparent}
+.nav a:hover{color:var(--gold);border-color:var(--gold)}
 @media (max-width:700px){.grid,.feat{grid-template-columns:1fr}section{padding:56px 18px}}
 @media (prefers-reduced-motion:reduce){.hero::before{animation:none}}
 </style>
 </head>
 <body>
 <header class="hero">
+  <nav class="nav"><a href="#patch-notes">Patch notes</a></nav>
   <div>
     <img class="logo" src="assets/menu_logo.webp" alt="Malformed Depths">
     <p class="tag">You wake by the river with no memory. Beneath the town of Palli, the Rift is waiting.</p>
@@ -87,6 +98,30 @@ footer{border-top:1px solid var(--line);text-align:center;color:var(--dim);font-
   <p class="note">Nine more depths wait below. The full game is coming.</p>
 </section>
 
-<footer>Malformed Depths © 2026 Wellz Digitalez · by Mathis Wellz · <a href="https://mathiswellz.com">mathiswellz.com</a></footer>
+<section id="patch-notes">
+  <h2>Patch Notes</h2>
+  <p class="lead">What has changed in the demo, newest first. Thank you to everyone sending feedback: it shapes every update.</p>
+  <div class="notes">
+<!-- PATCHES: newest first. Plain language; say what changed and, when it came from feedback, that it did. -->
+    <article class="patch">
+      <h3>Update 0.1.1</h3>
+      <p class="when">November 15, 2026</p>
+      <ul>
+        <li>The Rift menu is cleaner. The harder difficulties no longer fill the screen with their lock messages. Tap a locked difficulty to see what you need to beat to open it.</li>
+        <li>Footsteps are softer. Your hero's steps were too sharp and clicky, so they are now quieter and gentler on the ears.</li>
+      </ul>
+    </article>
+    <article class="patch">
+      <h3>Demo 0.1</h3>
+      <p class="when">November 15, 2026</p>
+      <ul>
+        <li>The free demo is out: wake by the river, explore Palli, hear the story so far, and fight through the first depth of the Rift.</li>
+        <li>Play it in your browser on a PC or phone. Nothing to download.</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<footer><a href="#patch-notes">Patch notes</a> · Malformed Depths © 2026 Wellz Digitalez · by Mathis Wellz · <a href="https://mathiswellz.com">mathiswellz.com</a></footer>
 </body>
 </html>
