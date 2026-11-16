@@ -1888,6 +1888,14 @@ function settleProps(M){
     if(fits(p.x, p.y)) return true;
     for(const [dx, dy] of [[0, 3], [0, 6], [0, 9], [0, 12], [4, 0], [-4, 0], [8, 0], [-8, 0], [4, 6], [-4, 6], [8, 8], [-8, 8], [0, 16]]) if(fits(p.x + dx, p.y + dy)){ p.x += dx; p.y += dy; return true; }
     return false; });
+  // a flat piece never lies under the stairs, a chest, a shrine, a note or the hero's first step, inside a standing piece, under a statue, or on another flat piece
+  const A = M.arena, stat = !A ? [] : M.theme === 'crypt' ? [{x:(A.x + 2.6)*TS, y:(A.y + 2)*TS}, {x:(A.x + A.w - 2.6)*TS, y:(A.y + 2)*TS}] : M.theme === 'throne' ? [{x:(A.x + A.w/2)*TS, y:(A.y + 3.4)*TS}] : [], kept = [];
+  M.props = M.props.filter(p => { if(p.up) return true; const y = p.y - 3;
+    if(marks.some(o => { const st = o.type === 'stairsup' || o.type === 'stairsdown' || (!o.type && o !== M.start), rx = st ? 21 : 13, ry = st ? 18 : 10; return Math.abs(o.x - p.x) < rx && Math.abs(o.y - y) < ry; })) return false;
+    if(solids.some(q => Math.abs(q.x - p.x) < q.rx + 6 && Math.abs(q.y - y) < q.ry + 5)) return false;
+    if(stat.some(q => Math.abs(q.x - p.x) < 18 && p.y > q.y - 30 && p.y < q.y + 6)) return false;
+    if(kept.some(q => Math.abs(q.x - p.x) < 11 && Math.abs(q.y - p.y) < 7)) return false;
+    kept.push(p); return true; });
   M.solids = solids; M.propBlock = block; M.urns = urns;
   for(const o of M.objects) if(o.type === 'stairsup' || o.type === 'stairsdown') stairsSolid(M, o);
 }
@@ -1976,44 +1984,52 @@ function genDungeon(L, seed, diff){
   const ex = arena ? {x:arena.cx, y:arena.y + 1} : {x:end.cx, y:end.cy};
   M.exit = ex;
   if(!arena) setT(M, ex.x, ex.y, T_EXIT);
+  placeStairs(M, start);
+  // what is already standing where (px): nothing else is put on top of it. Chests, shrines, notes, bodies and monster packs each claim their spot.
+  const taken = M.objects.filter(o => o.type === 'stairsup' || o.type === 'stairsdown').map(o => ({x:o.x, y:o.y, r:14}));
+  taken.push({x:M.start.x, y:M.start.y, r:8}, {x:(ex.x + 0.5)*TS, y:(ex.y + 0.5)*TS, r:14});
+  const claim = (s, r = 8) => { if(s) taken.push({x:s.x*TS + 8, y:s.y*TS + 8, r}); return s; };
   // torches on top walls
   (M.questRoom ? order.concat([M.questRoom]) : order).forEach(r => {
     const spots = []; for(let i = r.x + 1; i < r.x + r.w - 1; i++) if(tAt(M, i, r.y - 1) === T_WALL && tAt(M, i, r.y) === T_FLOOR) spots.push(i);
     const n = Math.min(spots.length, r.arena || r.quest ? 3 : RI(0, 2));
-    for(let k = 0; k < n; k++){ const i = spots.splice(Math.floor(rnd()*spots.length), 1)[0]; M.torches.push({x:i, y:r.y - 1, seed:rnd()*10}); }
+    for(let k = 0; k < n && spots.length; k++){ const i = spots[Math.floor(rnd()*spots.length)]; M.torches.push({x:i, y:r.y - 1, seed:rnd()*10});
+      for(let q = spots.length - 1; q >= 0; q--) if(Math.abs(spots[q] - i) < 3) spots.splice(q, 1); }   // the next torch hangs at least three tiles along
   });
   // decor props
   const freeSpot = (r, pad = 1) => { for(let t = 0; t < 40; t++){ const x = RI(r.x + pad, r.x + r.w - 1 - pad), y = RI(r.y + pad, r.y + r.h - 1 - pad); if(tAt(M, x, y) === T_FLOOR && !(x === ex.x && y === ex.y)) return {x, y}; } return null; };
   order.forEach(r => {
     for(let k = 0; k < RI(1, 4); k++){ const s = freeSpot(r, 0); if(s) M.props.push({kind:pick(lv.theme === 'crypt' ? ['bones', 'bones', 'skull', 'candles', 'urn'] : lv.theme === 'flesh' ? ['pustule', 'bones', 'eggs', 'meat'] : ['crystal', 'bones', 'eye', 'candles']), x:s.x*TS + RI(2, 12), y:s.y*TS + RI(4, 12)}); }
   });
+  // a free tile of room r at least `gap` px clear of everything placed so far (the gap eases if the room is crowded)
+  const objSpot = (r, gap = 26) => { for(const g of [gap, gap*0.7, gap*0.45]) for(let t = 0; t < 40; t++){ const s = freeSpot(r); if(!s) break;
+      const x = s.x*TS + 8, y = s.y*TS + 8; if(!taken.some(o => Math.abs(o.x - x) < g + o.r && Math.abs(o.y - y) < g + o.r)) return s; } return null; };
   // story objects
   const notes = NOTES[L - 1];
   const nr1 = order[Math.max(1, Math.floor(order.length*0.35))], nr2 = order[Math.max(2, Math.floor(order.length*0.7))];
-  if(notes[0]){ const s = freeSpot(nr1); if(s) M.objects.push({type:'papyrus', note:0, x:s.x*TS + 8, y:s.y*TS + 8}); }
+  if(notes[0]){ const s = claim(objSpot(nr1) || freeSpot(nr1)); if(s) M.objects.push({type:'papyrus', note:0, x:s.x*TS + 8, y:s.y*TS + 8}); }
   if(notes[1]){
     if(L === 3){ M.questNote = 1; } // Aldren's last order: revealed by the quest boss
     else if(L === 9){ M.bossNote = 1; } // Vessa's last words: revealed by the boss
-    else { const s = freeSpot(nr2); if(s) M.objects.push({type:'corpse', note:1, x:s.x*TS + 8, y:s.y*TS + 8}); }
+    else { const s = claim(objSpot(nr2) || freeSpot(nr2)); if(s) M.objects.push({type:'corpse', note:1, x:s.x*TS + 8, y:s.y*TS + 8}); }
   }
   // chests
   const nChest = 1 + Math.floor(L/3) + (rnd() < 0.5 ? 1 : 0);
-  for(let k = 0; k < nChest; k++){ const r = order[RI(1, order.length - 1)]; if(r.arena) continue; const s = freeSpot(r); if(s) M.objects.push({type:'chest', x:s.x*TS + 8, y:s.y*TS + 8}); }
+  for(let k = 0; k < nChest; k++){ const r = order[RI(1, order.length - 1)]; if(r.arena) continue; const s = claim(objSpot(r)); if(s) M.objects.push({type:'chest', x:s.x*TS + 8, y:s.y*TS + 8}); }
   // shrines (temporary buffs) on some levels
-  if(rnd() < 0.7){ const r = order[RI(2, Math.max(2, order.length - 2))]; const s = r && !r.arena && freeSpot(r); if(s) M.objects.push({type:'shrine', kind:pick(['power', 'speed', 'life']), x:s.x*TS + 8, y:s.y*TS + 8}); }
+  if(rnd() < 0.7){ const r = order[RI(2, Math.max(2, order.length - 2))]; const s = r && !r.arena && claim(objSpot(r)); if(s) M.objects.push({type:'shrine', kind:pick(['power', 'speed', 'life']), x:s.x*TS + 8, y:s.y*TS + 8}); }
   // monster spawn plan (actual monsters created by game with player level)
   M.spawns = [];
   order.forEach((r, i) => {
     if(i === 0 || r.arena) return;
     const packs = 1 + (rnd() < 0.35 + L*0.03 ? 1 : 0) + (r.w*r.h > 110 ? 1 : 0);
     for(let p = 0; p < packs; p++){
-      const s = freeSpot(r); if(!s) continue;
+      const s = claim(objSpot(r, 18) || freeSpot(r), 4); if(!s) continue;   // packs gather away from chests, shrines and stairs
       M.spawns.push({x:s.x, y:s.y, n:RI(2, 3) + Math.floor(L/4), elite:rnd(), room:i});
     }
   });
   if(arena) M.arena = arena;
   M.boss = lv.boss;
-  placeStairs(M, start);
   settleProps(M);
   return M;
 }
@@ -2418,13 +2434,19 @@ function spawnMonsters(M){
     const type = rpick(pool);
     for(let i = 0; i < sp.n; i++){
       const ox = (i % 3 - 1)*14 + R()*6, oy = (Math.floor(i/3) - 0.5)*14 + R()*6;
-      let x = sp.x*TS + 8 + ox, y = sp.y*TS + 8 + oy;
-      if(!walkable(M, Math.floor(x/TS), Math.floor(y/TS))){ x = sp.x*TS + 8; y = sp.y*TS + 8; }
-      M.monsters.push(makeMonster(i === 0 || R() < 0.6 ? type : rpick(pool), x, y, isElite && i === 0));
+      const m = makeMonster(i === 0 || R() < 0.6 ? type : rpick(pool), sp.x*TS + 8 + ox, sp.y*TS + 8 + oy, isElite && i === 0);
+      spawnClear(M, m, sp.x*TS + 8, sp.y*TS + 8); M.monsters.push(m);
     }
   });
   if(M.arena && M.boss){ const b = makeMonster(M.boss, M.arena.cx*TS + 8, M.arena.cy*TS + 8, false); b.isBoss = true; M.monsters.push(b); M.bossMon = b; }
   spawnQuestBoss(M);
+}
+// a monster never starts inside a wall, a standing prop or the stairs: it takes the nearest clear place around its pack's spot
+function spawnClear(M, m, cx, cy){
+  const r = Math.min(m.r, 8), ok = (x, y) => !blockedCircle(M, x, y, r) && !M.objects.some(o => (o.type === 'stairsup' || o.type === 'stairsdown') && Math.abs(o.x - x) < 16 + r && Math.abs(o.y - y) < 13 + r);
+  if(ok(m.x, m.y)) return;
+  for(let d = 0; d <= 40; d += 8) for(let k = 0; k < (d ? 8 : 1); k++){ const a = k*Math.PI/4 + d*0.1, x = cx + Math.cos(a)*d, y = cy + Math.sin(a)*d*0.8; if(ok(x, y)){ m.x = x; m.y = y; return; } }
+  m.x = cx; m.y = cy;
 }
 function spawnQuestBoss(M){
   if(!M.quest || !M.questRoom || M.questMon || G.P.quests[M.quest] === 'none') return;
@@ -2550,6 +2572,7 @@ function dropGold(n, x, y){ dropLoot({gold:n}, x, y); }
 function dropLoot(o, x, y){
   const a = R()*Math.PI*2, d = 6 + R()*14;
   let tx = x + Math.cos(a)*d, ty = y + Math.sin(a)*d;
+  for(let k = 1; k < 6 && (solidAt(G.M, tx, ty) || blockedCircle(G.M, tx, ty, 2)); k++){ tx = x + Math.cos(a + k*1.9)*d; ty = y + Math.sin(a + k*1.9)*d; }   // not inside a wall, a standing prop or the stairs
   if(solidAt(G.M, tx, ty)){ tx = x; ty = y; }
   if(inLip(G.M, tx, ty)) ty = Math.floor(ty/TS)*TS - 1.5;   // never behind a bottom wall, where it would be hidden
   G.loot.push({...o, x:tx, y:ty, sx:x, sy:y, t:0, map:G.M});
@@ -4316,6 +4339,8 @@ function depthPrep(M){                           // once per map: wall kinds, sc
     if(tAt(M, x, y) === T_FLOOR && hash(x, y) < 0.07) dets.push([1 + Math.floor(hash(y, x)*8), x*TS + 3 + hash(x + 9, y)*10, y*TS + 3 + hash(x, y + 9)*10]);
     if(k[y*W + x] === 2 && hash(x*3, y*5) < 0.14 && !M.torches.some(o => o.x === x && o.y === y)) decs.set(y*W + x, 1 + Math.floor(hash(x*7, y*3)*4));
   }
+  { const st = M.objects.filter(o => o.type === 'stairsup' || o.type === 'stairsdown'); if(M.exit) st.push({x:(M.exit.x + 0.5)*TS, y:(M.exit.y + 0.5)*TS});   // no cracks or rubble poking out from under the stairs
+    for(let i = dets.length - 1; i >= 0; i--) if(st.some(o => Math.abs(o.x - dets[i][1]) < 20 && Math.abs(o.y - dets[i][2]) < 18)) dets.splice(i, 1); }
   for(let i = 0; i < W*Hh; i++) if(k[i] === 3) ups.push(['pillar', (i % W + 0.5)*TS, (Math.floor(i/W) + 1)*TS - 1, 0]);
   const A = M.arena;
   if(A && M.theme === 'crypt') ups.push(['land', (A.x + 2.6)*TS, (A.y + 2)*TS, 0], ['land', (A.x + A.w - 2.6)*TS, (A.y + 2)*TS, 1]);   // two Wardens guard the hall
