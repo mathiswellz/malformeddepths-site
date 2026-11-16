@@ -6726,9 +6726,12 @@ function respec(c){
 function showRiftMenu(){ const P = G.P; if(!UI.riftDiff || !P.unlocked[UI.riftDiff]) UI.riftDiff = 'breeze'; UI.panel = 'rift'; refreshPanel(); $('modal').classList.remove('hide'); }
 function renderRift(){
   const P = G.P, d = UI.riftDiff, D = DIFFS[d], max = Math.min(DEMO ? DEMO_LAST : 10, P.prog[d] + 1);
-  let h = `<div class="tabs">${DIFF_ORDER.map(k => `<button class="btn${d === k ? ' on' : ''}" style="color:${P.unlocked[k] ? DIFFS[k].color : '#6a6080'};font-size:18px;padding:6px 2px" onclick="${P.unlocked[k] ? `UI.riftDiff='${k}';refreshPanel()` : `toast('Locked. Requires ${k === 'nightmare' ? 'Khala and Captain Aldren on Breeze depth 3' : 'Asura and the Brood Mother on Nightmare depth 6'}.','#ff7a7a',4)`}">${P.unlocked[k] ? '' : '🔒 '}${DIFFS[k].name}</button>`).join('')}</div>`;
+  let h = `<div class="tabs">${DIFF_ORDER.map(k => `<button class="btn${d === k ? ' on' : ''}" style="color:${P.unlocked[k] ? DIFFS[k].color : '#6a6080'};font-size:18px;padding:6px 2px" onclick="UI.riftDiff='${k}';refreshPanel()">${P.unlocked[k] ? '' : '🔒 '}${DIFFS[k].name}</button>`).join('')}</div>`;
   h += `<div class="sub" style="margin-bottom:8px">${D.desc}</div>`;
-  DIFF_ORDER.forEach(k => { if(!P.unlocked[k]) h += `<div class="card" style="font-size:16px"><b style="color:${DIFFS[k].color}">${DIFFS[k].name} is locked.</b> Defeat ${unlockReqHTML(k)}.</div>`; });
+  if(!P.unlocked[d]){   // a locked difficulty: tapping its tab shows what opens it, in place of the depths (2026-11-15, Mathis: not under every list)
+    h += `<div class="card" style="font-size:17px;margin-top:8px"><b style="color:${D.color}">🔒 ${D.name} is locked.</b><br>Defeat ${unlockReqHTML(d)}.${DEMO ? '<br><span class="sub">Not in the free demo.</span>' : ''}</div>`;
+    return panelShell('Enter the Rift', h);
+  }
   h += '<div class="list" style="margin-top:8px">';
   for(let L = 1; L <= max; L++){
     const lv = LEVELS[L - 1], K = P.bossKills[d], tags = [];
