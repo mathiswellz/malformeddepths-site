@@ -240,6 +240,9 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
 .btn[disabled]{opacity:.4}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.panel.wide{width:min(980px,100%);flex:0 1 auto;min-width:0}
+.stashduo{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media (max-width:640px){.stashduo{gap:8px}.stashduo .grid{grid-template-columns:repeat(4,1fr);gap:3px}.stashduo.money{grid-template-columns:1fr}}
 .cell{aspect-ratio:1;background:#0b0810;border:2px solid #2a2234;position:relative;display:flex;align-items:center;justify-content:center;padding:0;border-radius:3px}
 .cell img{width:80%;height:80%;image-rendering:pixelated}
 .cell.sel{outline:2px solid #fff}
@@ -6206,10 +6209,10 @@ function openPanel(name){ if(G.state !== 'play') return; auInit(); sfx(name === 
 function closePanel(){ if(VO.num && !UI.dialog) voStop(); if(UI.duo){ duoSave(); UI.duo.sides.forEach((sd, i) => { const h = G.heroes && G.heroes[i]; if(h){ h.sortBy = sd.sortBy; h.sortDir = sd.sortDir; } }); UI.duo = null; } UI.panel = null; UI.sel = null; UI.armSlot = null; UI.shopOpen = false; $('modal').classList.add('hide'); $('modal').innerHTML = ''; sfx('click'); }
 $('modal').addEventListener('pointerdown', e => { if(e.target.id === 'modal') closePanel(); });
 // one player on a wide screen: item details open in their own window to the left of the bag, so they never cover it
-function sideDetails(){ if(coop()) return false; const z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui')) || 1; return innerWidth/z >= 960 && innerHeight/z >= 420; }
+function sideDetails(wide){ if(coop()) return false; const z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui')) || 1; return innerWidth/z >= (wide ? 760 : 960) && innerHeight/z >= (wide ? 300 : 420); }   // wide: the chest, which is side by side already, puts the details beside it on a phone held sideways too
 function panelShell(title, body, foot, side){
   const head = `<div class="ph"><h2>${coopTag()}${title}</h2>${UI.duo ? '<span class="sub duoh">L1 / R1: Bag · Character · Skills</span>' : ''}<button class="x" onclick="closePanel()">✕</button></div>`;
-  if(side && sideDetails()) return `<div class="sidewin">${foot || '<div class="sub">Select an item to see its details here.</div>'}</div><div class="panel">${head}<div class="pb">${body}</div></div>`;
+  if(side && sideDetails(side === 'wide')) return `<div class="sidewin">${foot || '<div class="sub">Select an item to see its details here.</div>'}</div><div class="panel">${head}<div class="pb">${body}</div></div>`;
   return `<div class="panel">${head}<div class="pb">${body}</div>${foot ? `<div class="pf">${foot}</div>` : ''}</div>`;
 }
 const PANEL_FN = {get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }};
@@ -6697,16 +6700,17 @@ function renderStash(){
   const P = G.P, S = G.stash;
   let h = `<div class="sub" style="margin-bottom:6px">Every hero you create shares this chest.</div>`;
   const mrow = (kind, amts) => `<div class="row" style="margin:3px 0"><span class="sub" style="width:44px">Store</span>${amts.map(a => `<button class="btn sm" onclick="stashMoney('${kind}','in',${a === 'all' ? "'all'" : a})">${a === 'all' ? 'All' : a}</button>`).join('')}</div><div class="row" style="margin:3px 0 6px"><span class="sub" style="width:44px">Take</span>${amts.map(a => `<button class="btn sm" onclick="stashMoney('${kind}','out',${a === 'all' ? "'all'" : a})">${a === 'all' ? 'All' : a}</button>`).join('')}</div>`;
-  h += `<div class="card"><div style="color:var(--gold)">Gold: ${S.gold} in chest · ${P.gold} on you</div>${mrow('gold', [100, 1000, 'all'])}<div style="color:#c3cad8">Carbon: ${S.carbon} in chest · ${P.carbon} on you</div>${mrow('carbon', [1, 10, 'all'])}<div class="sub" style="font-size:15px">Gold and Carbon are currencies. They never take up a backpack slot.</div></div>`;
-  h += `<div class="sub" style="margin:8px 0 4px">Shared chest (${S.items.filter(Boolean).length}/${STASH_SIZE})</div><div class="grid">`;
+  h += `<div class="card"><div class="stashduo money"><div><div style="color:var(--gold)">Gold: ${S.gold} in chest · ${P.gold} on you</div>${mrow('gold', [100, 1000, 'all'])}</div><div><div style="color:#c3cad8">Carbon: ${S.carbon} in chest · ${P.carbon} on you</div>${mrow('carbon', [1, 10, 'all'])}</div></div><div class="sub" style="font-size:15px">Gold and Carbon are currencies. They never take up a backpack slot.</div></div>`;
+  // the chest on the left, the backpack on the right (2026-11-15, Mathis)
+  h += `<div class="stashduo"><div><div class="sub" style="margin:8px 0 4px">Shared chest (${S.items.filter(Boolean).length}/${STASH_SIZE})</div><div class="grid">`;
   S.items.forEach((it, j) => h += cellHTML(it, UI.sel && UI.sel.stash === j, `selStash(${j})`));
-  h += `</div><div class="sub" style="margin:8px 0 4px">Your backpack (${P.inv.filter(Boolean).length}/${INV_SIZE})</div><div class="grid">`;
+  h += `</div></div><div><div class="sub" style="margin:8px 0 4px">Your backpack (${P.inv.filter(Boolean).length}/${INV_SIZE})</div><div class="grid">`;
   P.inv.forEach((it, i) => h += cellHTML(it, UI.sel && UI.sel.inv === i, `selInv(${i})`));
-  h += '</div>';
+  h += '</div></div></div>';
   let foot = '<div class="sub">Tap an item in the chest to take it, or in your backpack to store it.</div>';
   if(UI.sel && UI.sel.stash !== undefined && S.items[UI.sel.stash]) foot = itemCard(S.items[UI.sel.stash], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashTake(${UI.sel.stash})">Take</button></div>`;
   else if(UI.sel && UI.sel.inv !== undefined && P.inv[UI.sel.inv]) foot = itemCard(P.inv[UI.sel.inv], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashPut(${UI.sel.inv})">Store in chest</button></div>`;
-  return panelShell('Shared Chest', h, foot, true);
+  return panelShell('Shared Chest', h, foot, 'wide').replace('<div class="panel">', '<div class="panel wide">');
 }
 function renderHealer(){
   const P = G.P; const hp = 20 + P.lvl*3, mp = 20 + P.lvl*3, respec = 50 + P.lvl*30;
