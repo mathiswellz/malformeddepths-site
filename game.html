@@ -535,8 +535,8 @@ setTimeout(stInit, 0);
 
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
-const REPORT = {form:'', f:{kind:'', text:'', contact:'', info:''}};
-const GAME_VER = '0.1.6';
+const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
+const GAME_VER = '0.1.7';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -7067,9 +7067,9 @@ function oilIcon(k){ return hdIconURL('oil_' + k, () => iconURL('oil', {R:OILS[k
 const RPT = {kind:'bug', text:'', contact:'', sent:0};
 function openReport(){ if(UI.dialog) closeDialog(); if(!UI.panel && G.state === 'play') openPanel('report'); else { UI.panel = 'report'; refreshPanel(); } reportFlush(); }
 function reportInfo(){
-  const P = G.P, M = G.M, n = navigator, sc = window.screen || {};
+  const P = G.P, M = G.M, n = navigator;
   return [DEMO ? 'Free demo' : 'Full game', 'v' + GAME_VER, P ? `${CLASSES[P.cls].name} Lv ${P.lvl}` : 'no hero', M ? (M.isTown ? 'Palli' : `Depth ${M.level} (${M.diff})`) : '',
-    isTouch ? 'touch' : 'mouse/keys', `${innerWidth}x${innerHeight} @${devicePixelRatio || 1}`, `screen ${sc.width}x${sc.height}`,
+    isTouch ? 'touch' : 'mouse/keys', `${innerWidth}x${innerHeight} @${devicePixelRatio || 1}`,
     `graphics ${['saver', 'balanced', 'sharp'][GFX.q] ?? GFX.q} light ${GFX.sh}`, (n.userAgent || '').replace(/\s*\([^)]*\)\s*/, ' ').slice(0, 140),
     ERRLOG.length ? 'errors: ' + ERRLOG.join(' | ') : ''].filter(Boolean).join(' · ');
 }
