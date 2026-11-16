@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Malformed Depths: a dark action RPG by Wellz Digitalez</title>
+<meta name="description" content="Malformed Depths: a dark action RPG. Wake by the river, find Palli, and descend into the Rift. Play the free demo in your browser.">
+<meta property="og:title" content="Malformed Depths">
+<meta property="og:description" content="A dark action RPG. Play the free demo in your browser.">
+<meta property="og:image" content="shot_womb.jpg">
+<meta name="theme-color" content="#07050b">
+<style>
+@font-face{font-family:Pirata;src:url(assets/fonts/pirata-one-latin-400-normal.woff2) format('woff2');font-display:swap}
+@font-face{font-family:VT;src:url(assets/fonts/vt323-latin-400-normal.woff2) format('woff2');font-display:swap}
+:root{--bg:#07050b;--ink:#e8dccb;--dim:#9a8fa6;--gold:#ffd890;--blood:#c2343f;--line:rgba(255,216,144,.18)}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg)}
+body{color:var(--ink);font:20px/1.45 VT,ui-monospace,monospace;background:var(--bg);overflow-x:hidden}
+a{color:var(--gold)}
+.hero{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;padding:48px 20px;isolation:isolate;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:-4%;background:url(assets/menu_bg3.webp) center/cover;z-index:-2;filter:brightness(.55) saturate(.9);animation:drift 40s ease-in-out infinite alternate}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 45%,transparent 30%,rgba(7,5,11,.75) 75%,var(--bg) 100%)}
+@keyframes drift{from{transform:scale(1.04) translateY(-1%)}to{transform:scale(1.1) translateY(1.5%)}}
+.logo{width:min(720px,92vw);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,.8))}
+.tag{font-size:clamp(20px,3vw,26px);color:var(--dim);margin:10px auto 28px;max-width:34ch}
+.play{display:inline-block;font:400 clamp(26px,4vw,34px)/1 Pirata,serif;letter-spacing:.04em;color:#1a0d06;background:linear-gradient(#ffe2a6,#d9a24e);padding:16px 34px 14px;border-radius:6px;text-decoration:none;box-shadow:0 0 0 2px #3a2410,0 0 30px rgba(255,190,90,.35);transition:transform .15s,box-shadow .15s}
+.play:hover,.play:focus-visible{transform:translateY(-2px);box-shadow:0 0 0 2px #3a2410,0 0 46px rgba(255,190,90,.6);outline:none}
+.small{display:block;margin-top:12px;color:var(--dim);font-size:18px}
+.scroll{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:var(--dim);font-size:18px;opacity:.7}
+section{max-width:1080px;margin:0 auto;padding:72px 20px}
+h2{font:400 clamp(34px,5vw,46px)/1.1 Pirata,serif;color:var(--gold);margin-bottom:18px;text-align:center}
+.lead{max-width:62ch;margin:0 auto;text-align:center;color:var(--ink)}
+.video{margin:32px auto 0;max-width:960px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.6);background:#000}
+.video video{display:block;width:100%;height:auto}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:32px}
+.grid figure{border:1px solid var(--line);background:#000;overflow:hidden}
+.grid img{display:block;width:100%;height:auto;transition:transform .5s}
+.grid figure:hover img{transform:scale(1.03)}
+.grid figcaption{padding:8px 12px;color:var(--dim);font-size:18px}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}
+.feat div{border-top:1px solid var(--blood);padding-top:12px}
+.feat b{display:block;font:400 26px/1.1 Pirata,serif;color:var(--ink);margin-bottom:6px;letter-spacing:.02em}
+.feat p{color:var(--dim);font-size:19px}
+.cta{text-align:center;padding-bottom:96px}
+.note{color:var(--dim);margin-top:14px;font-size:18px}
+footer{border-top:1px solid var(--line);text-align:center;color:var(--dim);font-size:17px;padding:28px 20px 40px}
+@media (max-width:700px){.grid,.feat{grid-template-columns:1fr}section{padding:56px 18px}}
+@media (prefers-reduced-motion:reduce){.hero::before{animation:none}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div>
+    <img class="logo" src="assets/menu_logo.webp" alt="Malformed Depths">
+    <p class="tag">You wake by the river with no memory. Beneath the town of Palli, the Rift is waiting.</p>
+    <a class="play" href="game.html">Play the Free Demo</a>
+    <span class="small">Free in your browser · PC or phone · no download</span>
+  </div>
+  <span class="scroll">▼</span>
+</header>
+
+<section>
+  <h2>The Trailer</h2>
+  <div class="video"><video src="assets/trailer2.mp4" controls playsinline preload="metadata" poster="shot_womb.jpg"></video></div>
+</section>
+
+<section>
+  <h2>Descend</h2>
+  <p class="lead">A dark action RPG drawn in rich pixel art. Choose the Knight, the Mage or the Rogue, gather what the dead left behind, and go down level by level into a place that should not exist.</p>
+  <div class="grid">
+    <figure><img src="shot_womb.jpg" alt="The mage in the Womb of Rot, torches and burning ground" loading="lazy"><figcaption>The Womb of Rot</figcaption></figure>
+    <figure><img src="shot_crypt.jpg" alt="Skeletons in a torch-lit crypt" loading="lazy"><figcaption>The Ossuary of Aranya</figcaption></figure>
+    <figure><img src="shot_palli_night.jpg" alt="Palli at night in the rain" loading="lazy"><figcaption>Palli by night</figcaption></figure>
+    <figure><img src="shot_palli_snow.jpg" alt="Palli under snow, Karmara the blacksmith at his anvil" loading="lazy"><figcaption>Palli in winter</figcaption></figure>
+  </div>
+  <div class="feat">
+    <div><b>Three heroes</b><p>Knight, Mage and Rogue, each with their own skills, ultimate and way of dying.</p></div>
+    <div><b>A living town</b><p>Ganesh, Karmara and Vaidya. Day and night, rain and snow, and a clock that tells you what is coming.</p></div>
+    <div><b>Shadows that move</b><p>Torches, fire and spells light the dark for real. The dark stays dark.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>The Demo</h2>
+  <p class="lead">Wake by the river, meet the people of Palli, learn what happened, and survive the first depth of the Rift.</p>
+  <p style="margin-top:28px"><a class="play" href="game.html">Play Now</a></p>
+  <p class="note">Nine more depths wait below. The full game is coming.</p>
+</section>
+
+<footer>Malformed Depths © 2026 Wellz Digitalez · by Mathis Wellz · <a href="https://mathiswellz.com">mathiswellz.com</a></footer>
+</body>
+</html>
