@@ -1474,9 +1474,10 @@ function snd(name, o = {}){
   const s = c.createBufferSource(); s.buffer = SND.buf[SND_SHEETS[sh]];
   const rate = (o.rate || 1)*(1 + (Math.random()*2 - 1)*(o.pv ?? 0.04)); s.playbackRate.value = rate;
   const t0 = c.currentTime + (o.delay || 0), len = Math.min(du/1000 + 0.03, o.cut || 99), g = c.createGain();
-  g.gain.value = vol;
+  if(o.soft){ g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(vol, t0 + o.soft); } else g.gain.value = vol;   // soft: fade in over that many seconds (takes the click off the attack)
   if(o.cut){ g.gain.setValueAtTime(vol, t0 + Math.max(0, o.cut - 0.3)/rate); g.gain.linearRampToValueAtTime(0.0001, t0 + o.cut/rate); }
-  s.connect(g); let out = g;
+  let src = s; if(o.lp){ const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = 0.6; s.connect(f); src = f; }   // lp: muffle above that pitch
+  src.connect(g); let out = g;
   if(pan && c.createStereoPanner){ const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); out = p; }
   out.connect(AU.sfxBus);
   const wet = o.room ?? 1; if(wet > 0 && SND.roomIn){ if(wet === 1) out.connect(SND.roomIn); else { const w = c.createGain(); w.gain.value = wet; out.connect(w); w.connect(SND.roomIn); } }
@@ -1541,7 +1542,7 @@ function sndRoute(name, src){
     case 'hurt': S(cls + '_hurt', {vol:0.5, pv:0.03, gap:450}); return S('hero_impact', {vol:0.5});
     case 'pdeath': return S(cls + '_death', {vol:0.9, pv:0.02});
     case 'roll': case 'dodge': return S(['knight_roll', 'mage_slide', 'rogue_dash'][ci], {vol:0.6});
-    case 'step': return S(G.M && G.M.isTown ? 'step_grass' : ci ? 'step_light' : 'step_armor', {vol:ci ? 0.18 : 0.24, pv:0.08, gap:90, max:2, room:0.6});
+    case 'step': return S(G.M && G.M.isTown ? 'step_grass' : ci ? 'step_light' : 'step_armor', {vol:ci ? 0.15 : 0.19, pv:0.06, rate:0.9, lp:G.M && G.M.isTown ? 2000 : 1500, soft:0.018, gap:90, max:2, room:0.6});   // softer (2026-11-15, Mathis: "too sharp"): muffled, a touch lower and quieter, no click at the start
     case 'bash': return S('shield_bash', {vol:0.75});
     case 'charge': return mon ? S('aldren_charge', {vol:0.85, rate:mon.type === 'asura' ? 0.9 : 1}) : S('holy_charge', {vol:0.75});
     case 'whirl': return S('whirlwind', {vol:0.7}) && S('whirlwind', {vol:0.6, delay:1.0, gap:0});
