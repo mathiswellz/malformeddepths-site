@@ -541,7 +541,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.12';
+const GAME_VER = '0.1.13';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -3880,7 +3880,7 @@ void main(){
 
 // the finished picture (Full)
 const SH_COMP = `
-uniform sampler2D uScene, uLight, uDir, uBounce, uBloom, uWater;
+uniform sampler2D uScene, uLight, uDir, uBounce, uBloom, uWater, uFront;
 uniform vec3 uAmb;
 uniform vec4 uVig;
 uniform vec2 uTexel, uWorldSize;
@@ -3912,7 +3912,7 @@ void main(){
   light = min(light, 1.0) + (1.0 - exp(-max(light - 1.0, 0.0)))*0.1;   // strong light presses a little past the picture's own brightness, softly (each colour by itself, as the classic light clips)
   vec3 col = c*light;
   // lamps and fires streak in Palli's water
-  float wm = texture(uWater, p/uWorldSize).r*uWet;
+  float wm = texture(uWater, p/uWorldSize).r*uWet*(1.0 - texture(uFront, vUv).a);   // not on whoever stands in front of the water (FRONT, render.js)
   if(wm > 0.01){ vec3 gl = vec3(0.0);
     for(int i = 0; i < 8; i++){ if(i >= uNG) break; vec4 g = uG[i]; vec2 d = p - g.xy;
       d.x += sin(p.y*0.8 + uTime*2.2 + p.x*0.13)*1.6;
@@ -3971,6 +3971,7 @@ function shadeBuild(){
   gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
   SHADE.tSdf = shadeTex(gl, gl.LINEAR); SHADE.tVis = shadeTex(gl, gl.LINEAR); SHADE.tScene = shadeTex(gl, gl.LINEAR_MIPMAP_LINEAR);
   SHADE.tWater0 = shadeTex(gl, gl.LINEAR); gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 1, 1, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array([0]));
+  SHADE.tFront0 = shadeTex(gl, gl.LINEAR); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0])); SHADE.tFront = null;
   SHADE.water = {map:null, tex:null}; SHADE.sdf = {key:''}; SHADE.fb = {}; SHADE.size = ''; SHADE.visN = 0; SHADE.sceneKey = '';
   SHADE.aL = new Float32Array(SH_MAXL*4); SHADE.aC = new Float32Array(SH_MAXL*4); SHADE.aE = new Float32Array(SH_MAXE*4); SHADE.aH = new Float32Array(SH_MAXH*4); SHADE.aG = new Float32Array(32); SHADE.aGC = new Float32Array(32);
   SHADE.ok = true;
@@ -4023,14 +4024,26 @@ function shadeClear(S, L, need){   // move a light out of a wall, along the way 
 function shadeWater(M){
   const Wt = SHADE.water; if(Wt.map === M) return Wt.tex;
   const gl = SHADE.gl; Wt.map = M;
-  if(!M.isTown){ Wt.tex = SHADE.tWater0; return Wt.tex; }
+  Wt.ii = null; if(!M.isTown){ Wt.tex = SHADE.tWater0; return Wt.tex; }
   const c = mkCanvas(Math.ceil(M.w*TS/2), Math.ceil(M.h*TS/2)), x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#fff';
   for(let j = 0; j < M.h; j++) for(let i = 0; i < M.w; i++) if(tAt(M, i, j) === T_WATER) x.fillRect(i*TS/2 + 1, j*TS/2, TS/2 - 2, TS/2);
   try{ if(typeof TOWN_MAN !== 'undefined' && TOWN_MAN.puddles && townOK()) for(const p of TOWN_MAN.puddles){ x.beginPath(); x.ellipse(p[0]/2, p[1]/2, p[2]/2, p[3]/2, 0, 0, 7); x.fill(); } }catch(e){}
   if(!Wt.own) Wt.own = shadeTex(gl, gl.LINEAR);
   gl.bindTexture(gl.TEXTURE_2D, Wt.own); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, gl.RED, gl.UNSIGNED_BYTE, c);
+  try{ const d = x.getImageData(0, 0, c.width, c.height).data, W = c.width + 1, ii = new Int32Array(W*(c.height + 1));   // a running sum, for shadeWaterNear
+    for(let j = 0; j < c.height; j++){ let row = 0; for(let i = 0; i < c.width; i++){ row += d[(j*c.width + i)*4] > 20 ? 1 : 0; ii[(j + 1)*W + i + 1] = ii[j*W + i + 1] + row; } }
+    Wt.ii = ii; Wt.cw = c.width; Wt.ch = c.height; }catch(e){ Wt.ii = null; }
   Wt.tex = Wt.own; return Wt.tex;
 }
+// is there water anywhere in the world box (x0, y0)-(x1, y1)? (who stands near it goes into FRONT)
+function shadeWaterNear(M, x0, y0, x1, y1){ const Wt = SHADE.water; if(Wt.map !== M) shadeWater(M); const ii = Wt.ii; if(!ii) return false;
+  const W = Wt.cw + 1, cl = (v, n) => Math.max(0, Math.min(n, v)), a = cl(Math.floor(x0/2), Wt.cw), c = cl(Math.ceil(x1/2), Wt.cw), t = cl(Math.floor(y0/2), Wt.ch), d = cl(Math.ceil(y1/2), Wt.ch);
+  return ii[d*W + c] - ii[t*W + c] - ii[d*W + a] + ii[t*W + a] > 0; }
+// the pictures of whoever stands in front of the water this frame (or nothing), for the composite
+function shadeFront(){ const gl = SHADE.gl; if(typeof FRONT === 'undefined' || !FRONT.used) return SHADE.tFront0;
+  if(!SHADE.tFront) SHADE.tFront = shadeTex(gl, gl.LINEAR);
+  gl.activeTexture(gl.TEXTURE0 + 7); gl.bindTexture(gl.TEXTURE_2D, SHADE.tFront); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, FRONT.c); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); return SHADE.tFront; }
 // the canvas and the pictures drawn into on the way, sized for the level
 function shadeSize(mode){
   const touch = matchMedia('(pointer:coarse)').matches, ss = mode === 2 ? Math.min(2, Math.max(1, RES)) : touch ? 1 : Math.min(2, RES);
@@ -4107,7 +4120,7 @@ function shadeDraw(){
     const aH = SHADE.aH, aG = SHADE.aG, aGC = SHADE.aGC; let nHt = 0, nG = 0;
     for(const L of list){ if(L.hot && !L.hero && nHt < SH_MAXH && L.i > 0.5){ aH[nHt*4] = L.x; aH[nHt*4 + 1] = L.y; aH[nHt*4 + 2] = Math.min(26, L.r*0.4); aH[nHt*4 + 3] = 0.32*SHADE.k.heat*Math.min(1, L.i); nHt++; }
       if(M.isTown && nG < 8 && L.i > 0.3){ aG[nG*4] = L.x; aG[nG*4 + 1] = L.y; aG[nG*4 + 2] = L.r; aG[nG*4 + 3] = 0; aGC[nG*4] = L.c[0]*L.i; aGC[nG*4 + 1] = L.c[1]*L.i; aGC[nG*4 + 2] = L.c[2]*L.i; aGC[nG*4 + 3] = 0; nG++; } }
-    u = common(SHADE.pComp); bind(u.uScene, 2, SHADE.tScene); bind(u.uLight, 1, F.light.tex[0]); bind(u.uDir, 3, F.light.tex[1]); bind(u.uBounce, 4, F.bounce.tex[0]); bind(u.uBloom, 5, F.b1.tex[0]); bind(u.uWater, 6, shadeWater(M));
+    u = common(SHADE.pComp); bind(u.uScene, 2, SHADE.tScene); bind(u.uLight, 1, F.light.tex[0]); bind(u.uDir, 3, F.light.tex[1]); bind(u.uBounce, 4, F.bounce.tex[0]); bind(u.uBloom, 5, F.b1.tex[0]); bind(u.uWater, 6, shadeWater(M)); bind(u.uFront, 7, shadeFront());
     gl.uniform3f(u.uAmb, amb[0], amb[1], amb[2]); gl.uniform4f(u.uVig, VIG0, VIG1, vigK, 0); gl.uniform2f(u.uTexel, 1.5/buf.width, 1.5/buf.height); gl.uniform2f(u.uWorldSize, M.w*TS, M.h*TS);
     gl.uniform1f(u.uTime, t % 1000); gl.uniform1f(u.uBump, SHADE.k.bump); gl.uniform1f(u.uBloomK, SHADE.k.bloom); gl.uniform1f(u.uBounceK, 1);
     gl.uniform1f(u.uWet, M.isTown ? SHADE.k.wet*(typeof townCover === 'function' && townCover() > 0.4 ? 0.3 : 1) : 0);
@@ -4716,6 +4729,24 @@ function drawCastShadows(M, cx, cy){
   }
   if(clipped) b.restore();
 }
+// whoever stands in front of Palli's water: everything drawn for them goes into FRONT as well (half size), so the shader keeps
+// the lamps' reflections and the wet shine on the ground, not on the people and things in front of it (2026-11-17, player report:
+// the shimmer drew over the hero's legs). Only in town with Full lighting, only for what stands near water.
+const FRONT = {c:null, x:null, used:false, on:false}, B_DRAW = CanvasRenderingContext2D.prototype.drawImage;
+function frontBegin(M){ FRONT.used = false; FRONT.on = false; if(!M.isTown || typeof shadeLevel !== 'function') return; try{ FRONT.on = shadeLevel() === 2; }catch(e){} }
+function frontNear(M, e){ let x0, y0, x1, y1;
+  if(e.p){ x0 = e.p.x - 22; x1 = e.p.x + 22; y0 = e.p.y - 38; y1 = e.p.y + 3; }
+  else if(e.o){ x0 = e.o.x - 26; x1 = e.o.x + 26; y0 = e.o.y - 48; y1 = e.o.y + 3; }
+  else if(e.m){ x0 = e.m.x - 40; x1 = e.m.x + 40; y0 = e.m.y - 72; y1 = e.m.y + 4; }
+  else if(e.c){ x0 = e.c.x - 30; x1 = e.c.x + 30; y0 = e.c.y - 24; y1 = e.c.y + 4; }
+  else if(e.t){ const t = e.t, r = TOWN_MAN.s[t[0]]; if(!r) return false; const s = (t[4] || 1)/6; x0 = t[1] - r[2]*s; x1 = t[1] + r[2]*s; y0 = t[2] - r[3]*s; y1 = t[2] + 2; }
+  else return false;
+  return shadeWaterNear(M, x0, y0, x1, y1); }
+function frontOn(){ const w = Math.ceil(buf.width/2), h = Math.ceil(buf.height/2);
+  if(!FRONT.c || FRONT.c.width !== w || FRONT.c.height !== h){ FRONT.c = mkCanvas(w, h); FRONT.x = FRONT.c.getContext('2d'); }
+  if(!FRONT.used){ FRONT.x.setTransform(1, 0, 0, 1, 0, 0); FRONT.x.clearRect(0, 0, w, h); FRONT.used = true; }
+  b.drawImage = function(){ B_DRAW.apply(b, arguments); const t = b.getTransform(), x = FRONT.x; x.setTransform(t.a/2, t.b/2, t.c/2, t.d/2, t.e/2, t.f/2); x.globalAlpha = b.globalAlpha; B_DRAW.apply(x, arguments); }; }
+function frontOff(){ delete b.drawImage; }
 function drawShadow(x, y, w, a = 1){ if(a < 0.03) return; if(RES > 1){ b.fillStyle = `rgba(3,2,8,${(0.42*a).toFixed(3)})`; b.beginPath(); b.ellipse(x, y + 0.5, w*0.55, 2.2, 0, 0, 7); b.fill(); return; } b.fillStyle = 'rgba(3,2,8,.5)'; b.fillRect(Math.round(x - w/2), Math.round(y - 1), w, 2); b.fillRect(Math.round(x - w/2 + 1), Math.round(y), w - 2, 1); }
 function drawSpr(img, x, y, face, scale = 1){
   const w = img.width*scale, h = img.height*scale;
@@ -4930,10 +4961,10 @@ function render(){
     for(let y = y0; y <= y1; y++){ let s0 = -1; for(let x = x0; x <= x1 + 1; x++){ const on = x <= x1 && lipTile(M, x, y) && (s0 < 0 || Math.floor(x*TS/MCH) === Math.floor(s0*TS/MCH));
       if(on && s0 < 0) s0 = x; else if(!on && s0 >= 0){ drawList.push({y:y*TS + LIP, lip:[s0, y, x - s0]}); s0 = lipTile(M, x, y) && x <= x1 ? x : -1; } }
       if(s0 >= 0) drawList.push({y:y*TS + LIP, lip:[s0, y, x1 + 1 - s0]}); } }   // bottom walls go in front of whoever stands in their lip (sorted at the lip's edge: someone beside it in a corridor, further down, stays in front)
-  drawList.sort((a, c) => a.y - c.y);
-  for(const e of drawList){ if(e.lip){ drawLip(e.lip[0], e.lip[1], e.lip[2]); continue; } if(e.t) drawTownPlaced(e.t); else if(e.dk){ const pr = e.dk[4], S = DEPTH_MAN[M.theme].s;   // a broken urn leaves its shards (once ChatGPT's picture is in), an opened coffin shows its open picture
+  drawList.sort((a, c) => a.y - c.y); frontBegin(M);
+  for(const e of drawList){ const fo = FRONT.on && !e.lip && frontNear(M, e); if(fo) frontOn(); try{ if(e.lip){ drawLip(e.lip[0], e.lip[1], e.lip[2]); continue; } if(e.t) drawTownPlaced(e.t); else if(e.dk){ const pr = e.dk[4], S = DEPTH_MAN[M.theme].s;   // a broken urn leaves its shards (once ChatGPT's picture is in), an opened coffin shows its open picture
     if(pr && pr.broken){ if(S[e.dk[0] + '_broken']) depthKey(DA.img, S[e.dk[0] + '_broken'], e.dk[1], e.dk[2], e.dk[3]); }
-    else { const ok = pr && pr.opened && S[e.dk[0] + '_open'] ? e.dk[0] + '_open' : e.dk[0]; depthKey(DA.img, S[ok], e.dk[1], e.dk[2], e.dk[3]); if(pr && ok === e.dk[0]) drawPropState(pr); } } else if(e.o) drawObject(e.o); else if(e.m) drawMonster(e.m); else if(e.c) drawCorpse(e.c); else drawPlayer(e.p); }
+    else { const ok = pr && pr.opened && S[e.dk[0] + '_open'] ? e.dk[0] + '_open' : e.dk[0]; depthKey(DA.img, S[ok], e.dk[1], e.dk[2], e.dk[3]); if(pr && ok === e.dk[0]) drawPropState(pr); } } else if(e.o) drawObject(e.o); else if(e.m) drawMonster(e.m); else if(e.c) drawCorpse(e.c); else drawPlayer(e.p); } finally{ if(fo) frontOff(); } }
   // projectiles
   for(const p of G.projs){
     const pa = Math.atan2(p.vy, p.vx), pf = G.time*12 % 4;
