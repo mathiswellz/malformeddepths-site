@@ -6339,7 +6339,17 @@ function itemCard(it, ctx){
   const eq = P.eq[it.slot]; const cmp = eq && eq !== it;
   if(it.slot === 'weapon'){ const avg = (itMin(it) + itMax(it))/2; let diff = ''; if(cmp){ const d = avg - (itMin(eq) + itMax(eq))/2; diff = ` <span class="${d >= 0 ? 'good' : 'bad'}">(${d >= 0 ? '+' : ''}${d.toFixed(1)})</span>`; } h += `<div>Damage: ${itMin(it)}–${itMax(it)}${diff}</div><div class="sub">Attack speed: ${it.speed.toFixed(2)}</div>`; }
   if(it.armor){ let diff = ''; if(cmp){ const d = itArmor(it) - itArmor(eq); diff = ` <span class="${d >= 0 ? 'good' : 'bad'}">(${d >= 0 ? '+' : ''}${d})</span>`; } h += `<div>Armor: ${itArmor(it)}${diff}</div>`; }
-  it.affixes.forEach(a => h += `<div class="af">${affixLabel(a, it)}</div>`);
+  // extra stats: when another piece is equipped in that slot, each stat shows what swapping gains or loses, and stats only the
+  // equipped piece has are listed as losses (2026-11-17, Mathis: 12 vs 24 Vitality showed no difference)
+  const afTot = x => { const t = {}; x.affixes.forEach(a => t[a.id] = (t[a.id] || 0) + afVal(x, a)); return t; };
+  const tIt = cmp ? afTot(it) : null, tEq = cmp ? afTot(eq) : null, shown = {};
+  const pct = id => AFFIXES.find(x => x.id === id).label.startsWith('%') ? '%' : '';
+  it.affixes.forEach(a => {
+    let diff = '';
+    if(cmp && !shown[a.id]){ shown[a.id] = 1; const d = tIt[a.id] - (tEq[a.id] || 0); diff = ` <span class="${d > 0 ? 'good' : d < 0 ? 'bad' : 'sub'}">(${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)}${pct(a.id)})</span>`; }
+    h += `<div class="af">${affixLabel(a, it)}${diff}</div>`;
+  });
+  if(cmp) for(const id in tEq) if(!tIt[id]){ const af = AFFIXES.find(x => x.id === id); h += `<div class="bad">−${tEq[id]}${af.label.startsWith('%') ? af.label : ' ' + af.label} <span class="sub">(only on your equipped item)</span></div>`; }
   if(it.power){ const pw = powerDef(it.power); if(pw) h += `<div style="color:#ff4545">Heroic power: ${pw.name}</div>`; }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +10</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
