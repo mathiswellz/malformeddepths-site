@@ -350,6 +350,8 @@ img[src^="assets/icons/"]{image-rendering:auto!important}
 .cls.on{border-color:var(--gold);box-shadow:0 0 18px rgba(255,205,117,.35)}
 .cls img{height:min(120px,22vw);image-rendering:auto}
 #dlgopts .btn.seen{filter:brightness(.58) saturate(.7)}@media (hover:hover){#dlgopts .btn.seen:hover{filter:brightness(.72) saturate(.8)}}   /* asked already */
+.hrow{display:flex;gap:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:17px}.hrow .hk{flex:0 0 42%;color:var(--gold)}
+.faq{border-bottom:1px solid rgba(255,255,255,.08);padding:6px 0}.faq summary{cursor:pointer;color:var(--gold);font-size:18px}.faq div{padding:6px 0 4px 14px;font-size:17px;line-height:1.25}
 .clsinfo{display:grid}.clsinfo>div{grid-area:1/1;visibility:hidden}.clsinfo>div.on{visibility:visible}
 .cls h3{margin:2px 0;font-family:"Pirata One",serif;font-weight:normal;font-size:28px;color:var(--gold)}
 .cls p{margin:4px 0;font-size:17px;color:#cfc4e0;line-height:1.05}
@@ -6306,7 +6308,7 @@ function panelShell(title, body, foot, side){
   if(side && sideDetails(side === 'wide')) return `<div class="sidewin">${foot || '<div class="sub">Select an item to see its details here.</div>'}</div><div class="panel">${head}<div class="pb">${body}</div></div>`;
   return `<div class="panel">${head}<div class="pb">${body}</div>${foot ? `<div class="pf">${foot}</div>` : ''}</div>`;
 }
-const PANEL_FN = {get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }};
+const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }};
 function refreshPanel(){
   const p = UI.panel; if(!p) return; const m = $('modal');
   if(UI.duo && coop()){   // both heroes' pages side by side, each drawn as its own hero
@@ -6622,7 +6624,7 @@ function renderJournal(){
   return panelShell('Journal', h);
 }
 function renderMenu(){
-  return panelShell('Paused', `<div class="mbtns" style="width:100%"><button class="btn" onclick="closePanel()">Resume</button><button class="btn" onclick="saveGame();toast('Game saved.','#a7f070');closePanel()">Save Game</button><button class="btn" onclick="UI.panel='saves';refreshPanel()">Load Game</button><button class="btn" onclick="UI.panel='settings';refreshPanel()">Settings</button><button class="btn" onclick="openReport()">Report a Bug / Share an Idea</button><button class="btn red" onclick="quitToMenu()">Save & Quit to Main Menu</button></div><div class="sub" style="margin-top:10px;font-size:16px">${isTouch ? '' : 'Keys: WASD move · Mouse aim & attack · 1–5 skill slots (right click = slot 1) · Q/R potions · E interact · T town portal · M map · I inventory · C character · K skills · J journal'}${isTouch ? '' : '<br>' + PAD_HELP}</div>`);
+  return panelShell('Paused', `<div class="mbtns" style="width:100%"><button class="btn" onclick="closePanel()">Resume</button><button class="btn" onclick="saveGame();toast('Game saved.','#a7f070');closePanel()">Save Game</button><button class="btn" onclick="UI.panel='saves';refreshPanel()">Load Game</button><button class="btn" onclick="UI.panel='settings';refreshPanel()">Settings</button><button class="btn" onclick="UI.panel='help';UI.helpTab=null;refreshPanel()">Help &amp; FAQ</button><button class="btn" onclick="openReport()">Report a Bug / Share an Idea</button><button class="btn red" onclick="quitToMenu()">Save & Quit to Main Menu</button></div>`);
 }
 function slotSummary(d){ const P = d.P, un = P.unlocked || {}; const top = un.malformed ? 'malformed' : un.nightmare ? 'nightmare' : 'breeze'; return `Lv ${P.lvl} ${CLASSES[P.cls].name} · <span style="color:${DIFFS[top].color}">${DIFFS[top].name}</span> · Depth ${Math.min(10, (P.done || 0) + 1)}`; }
 function renderSaves(){
@@ -7142,6 +7144,39 @@ async function sendReport(){
   try{ await reportPost(r); toast(r.kind === 'bug' ? 'Bug report sent. Thank you!' : 'Idea sent. Thank you!', '#a7f070'); }
   catch(e){ const q = reportQueue(); q.push(r); stSet('md_reports', JSON.stringify(q.slice(-20))); toast('Saved. It will send the next time you are online.', '#ffcd75'); }
   RPT.text = ''; closePanel(); reportFlush();
+}
+
+// ---- Help & FAQ (pause menu). Controls are built from the player's own key choices; HELP_FAQ is the list to grow as questions come in.
+const HELP_FAQ = [
+  ['How do I save?', 'Open the pause menu and choose Save Game. The game also saves by itself as you play, and Save & Quit saves before going back to the main menu.'],
+  ['How do I get back to Palli?', 'Open a town portal (T on a keyboard by default, the touchpad on a controller). The portal you open in the depths waits beside the standing stone in Palli, so you can step back down to where you left off.'],
+  ['How do Nightmare and Malformed open up?', 'Every hero begins in Breeze. Conquer the depths and the harder difficulties open, with stronger monsters and better rewards. Change difficulty at the Rift.'],
+  ['Why are some questions darker when I talk to someone?', "You've already asked those. You can still ask again; the darker shade just shows what you haven't heard yet."],
+  ['Can I change the keys?', 'Yes: Settings → Controls. Pick any action and press the key you want.'],
+  ['The game feels slow on my device.', 'Open Settings and lower Graphics or Lighting. The game also turns lighting down on its own if it notices slow frames.'],
+  ['I found a bug, or I have an idea.', 'Open the pause menu and choose Report a Bug / Share an Idea. Every report is read.'],
+];
+function helpKeys(){
+  const row = (keys, what) => `<div class="hrow"><span class="hk">${keys}</span><span>${what}</span></div>`, k = a => bindKey(a), k2 = a => { const b = BIND[a] || []; return [b[0], b[1]].filter(Boolean).map(keyName).join(' or '); };
+  return row(`${k('up')} ${k('left')} ${k('down')} ${k('right')}`, 'Move') + row('Mouse', 'Aim; left click attacks') + row('Right click', 'Skill 1')
+    + row(`${k('s1')} – ${k('s5')}`, 'Skills in your five slots') + row(k2('dodge'), 'Dodge') + row(k2('interact'), 'Talk, open, read, pick up')
+    + row(`${k('hp')} / ${k('mp')}`, 'Health / mana potion') + row(k('oils'), 'Weapon oils') + row(k('portal'), 'Town portal')
+    + row(k2('inv'), 'Bag') + row(k('char'), 'Character') + row(k('skills'), 'Skills') + row(k('journal'), 'Journal') + row(k('map'), 'Full map') + row(k('overlay'), 'Map over the screen')
+    + row('Esc', 'Pause menu, or close a window') + `<div class="sub" style="margin-top:6px">Change any key in Settings → Controls.</div>`;
+}
+function helpPad(){ return PAD_HELP.replace(/^Controller:\s*/, '').split(' · ').map(s => { const m = /^(.*?)\s+(move|aim|attack|dodge|talk.*|your five skill slots|health potion|mana potion|oils|map|town portal|bag.*|pause|in menus.*)$/.exec(s); return m ? `<div class="hrow"><span class="hk">${m[1]}</span><span>${m[2][0].toUpperCase() + m[2].slice(1)}</span></div>` : `<div class="hrow"><span></span><span>${s}</span></div>`; }).join(''); }
+function helpTouch(){
+  const row = (keys, what) => `<div class="hrow"><span class="hk">${keys}</span><span>${what}</span></div>`;
+  return row('Drag anywhere on the left', 'Move') + row('Big round button', 'Attack (hold to keep swinging)') + row('Small round buttons', 'Your skills') + row('Roll / Dash / Slide', 'Dodge')
+    + row('Talk / Open', 'Shows up when something is close enough') + row('Red / blue flasks', 'Health / mana potion') + row('Top-right icons', 'Settings, bag, character, skills, journal, map');
+}
+function renderHelp(){
+  const tab = UI.helpTab || (isTouch ? 'touch' : 'keys');
+  const T = [['keys', 'Keyboard'], ['pad', 'Controller'], ['touch', 'Touch'], ['faq', 'FAQ']];
+  const tabs = `<div class="row" style="gap:6px;margin-bottom:10px;flex-wrap:wrap">${T.map(([k, n]) => `<button class="btn sm" style="${k === tab ? 'border-color:var(--gold);color:var(--gold)' : 'opacity:.75'}" onclick="UI.helpTab='${k}';refreshPanel()">${n}</button>`).join('')}</div>`;
+  const body = tab === 'faq' ? HELP_FAQ.map(([q, a]) => `<details class="faq"><summary>${q}</summary><div>${a}</div></details>`).join('')
+    : tab === 'pad' ? helpPad() : tab === 'touch' ? helpTouch() : helpKeys();
+  return panelShell('Help & FAQ', `<div style="width:100%">${tabs}<div class="helpbody">${body}</div><div class="row" style="margin-top:12px;justify-content:center"><button class="btn" onclick="UI.panel='menu';refreshPanel()">Back</button></div></div>`);
 }
 
 // ============ CO-OP: two heroes on one screen + controllers (PC build) ============
