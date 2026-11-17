@@ -349,6 +349,7 @@ img[src^="assets/icons/"]{image-rendering:auto!important}
 .cls{flex:1 1 0;min-width:0;max-width:240px;border:2px solid var(--edge);background:rgba(18,14,24,.92);padding:10px;border-radius:6px;text-align:center}
 .cls.on{border-color:var(--gold);box-shadow:0 0 18px rgba(255,205,117,.35)}
 .cls img{height:min(120px,22vw);image-rendering:auto}
+#dlgopts .btn.seen{filter:brightness(.58) saturate(.7)}#dlgopts .btn.seen:hover{filter:brightness(.75) saturate(.8)}   /* asked already */
 .clsinfo{display:grid}.clsinfo>div{grid-area:1/1;visibility:hidden}.clsinfo>div.on{visibility:visible}
 .cls h3{margin:2px 0;font-family:"Pirata One",serif;font-weight:normal;font-size:28px;color:var(--gold)}
 .cls p{margin:4px 0;font-size:17px;color:#cfc4e0;line-height:1.05}
@@ -6840,13 +6841,18 @@ function renderRift(){
 
 // ---------------- dialog & notes ----------------
 const PORTRAIT = {ganesh:'ganesh', karmara:'karmara', vaidya:'vaidya'};
+let DLG_PICK = null;
 function showDialog(who, text, options, kind){
   UI.dialog = true; INPUT.attack = false;
   const w = $('dlgwrap'); w.classList.remove('hide');
   const pid = PORTRAIT[kind] || (kind === 'boss' ? bossPortrait(who) : null);
   const pt = pid ? `<div class="pt"><img src="${portraitURL(pid)}"></div>` : kind === 'boss' ? '<div class="pt" style="font-size:54px;text-align:center">👁</div>' : '';
   w.innerHTML = `<div class="dlg fadein">${pt}<div class="tx">${who ? `<div class="who" style="${kind === 'boss' ? 'color:#ff8a8a' : ''}">${esc(who)}</div>` : ''}<div class="body">${esc(text)}</div><div class="row" id="dlgopts"></div></div></div>`;
-  options.forEach((o, i) => { const bt = document.createElement('button'); bt.className = 'btn' + (i === 0 ? ' gold' : ''); bt.textContent = o.label; bt.onclick = () => { sfx('click'); o.fn(); }; $('dlgopts').appendChild(bt); });
+  // a topic the hero has already asked about shows darker (still pickable). A choice counts as a topic when it opens more talk with the same person.
+  if(DLG_PICK && DLG_PICK.who === who && G.P){ (G.P.topicsSeen = G.P.topicsSeen || {})[DLG_PICK.key] = 1; }
+  DLG_PICK = null;
+  options.forEach((o, i) => { const bt = document.createElement('button'), key = who + '|' + o.label; bt.className = 'btn' + (i === 0 ? ' gold' : '') + (G.P && G.P.topicsSeen && G.P.topicsSeen[key] ? ' seen' : ''); bt.textContent = o.label;
+    bt.onclick = () => { sfx('click'); DLG_PICK = {who, key}; o.fn(); DLG_PICK = null; }; $('dlgopts').appendChild(bt); });
   $('dlgopts').classList.toggle('many', options.length > 3 || options.some(o => o.label.length > 22));   // a list of questions: one per line
 }
 // ---------------- cutscenes: full-screen stills with a slow push-in and a line of text ----------------
