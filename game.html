@@ -349,6 +349,7 @@ img[src^="assets/icons/"]{image-rendering:auto!important}
 .cls{flex:1 1 0;min-width:0;max-width:240px;border:2px solid var(--edge);background:rgba(18,14,24,.92);padding:10px;border-radius:6px;text-align:center}
 .cls.on{border-color:var(--gold);box-shadow:0 0 18px rgba(255,205,117,.35)}
 .cls img{height:min(120px,22vw);image-rendering:auto}
+.clsinfo{display:grid}.clsinfo>div{grid-area:1/1;visibility:hidden}.clsinfo>div.on{visibility:visible}
 .cls h3{margin:2px 0;font-family:"Pirata One",serif;font-weight:normal;font-size:28px;color:var(--gold)}
 .cls p{margin:4px 0;font-size:17px;color:#cfc4e0;line-height:1.05}
 .diffs{display:flex;gap:6px;width:min(720px,96vw);flex-wrap:wrap;justify-content:center}
@@ -6977,14 +6978,23 @@ function createBack(){ if(CREATE.coop){ const n = CREATE.coop; CREATE.coop = 0; 
 const DEFAULT_NAMES = {knight:'Aric', mage:'Selene', rogue:'Vex'};
 function showCreate(slot){
   CREATE.slot = slot; sfx('click'); menuScene('dim');
-  const C = CLASSES, sel = C[CREATE.cls];
+  const C = CLASSES;
   let h = `<h2 class="st">Create Your Hero</h2><div class="classes">`;
-  for(const k in C){ const c = C[k]; h += `<button class="cls${CREATE.cls === k ? ' on' : ''}" onclick="CREATE.cls='${k}';CREATE.name=CREATE.typed?document.getElementById('nmIn').value:'';showCreate(${slot})"><img src="${heroPic(k, 5, CLASS_COLORS[k])}"><h3>${c.name}</h3></button>`; }
-  h += `</div><div class="card" style="width:min(720px,96vw);margin-top:8px"><div style="font-size:20px">${sel.desc}</div><div class="sub">STR ${sel.base.str} · DEX ${sel.base.dex} · INT ${sel.base.int} · VIT ${sel.base.vit} · ${sel.armor === 'heavy' ? 'Heavy armor' : sel.armor === 'cloth' ? 'Cloth armor' : 'Leather armor'} · ${sel.weapons.join(', ')}</div><div style="color:var(--gold);font-size:17px">Skills: ${sel.skills.map(s => s.name).join(' · ')}</div></div>`;
+  for(const k in C){ const c = C[k]; h += `<button class="cls${CREATE.cls === k ? ' on' : ''}" data-cls="${k}" onclick="pickClass('${k}')"><img src="${heroPic(k, 5, CLASS_COLORS[k])}"><h3>${c.name}</h3></button>`; }
+  // every hero's text sits in the same spot, the unpicked ones hidden: the card is always as tall as the longest, so nothing moves when you switch
+  h += `</div><div class="card clsinfo" style="width:min(720px,96vw);margin-top:8px">`;
+  for(const k in C){ const sel = C[k]; h += `<div data-cls="${k}"${CREATE.cls === k ? ' class="on"' : ''}><div style="font-size:20px">${sel.desc}</div><div class="sub">STR ${sel.base.str} · DEX ${sel.base.dex} · INT ${sel.base.int} · VIT ${sel.base.vit} · ${sel.armor === 'heavy' ? 'Heavy armor' : sel.armor === 'cloth' ? 'Cloth armor' : 'Leather armor'} · ${sel.weapons.join(', ')}</div><div style="color:var(--gold);font-size:17px">Skills: ${sel.skills.map(s => s.name).join(' · ')}</div></div>`; }
+  h += `</div>`;
   h += `<div style="margin:12px 0 4px">Name</div><input class="nm" id="nmIn" maxlength="16" value="${esc(CREATE.name || DEFAULT_NAMES[CREATE.cls])}" oninput="CREATE.name=this.value;CREATE.typed=true;document.getElementById('nmErr').textContent=''"><div id="nmErr" style="color:#e43b44;font-size:18px;min-height:22px;margin-top:4px"></div>`;
   h += `<div class="sub" style="margin-top:10px;text-align:center;max-width:520px">Every hero begins in <span style="color:${DIFFS.breeze.color}">Breeze</span>. <span style="color:${DIFFS.nightmare.color}">Nightmare</span> and <span style="color:${DIFFS.malformed.color}">Malformed</span> open as you conquer the depths.</div>`;
   h += `<div class="row" style="margin-top:16px;justify-content:center"><button class="btn" onclick="createBack()">Back</button><button class="btn gold" style="font-size:26px" onclick="beginGame()">Begin</button></div>`;
   screen(h);
+}
+function pickClass(k){   // switch hero in place: no redraw, no fade, nothing shifts
+  if(CREATE.cls === k) return; CREATE.cls = k; sfx('click');
+  document.querySelectorAll('.classes .cls').forEach(b => b.classList.toggle('on', b.dataset.cls === k));
+  document.querySelectorAll('.clsinfo > div').forEach(d => d.classList.toggle('on', d.dataset.cls === k));
+  const n = document.getElementById('nmIn'); if(n && !CREATE.typed){ n.value = DEFAULT_NAMES[k]; CREATE.name = ''; }
 }
 function beginGame(){
   auInit(); const name = (document.getElementById('nmIn').value || DEFAULT_NAMES[CREATE.cls]).trim().slice(0, 16) || DEFAULT_NAMES[CREATE.cls];
