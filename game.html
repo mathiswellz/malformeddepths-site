@@ -325,7 +325,7 @@ img[src^="assets/icons/"]{image-rendering:auto!important}
 .mbtns.intro{animation:mbIn 1.3s ease-out 2.5s both}
 @keyframes mbIn{0%{opacity:0;visibility:hidden;transform:translateY(10px)}1%{visibility:visible}100%{opacity:1;visibility:visible;transform:none}}
 .mbtns .btn{background:linear-gradient(rgba(44,12,20,.84),rgba(16,6,12,.9));border:1px solid rgba(228,59,68,.45);box-shadow:0 0 0 1px #000,0 6px 18px rgba(0,0,0,.6);transition:border-color .2s,box-shadow .2s,color .2s}
-.mbtns .btn:hover{border-color:rgba(255,120,120,.9);box-shadow:0 0 0 1px #000,0 0 20px rgba(228,59,68,.4)}
+.mbtns @media (hover:hover){.btn:hover{border-color:rgba(255,120,120,.9);box-shadow:0 0 0 1px #000,0 0 20px rgba(228,59,68,.4)}}   /* only with a real mouse: a phone keeps 'hover' on whatever sits under the last tap */
 .mbtns .btn.gold{border-color:rgba(255,190,110,.75)}
 @media (orientation:landscape) and (max-height:520px){
   #logoSlot{max-width:min(1500px,calc((100vh - 118px)*16/9));margin-bottom:8px}
@@ -349,7 +349,7 @@ img[src^="assets/icons/"]{image-rendering:auto!important}
 .cls{flex:1 1 0;min-width:0;max-width:240px;border:2px solid var(--edge);background:rgba(18,14,24,.92);padding:10px;border-radius:6px;text-align:center}
 .cls.on{border-color:var(--gold);box-shadow:0 0 18px rgba(255,205,117,.35)}
 .cls img{height:min(120px,22vw);image-rendering:auto}
-#dlgopts .btn.seen{filter:brightness(.58) saturate(.7)}#dlgopts .btn.seen:hover{filter:brightness(.75) saturate(.8)}   /* asked already */
+#dlgopts .btn.seen{filter:brightness(.58) saturate(.7)}@media (hover:hover){#dlgopts .btn.seen:hover{filter:brightness(.72) saturate(.8)}}   /* asked already */
 .clsinfo{display:grid}.clsinfo>div{grid-area:1/1;visibility:hidden}.clsinfo>div.on{visibility:visible}
 .cls h3{margin:2px 0;font-family:"Pirata One",serif;font-weight:normal;font-size:28px;color:var(--gold)}
 .cls p{margin:4px 0;font-size:17px;color:#cfc4e0;line-height:1.05}
