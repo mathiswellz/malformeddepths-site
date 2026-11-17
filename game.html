@@ -4138,7 +4138,7 @@ const HDIR_MAN = {"knight":{"atk_n_1":[348,1016,114,115,67.0,0],"atk_n_2":[1086,
 const HDIR_IMG = {}, HDIR_SEC = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
 const HDIR_SRC = {e:['e', 0], se:['se', 0], s:['s', 0], sw:['se', 1], w:['e', 1], nw:['ne', 1], n:['n', 0], ne:['ne', 0]};   // [frames, mirrored]
 const HDIR_NDDG = {}; for(const c in HDIR_MAN) HDIR_NDDG[c] = Object.keys(HDIR_MAN[c]).filter(k => k.startsWith('ddg_e_')).length;
-function hdirImg(c){ let im = HDIR_IMG[c]; if(!im && HDIR_MAN[c]){ im = HDIR_IMG[c] = new Image(); im.src = 'assets/hero_' + c + '_dirs.webp?v=5'; } return im && im.naturalWidth ? im : null; }
+function hdirImg(c){ let im = HDIR_IMG[c]; if(!im && HDIR_MAN[c]){ im = HDIR_IMG[c] = new Image(); im.src = 'assets/hero_' + c + '_dirs.webp?v=6'; } return im && im.naturalWidth ? im : null; }
 function heroAngle(P, st){                       // where the hero looks: the dodge's way, the blow's way, the mouse (PC), else the way they last moved
   if(P.dodge) return P.dodge.ang;
   if(P.swing || P.cast || P.ult || G.time - st.a < 0.4) return P.aim ?? (P.face < 0 ? Math.PI : 0);
