@@ -461,7 +461,7 @@ const DEMO_TEXT = `You have reached the end of the free demo.\n\nBelow the Weepi
 // every write goes to localStorage at once and to the database a moment later, one write at a time per save.
 // graphics level: 2 Sharp, 1 Balanced, 0 Battery saver (phones start on Balanced). render.js resize() reads it, so it must exist before render.js runs
 const SH_URL = (() => { try{ const v = new URLSearchParams(location.search).get('shade'); return v == null || v === '' ? null : Math.max(0, Math.min(2, +v || 0)); }catch(e){ return null; } })();   // ?shade=0..2 forces a lighting level (tests)
-const GFX = {q:matchMedia('(pointer:coarse)').matches ? 1 : 2, low:false, minFrame:0, uis:1, sh:SH_URL != null ? SH_URL : matchMedia('(pointer:coarse)').matches ? 1 : 2};   // uis: the interface size from Settings (1 = 100%)
+const GFX = {cz:1, q:matchMedia('(pointer:coarse)').matches ? 1 : 2, low:false, minFrame:0, uis:1, sh:SH_URL != null ? SH_URL : matchMedia('(pointer:coarse)').matches ? 1 : 2};   // uis: the interface size from Settings (1 = 100%)
 const STORE = {cache:{}, ready:false, cloud:false, col:null, last:{}, dirty:{}, busy:{}, timer:{}, failed:false, note:''};
 function stLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function stGet(k){ return Object.prototype.hasOwnProperty.call(STORE.cache, k) ? STORE.cache[k] : stLocal(k); }
@@ -541,7 +541,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.7';
+const GAME_VER = '0.1.11';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -4631,13 +4631,13 @@ function resize(){
   cv.style.imageRendering = DPR < dev - 0.01 ? 'auto' : '';   // a smooth upscale, not uneven blocky pixels
   GFX.minFrame = GFX.low ? 1000/30 - 2 : 1000/60 - 2;           // at most 60 frames a second (30 on Battery saver), even on 120 Hz screens
   if(touch && !q){   // phones: the same 11 tiles across the short side at every graphics level; only the sharpness of the picture changes
-    const zc = Math.min(innerWidth, innerHeight)/(11*TS);
+    const zc = Math.min(innerWidth, innerHeight)/(11*TS)*(GFX.cz || 1);   // cz: the player's camera zoom (Settings, mouse wheel, Z)
     BW = Math.ceil(innerWidth/zc); BH = Math.ceil(innerHeight/zc); zoom = cv.width/BW;
     RES = Math.max(1, Math.min(6, Math.floor(zoom + 0.3)));
   } else {
-    zoom = Math.max(2, Math.floor(Math.min(cv.width, cv.height)/(11*TS)));
+    zoom = Math.max(2, Math.floor(Math.min(cv.width, cv.height)/(11*TS)))*(GFX.cz || 1);
     BW = Math.ceil(cv.width/zoom); BH = Math.ceil(cv.height/zoom);
-    RES = q === 'full' ? zoom : q === 'low' ? 1 : +q || Math.min(zoom, [3, 4, 6][GFX.q]);
+    RES = q === 'full' ? Math.floor(zoom) : q === 'low' ? 1 : +q || Math.min(Math.floor(zoom), [3, 4, 6][GFX.q]);
   }   // HD by default (the art is drawn at 6 screen px per world px, so no more than 6)
   buf.width = BW*RES; buf.height = BH*RES;
   if(WORLD_EL){ WORLD_EL.style.width = (BW*zoom/DPR) + 'px'; WORLD_EL.style.height = (BH*zoom/DPR) + 'px'; WORLD_EL.style.imageRendering = RES <= 1 && zoom > 1 ? 'pixelated' : 'auto'; }
@@ -5688,11 +5688,11 @@ const UI = {panel:null, dialog:false, dirty:true, sel:null, tab:'buy', journalSe
 const BIND_DEFAULT = {up:['w', 'arrowup'], left:['a', 'arrowleft'], down:['s', 'arrowdown'], right:['d', 'arrowright'],
   s1:['1', null], s2:['2', null], s3:['3', null], s4:['4', null], s5:['5', 'v'], dodge:[' ', 'shift'], interact:['e', 'f'],
   hp:['q', null], mp:['r', null], portal:['t', null], inv:['i', 'b'], char:['c', null], skills:['k', null], journal:['j', null],
-  map:['m', null], overlay:['tab', null], oils:['o', null]};
+  map:['m', null], overlay:['tab', null], oils:['o', null], zoom:['z', null]};
 const BIND_NAMES = [['up', 'Move up'], ['left', 'Move left'], ['down', 'Move down'], ['right', 'Move right'], ['s1', 'Skill 1'], ['s2', 'Skill 2'],
   ['s3', 'Skill 3'], ['s4', 'Skill 4'], ['s5', 'Skill 5'], ['dodge', 'Dodge'], ['interact', 'Talk, read, pick up'], ['hp', 'Health potion'],
   ['mp', 'Mana potion'], ['portal', 'Town portal'], ['inv', 'Bag'], ['char', 'Character'], ['skills', 'Skills'], ['journal', 'Journal'],
-  ['map', 'Full map'], ['overlay', 'Map in the middle'], ['oils', 'Weapon oils']];
+  ['map', 'Full map'], ['overlay', 'Map in the middle'], ['oils', 'Weapon oils'], ['zoom', 'Zoom in (then back out)']];
 const BIND = JSON.parse(JSON.stringify(BIND_DEFAULT));
 function keyAct(k){ for(const a in BIND) if(BIND[a].includes(k)) return a; return null; }
 function keyName(k){
@@ -6633,9 +6633,9 @@ function renderSaves(){
   return panelShell('Load Hero', h + '</div>');
 }
 function renderSettings(){
-  return panelShell('Settings', `${setRows('game')}${gfxRow('refreshPanel()')}${shadeRow('refreshPanel()')}${uiRow()}<div>Music volume</div><input type="range" min="0" max="100" value="${Math.round(AU.musicVol*100)}" oninput="setVolumes(this.value/100, AU.sfxVol);saveSettings()"><div style="margin-top:10px">Sound effects volume</div><input type="range" min="0" max="100" value="${Math.round(AU.sfxVol*100)}" oninput="setVolumes(AU.musicVol, this.value/100);saveSettings();sfx('hit')"><div style="margin-top:10px">Narration volume</div><input type="range" min="0" max="100" value="${Math.round(VO.vol*100)}" oninput="setVoiceVol(this.value/100);saveSettings()"><div class="row" style="margin-top:14px"><button class="btn" onclick="UI.panel=G.state==='play'?'menu':null;if(UI.panel)refreshPanel();else closePanel()">Back</button></div>`);
+  return panelShell('Settings', `${setRows('game')}${gfxRow('refreshPanel()')}${shadeRow('refreshPanel()')}${zoomRow()}${uiRow()}<div>Music volume</div><input type="range" min="0" max="100" value="${Math.round(AU.musicVol*100)}" oninput="setVolumes(this.value/100, AU.sfxVol);saveSettings()"><div style="margin-top:10px">Sound effects volume</div><input type="range" min="0" max="100" value="${Math.round(AU.sfxVol*100)}" oninput="setVolumes(AU.musicVol, this.value/100);saveSettings();sfx('hit')"><div style="margin-top:10px">Narration volume</div><input type="range" min="0" max="100" value="${Math.round(VO.vol*100)}" oninput="setVoiceVol(this.value/100);saveSettings()"><div class="row" style="margin-top:14px"><button class="btn" onclick="UI.panel=G.state==='play'?'menu':null;if(UI.panel)refreshPanel();else closePanel()">Back</button></div>`);
 }
-function saveSettings(){ stSet('md_settings', JSON.stringify({m:AU.musicVol, s:AU.sfxVol, v:VO.vol, mini:UI.miniOn, gq:GFX.q, us:GFX.uis, sh:GFX.sh, ms:UI.mapShow, ma:UI.mapAlpha, mo:UI.mapOver, mz:UI.mapZoom, kb:BIND, tr:UI.trailerOn})); }
+function saveSettings(){ stSet('md_settings', JSON.stringify({m:AU.musicVol, s:AU.sfxVol, v:VO.vol, mini:UI.miniOn, gq:GFX.q, us:GFX.uis, sh:GFX.sh, cz:GFX.cz, ms:UI.mapShow, ma:UI.mapAlpha, mo:UI.mapOver, mz:UI.mapZoom, kb:BIND, tr:UI.trailerOn})); }
 // Interface size: 70% to 130% (past that the phone's controls run out of room); the label follows the slider, the size changes when it is let go (on a PC the menus resize with it)
 function uiRow(){ const p = Math.round((GFX.uis || 1)*100);
   return `<div style="margin-top:10px">Interface size <span class="sub">(${p}%)</span><div class="sub" style="font-size:14px">${isTouch ? 'The buttons, skills, potions and flasks' : 'The bars, buttons and menus'}</div></div><input type="range" min="70" max="130" step="5" value="${p}" oninput="this.previousElementSibling.querySelector('.sub').textContent='('+this.value+'%)'" onchange="setUISize(this.value/100)">`; }
@@ -6652,6 +6652,7 @@ function loadSettings(){ try{ const s = JSON.parse(stGet('md_settings')); if(s){
     if(s.ms) UI.mapShow = s.ms; if(s.ma != null) UI.mapAlpha = s.ma; if(s.mo != null) UI.mapOver = s.mo; if(s.mz != null) UI.mapZoom = s.mz; if(s.tr != null) UI.trailerOn = s.tr;
     if(s.kb) for(const a in BIND_DEFAULT) if(Array.isArray(s.kb[a])) BIND[a] = [s.kb[a][0] || null, s.kb[a][1] || null];
     if(s.us) GFX.uis = clamp(+s.us || 1, 0.7, 1.3);
+    if(s.cz && +s.cz !== GFX.cz){ GFX.cz = clamp(+s.cz || 1, 1, 2); resize(); }
     if(s.sh != null && SH_URL == null) GFX.sh = clamp(+s.sh || 0, 0, 2);
     refreshKeyHints(); setUIVars(); TOUCH.placed = false; const gq = s.gq != null ? s.gq : s.low ? 0 : null; if(gq != null && gq !== GFX.q){ GFX.q = gq; resize(); } } }catch(e){} }
 function quitToMenu(){ saveGame(); closePanel(); G.state = 'menu'; showHUD(false); G.heroes = null; INPUT = INPUT1; UI.owner = UI.padOwner = null; G.P = null; G.M = null; showMainMenu(); }
@@ -7161,14 +7162,14 @@ function helpKeys(){
   return row(`${k('up')} ${k('left')} ${k('down')} ${k('right')}`, 'Move') + row('Mouse', 'Aim; left click attacks') + row('Right click', 'Skill 1')
     + row(`${k('s1')} – ${k('s5')}`, 'Skills in your five slots') + row(k2('dodge'), 'Dodge') + row(k2('interact'), 'Talk, open, read, pick up')
     + row(`${k('hp')} / ${k('mp')}`, 'Health / mana potion') + row(k('oils'), 'Weapon oils') + row(k('portal'), 'Town portal')
-    + row(k2('inv'), 'Bag') + row(k('char'), 'Character') + row(k('skills'), 'Skills') + row(k('journal'), 'Journal') + row(k('map'), 'Full map') + row(k('overlay'), 'Map over the screen')
+    + row(k2('inv'), 'Bag') + row(k('char'), 'Character') + row(k('skills'), 'Skills') + row(k('journal'), 'Journal') + row(k('map'), 'Full map') + row(k('overlay'), 'Map over the screen') + row(`Mouse wheel or ${k('zoom')}`, 'Zoom the camera in and out')
     + row('Esc', 'Pause menu, or close a window') + `<div class="sub" style="margin-top:6px">Change any key in Settings → Controls.</div>`;
 }
 function helpPad(){ return PAD_HELP.replace(/^Controller:\s*/, '').split(' · ').map(s => { const m = /^(.*?)\s+(move|aim|attack|dodge|talk.*|your five skill slots|health potion|mana potion|oils|map|town portal|bag.*|pause|in menus.*)$/.exec(s); return m ? `<div class="hrow"><span class="hk">${m[1]}</span><span>${m[2][0].toUpperCase() + m[2].slice(1)}</span></div>` : `<div class="hrow"><span></span><span>${s}</span></div>`; }).join(''); }
 function helpTouch(){
   const row = (keys, what) => `<div class="hrow"><span class="hk">${keys}</span><span>${what}</span></div>`;
   return row('Drag anywhere on the left', 'Move') + row('Big round button', 'Attack (hold to keep swinging)') + row('Small round buttons', 'Your skills') + row('Roll / Dash / Slide', 'Dodge')
-    + row('Talk / Open', 'Shows up when something is close enough') + row('Red / blue flasks', 'Health / mana potion') + row('Top-right icons', 'Settings, bag, character, skills, journal, map');
+    + row('Talk / Open', 'Shows up when something is close enough') + row('Red / blue flasks', 'Health / mana potion') + row('Top-right icons', 'Settings, bag, character, skills, journal, map') + row('Settings → Camera zoom', 'Get closer to your hero');
 }
 function renderHelp(){
   const tab = UI.helpTab || (isTouch ? 'touch' : 'keys');
@@ -7178,6 +7179,21 @@ function renderHelp(){
     : tab === 'pad' ? helpPad() : tab === 'touch' ? helpTouch() : helpKeys();
   return panelShell('Help & FAQ', `<div style="width:100%">${tabs}<div class="helpbody">${body}</div><div class="row" style="margin-top:12px;justify-content:center"><button class="btn" onclick="UI.panel='menu';refreshPanel()">Back</button></div></div>`);
 }
+
+// ---- camera zoom (a player's idea, 2026-11-17): 100% to 200% in quarter steps. Mouse wheel or Z on a PC; Settings slider anywhere.
+// Closer in, the art is enlarged past the size it's drawn at, so it softens a little at the top end.
+function setCamZoom(v, say){ const z = clamp(Math.round(v*4)/4, 1, 2); if(z === GFX.cz) return; GFX.cz = z; resize(); saveSettings(); UI.dirty = true;
+  if(say) toast(`Zoom ${Math.round(z*100)}%`, '#c8a86a'); }
+function zoomRow(){ return `<div class="row" style="justify-content:space-between;margin:10px 0"><span>Camera zoom</span><span id="czv" style="color:var(--gold)">${Math.round(GFX.cz*100)}%</span></div>
+  <input type="range" min="100" max="200" step="25" value="${Math.round(GFX.cz*100)}" oninput="setCamZoom(this.value/100);document.getElementById('czv').textContent=this.value+'%'">`; }
+const WHEEL = {acc:0, t:0};
+addEventListener('wheel', e => {
+  if(G.state !== 'play' || UI.panel || UI.dialog || CUT.on || e.ctrlKey) return;              // menus scroll; Ctrl+wheel stays the browser's own zoom
+  if(e.target && e.target.closest && e.target.closest('#modal,#dlgwrap,#screens')) return;
+  e.preventDefault(); const now = performance.now(); if(now - WHEEL.t > 300) WHEEL.acc = 0; WHEEL.t = now;
+  WHEEL.acc += e.deltaMode === 1 ? e.deltaY*33 : e.deltaY;                                     // a mouse wheel click is ~100; trackpads send many small steps
+  if(Math.abs(WHEEL.acc) >= 90){ setCamZoom(GFX.cz + (WHEEL.acc < 0 ? 0.25 : -0.25), true); WHEEL.acc = 0; }
+}, {passive:false});
 
 // ============ CO-OP: two heroes on one screen + controllers (PC build) ============
 // G.heroes = [host, P2] while two heroes play (null with one). G.P is "the acting hero": the host, except while
@@ -7853,6 +7869,7 @@ addEventListener('keydown', e => {
   if(a === 'hp') drinkPotion('hp');
   if(a === 'mp') drinkPotion('mp');
   if(a === 'portal') castTownPortal();
+  if(a === 'zoom' && !e.repeat) setCamZoom(GFX.cz >= 2 ? 1 : GFX.cz + 0.25, true);
   if(a === 'interact'){ e.preventDefault(); const o = nearestInteract(); if(o) interact(o); else pickupNearest(); }
   if(a === 'dodge'){ e.preventDefault(); if(!e.repeat) dodge(); }   // the dodge: roll, shadow dash or arcane slide
 });
