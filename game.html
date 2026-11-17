@@ -7888,6 +7888,8 @@ function keyMove(){
 }
 // pointer on canvas
 cv.addEventListener('contextmenu', e => e.preventDefault());
+// right-click is a game button everywhere (equip, sell, skill 1): the browser's own menu never opens, except in a text box (copy and paste)
+addEventListener('contextmenu', e => { if(!typingIn(e.target)) e.preventDefault(); });
 cv.addEventListener('pointerdown', e => {
   auInit();
   if(G.state !== 'play' || uiBlocking()) return;
