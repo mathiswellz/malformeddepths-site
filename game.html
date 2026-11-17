@@ -4837,11 +4837,34 @@ function drawLip(tx0, ty, n){
   if(MAPC.map === G.M){ const i = Math.floor(X/MCH), j = Math.floor(Y/MCH), c = MAPC.chunks.get(i + ',' + j); if(c){ b.drawImage(c, (X - i*MCH)*RES, (Y - j*MCH)*RES, n*TS*RES, TS*RES, X, Y, n*TS, TS); return; } }
   if(G.M.art) b.drawImage(G.M.art, X, Y, n*TS, TS, X, Y, n*TS, TS);
 }
+// The game keeps simple stand-in drawings for when a picture hasn't arrived yet. On a slow phone those showed for a moment on load, then the
+// real art popped in over them. So the world waits, behind a plain loading screen, until the pictures it needs are in (8 s at most).
+const imOK = im => !!(im && im.complete && im.naturalWidth);
+const WAIT = {map:null, t:0};
+function worldReady(M, P){
+  if(RES <= 1) return true;
+  if(WAIT.map === M && WAIT.ok) return true;
+  if(WAIT.map !== M){ WAIT.map = M; WAIT.t = performance.now(); WAIT.ok = false; }
+  const need = [];
+  for(const k in HDP_MAN) if(k.startsWith(P.cls + '_')) need.push(HDP[k]);
+  if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA)); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); }
+  else { need.push(DSH); if(!depthArt(M.theme)) need.push(null); for(const m of M.monsters){ const a = MON_ART[m.type]; if(a){ const k = a + '_' + (m.kind || 'common'); if(MONHD[k]) need.push(MONHD[k]); } } }
+  WAIT.ok = need.every(imOK) || performance.now() - WAIT.t > 8000;
+  return WAIT.ok;
+}
+function drawLoading(){
+  b.setTransform(1, 0, 0, 1, 0, 0); b.fillStyle = '#05040a'; b.fillRect(0, 0, buf.width, buf.height);
+  if(!WORLD_EL) ctx.drawImage(buf, 0, 0, BW*zoom, BH*zoom);
+  const c = ctx, w = c.canvas.width, h = c.canvas.height, dots = '.'.repeat(1 + Math.floor(performance.now()/400) % 3);
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#05040a'; c.fillRect(0, 0, w, h);
+  c.font = `${Math.round(18*DPR)}px VT323, monospace`; c.fillStyle = '#c8a86a'; c.textAlign = 'center'; c.fillText('Loading' + dots, w/2, h*0.66); c.restore();
+}
 function render(){
   const P = G.P, M = G.M;
   b.setTransform(RES, 0, 0, RES, 0, 0); b.imageSmoothingEnabled = RES > 1 && RES < 6;   // the HD art is drawn for 6: below that, scale it smoothly
   b.fillStyle = '#05040a'; b.fillRect(0, 0, BW, BH);
   if(!P || !M){ shadeOff(); if(!WORLD_EL) ctx.drawImage(buf, 0, 0, BW*zoom, BH*zoom); return; }
+  if(!worldReady(M, P)){ shadeOff(); drawLoading(); return; }   // never show the old placeholder art while the real pictures load
   // camera
   const PF = partyFocus(); let tx = PF.x - BW/2, ty = PF.y - 10 - BH/2 + (isTouch ? 18 : 0);   // co-op: the camera sits between the heroes
   if(M.isTown){ const mw = M.w*TS, mh = M.h*TS; tx = BW >= mw ? (mw - BW)/2 : Math.max(0, Math.min(mw - BW, tx)); ty = BH >= mh ? (mh - BH)/2 : Math.max(0, Math.min(mh - BH, ty)); }   // no void past Palli's edge
