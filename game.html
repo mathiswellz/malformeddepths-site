@@ -1432,11 +1432,13 @@ function sfx(name, src){
 // suits the place. Each place's ambience loops underneath (md_amb_<place>.mp3: two takes, each a seamless loop).
 // Until a sheet has loaded, or where files can't be read (the PC build opened without its launcher), sfx() plays the
 // synthesized sound instead.
-const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses'];
+const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge'];
 // SND_MAN:BEGIN (made by sfx/gen_snd.py from the sheets' manifests; times in ms)
 const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[1,3479,983],[1,4711,998],[1,5959,1000]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]]};
 const SND_AMB = {"crypt":[[500,18500],[20000,18500]],"flesh":[[500,18500],[20000,18500]],"palli":[[500,18500],[20000,18500]],"throne":[[500,18500],[20000,18500]],"void":[[500,18500],[20000,18500]]};
 // SND_MAN:END
+// Karmara's anvil (2026-11-17, ElevenLabs v2 on flow vT2BRiBb4wz9rul1fSwX: 3 heavy + 3 ringing blows, one each; packed in the sandbox, -16 LUFS)
+SND_MAN.anvil = [[6, 0, 673], [6, 923, 522], [6, 1696, 772], [6, 2718, 702], [6, 3670, 824], [6, 4745, 743]];
 const SND = {buf:{}, st:{}, last:{}, prev:{}, vo:{}, nvo:0, dec:undefined, roomIn:null, amb:null, ambArea:undefined, ambBuf:{}, ambSt:{}, ambKeep:[], ambVol:0.3, booted:false, map:null};
 const SND_ROOM = {palli:0.05, crypt:0.3, flesh:0.16, void:0.42, throne:0.45};   // how much echo each place gives
 function sndGet(url, ok, fail){            // XHR, not fetch: with the PC launcher's flag it can read the game's own files
@@ -4351,22 +4353,38 @@ function hdSparks(cx, cy, age, seed, face){
   }
   b.restore();
 }
-// Karmara's forge loop: rest, lift, three blows on the anvil (frame 6 = impact), lower the hammer, rest
-const KARMA_SEQ = [[1, .6], [2, .1], [3, .1], [4, .1], [5, .12], [6, .16], [4, .1], [5, .12], [6, .16], [4, .1], [5, .12], [6, .16], [7, .12], [8, .6]];
-const KARMA_LEN = KARMA_SEQ.reduce((a, s) => a + s[1], 0), NPC_RATE = {vaidya: .16, ganesh: .25};
+// Karmara's forge (2026-11-17, Mathis: not all the time): she stands and breathes for a while (frame 1), lifts the hammer, strikes
+// the anvil 2-5 times at her own tempo (frame 6 = impact), lowers it, and rests again. A 40-bout plan (about six minutes) from a
+// seeded random, looped, so the picture, the sparks, the bar's glow and the sound (karmaTick) all read the same moments.
+const KARMA_SEQ = (() => { let sd = 7; const r = () => (sd = (sd*16807) % 2147483647)/2147483647, q = [];
+  for(let n = 0; n < 40; n++){
+    q.push([1, 6.5 + r()*7.5, 1], [2, .1], [3, .1]);                        // [frame, seconds, breathing]: rests of 6.5-14 s
+    const k = r() < .3 ? 2 : r() < .55 ? 3 : r() < .85 ? 4 : 5, tempo = .9 + r()*.25;
+    for(let i = 0; i < k; i++) q.push([4, .1*tempo], [5, .12*tempo], [6, .16*tempo + (i === k - 1 ? .12 : 0)]);
+    q.push([7, .12], [8, .6]);
+  }
+  return q; })();
+const KARMA_LEN = KARMA_SEQ.reduce((a, s) => a + s[1], 0), KARMA_T = [], NPC_RATE = {vaidya: .16, ganesh: .25};
+{ let a = 0; for(const s of KARMA_SEQ){ KARMA_T.push(a); a += s[1]; } }
+function karmaAt(t){ const c = (t + 0.4) % KARMA_LEN; let lo = 0, hi = KARMA_T.length - 1; while(lo < hi){ const m = (lo + hi + 1) >> 1; if(KARMA_T[m] <= c) lo = m; else hi = m - 1; } return [lo, c - KARMA_T[lo], Math.floor((t + 0.4)/KARMA_LEN)]; }
+function drawAnchBreath(im, x, y, face, ax, d){   // drawAnch, with the upper 56% squashed by d source px (the heroes' breathing, at draw time)
+  const s = 1/6, W = im.width, H = im.height, cut = Math.round(H*0.56), w = W*s, h = H*s, X = Math.round((face < 0 ? x - (W - ax)*s : x - ax*s)*6)/6, Y = Math.round((y - h)*6)/6;
+  if(SIL.ent) silRec(SIL.ent, im, 0, 0, W, H, X, Y, w, h, face < 0);
+  b.save(); b.translate(face < 0 ? X + w : X, Y); if(face < 0) b.scale(-1, 1);
+  b.drawImage(im, 0, cut, W, H - cut, 0, cut*s, w, (H - cut)*s); b.drawImage(im, 0, 0, W, cut, 0, d*s, w, (cut - d)*s); b.restore(); }
 function hdNPC(o, x, y, t){                       // townsfolk: work when the hero is away, turn and talk when they walk up
   const P = G.P, near = P && Math.abs(P.x - x) < 34 && Math.abs(P.y - y) < 26;
   const face = near ? (P.x > x ? 1 : -1) : (o.id === 'ganesh' ? 1 : -1);
   if(NPC_MAN[o.id + '_work1']){
-    let key, spark = -1, seed = 0;
+    let key, spark = -1, seed = 0, breath = 0;
     if(near) key = 'talk' + (1 + Math.floor(t/0.15) % 8);
     else if(o.id === 'karmara'){
-      const loops = Math.floor((t + 0.4)/KARMA_LEN); let c = (t + 0.4) % KARMA_LEN, i = 0;
-      while(c >= KARMA_SEQ[i][1]){ c -= KARMA_SEQ[i][1]; i++; }
-      key = 'work' + KARMA_SEQ[i][0]; if(KARMA_SEQ[i][0] === 6){ spark = c; seed = loops*14 + i; }
+      const [i, c, loops] = karmaAt(t), q = KARMA_SEQ[i];
+      key = 'work' + q[0]; if(q[0] === 6){ spark = c; seed = loops*KARMA_SEQ.length + i; }
+      if(q[2]) breath = 1 - Math.cos(c*Math.PI*2/3.4);                  // 0..2 px, one breath every 3.4 s
     } else key = 'work' + (1 + Math.floor(t/(NPC_RATE[o.id] || .2)) % 8);
     const k = o.id + '_' + key, im = NPCHD[k]; if(!im || !im.naturalWidth) return false;
-    drawAnch(im, x, y, face, NPC_MAN[k][0]);
+    if(breath) drawAnchBreath(im, x, y, face, NPC_MAN[k][0], breath); else drawAnch(im, x, y, face, NPC_MAN[k][0]);
     if(o.id === 'karmara') G._karm = {k, x, y, face, ax:NPC_MAN[k][0], since:near ? 9 : karmaSince(t), spark:spark >= 0 ? [spark, seed] : null};   // the anvil (drawn next) finishes the blow
     return true;
   }
@@ -4563,8 +4581,22 @@ function drawPropState(p){
 // Karmara's forge: a bar of hot iron lies across the anvil. Her hammer lands on it in the middle of the face, the bar flares,
 // sparks fly from it, and at night it lights the anvil. Drawn right after the anvil, so the hammer head can come down over both.
 const FORGE = {x:439.75, y:195.85, len:9.2, head:[64, 84, 97, 119]};   // top of the bar where the hammer's corner lands; the hammer head's box in karmara_work6
-const KARMA_HITS = []; { let a = 0; for(const [f, d] of KARMA_SEQ){ if(f === 6) KARMA_HITS.push(a); a += d; } }
+const KARMA_HITS = [], KARMA_HIDX = []; { let a = 0; KARMA_SEQ.forEach(([f, d], i) => { if(f === 6){ KARMA_HITS.push(a); KARMA_HIDX.push(i); } a += d; }); }
 function karmaSince(t){ const c = (t + 0.4) % KARMA_LEN; let last = KARMA_HITS[KARMA_HITS.length - 1] - KARMA_LEN; for(const s of KARMA_HITS) if(s <= c) last = s; return c - last; }
+// her blows on the anvil, heard around town (sound sheet 'forge': Mathis's ElevenLabs takes, heavy and ringing). Not while she's
+// talking to the hero; every blow a different take, pitch and weight, the bout's last blow the hardest
+const KARMA_SND = {u:null, o:null, m:null};
+function karmaTick(){
+  const M = G.M, P = G.P; if(!M || !M.isTown || !P || G.state === 'menu'){ KARMA_SND.u = null; return; }
+  if(KARMA_SND.m !== M){ KARMA_SND.m = M; KARMA_SND.o = M.objects.find(o => o.type === 'npc' && o.id === 'karmara'); KARMA_SND.u = null; }
+  const o = KARMA_SND.o; if(!o) return;
+  const u = (G.time + 0.4) % KARMA_LEN, p = KARMA_SND.u; KARMA_SND.u = u;
+  if(p == null || Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26 || Math.hypot(P.x - o.x, P.y - o.y) > 300) return;   // talking, or out of earshot
+  const span = u >= p ? u - p : u + KARMA_LEN - p; if(span > 0.5) return;      // a pause or a jump: no catch-up blows
+  for(let j = 0; j < KARMA_HITS.length; j++){ const h = KARMA_HITS[j]; if(u >= p ? h > p && h <= u : h > p || h <= u){
+    const last = KARMA_SEQ[KARMA_HIDX[j] + 1][0] !== 4;            // kept soft (Mathis: not loud, not sharp): low volume, the click taken
+    snd('anvil', {at:{x:o.x, y:o.y}, vol:(last ? 0.3 : 0.2 + Math.random()*0.07), pv:0.06, gap:60, room:0.6, lp:2600, soft:0.006}); } }   // off the attack, the top muffled
+}
 const mixRGB = (a, c, k) => a.map((v, i) => Math.round(v + (c[i] - v)*k)), rgbCss = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const heatRGB = h => h < 0.5 ? mixRGB([150, 30, 10], [255, 110, 30], h*2) : mixRGB([255, 110, 30], [255, 244, 200], (h - 0.5)*2);
 const FORGE_HEAT = [[0, 0], [0.12, 0.25], [0.3, 0.62], [0.5, 1], [0.7, 0.62], [0.88, 0.25], [1, 0]];   // along the bar: dull ends, white-hot middle
@@ -7997,7 +8029,7 @@ function loop(now){
   const ms0 = now - lastT, dt = Math.min(0.05, ms0/1000); lastT = now;
   try{
     menuFrame(now, dt);
-    sndTick();
+    sndTick(); try{ karmaTick(); }catch(e){}
     if(G.M && G.P){
       unfocusIfFree();
       if(!isTouch || joy.id === null){ const [kx, ky] = keyMove(); if(joy.id === null){ INPUT.mx = kx; INPUT.my = ky; } }
