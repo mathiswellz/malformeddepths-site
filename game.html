@@ -581,7 +581,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.19';
+const GAME_VER = '0.1.20';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -1500,13 +1500,15 @@ SND_MAN.anvil = [[6, 0, 673], [6, 923, 522], [6, 1696, 772], [6, 2718, 702], [6,
 const VESSA_LAUGH = {vol:0.8, pv:0.02, room:0.35, lp:6000};   // her hall already echoes: only a little more room, and not sharp
 SND_MAN.vessa_laugh = [[7, 0, 2728], [7, 2978, 2798], [7, 6026, 2554]];   // softened (5.5 kHz low-pass), a little hall reverb and a slight echo baked in (Mathis)
 // Karmara's voice (2026-11-18, Mathis's voice actress): sheet 'karmara' (assets/sfx/md_sfx_karmara.mp3, made by tools_karmara_vo.py from
-// Karmara_MD.mp3): her long pauses tightened so the sentences flow, compressed, a small dark room's reverb baked in, about -19 LUFS.
+// Mathis's own mix of Karmara_MD.mp3, his reverb and compression, nothing added): each sentence and greeting levelled to the same
+// loudness (clip gain only), her three long pauses tightened inside her reverb with crossfades, her speech at about -20 LUFS.
 // Eight greetings for when the hero walks up (the last is "What you need?"), and her first-meeting speech in two parts
 // ("Hah! The river spits out..." to "I'll buy it.", then "Here, take these potions...", its own page)
-SND_MAN.karmara_greet = [[8,0,1110],[8,1310,1170],[8,2680,1230],[8,4110,1120],[8,5430,1170],[8,6800,1460],[8,8460,1230],[8,9890,1450]];
-SND_MAN.karmara_intro1 = [[8,11540,18840]]; SND_MAN.karmara_intro2 = [[8,30580,4200]];
+SND_MAN.karmara_greet = [[8,0,710],[8,910,730],[8,1840,810],[8,2850,710],[8,3760,750],[8,4710,1070],[8,5980,810],[8,6990,970]];
+SND_MAN.karmara_intro1 = [[8,8160,18420]]; SND_MAN.karmara_intro2 = [[8,26780,3440]];
 const SND = {buf:{}, st:{}, last:{}, prev:{}, vo:{}, nvo:0, dec:undefined, roomIn:null, amb:null, ambArea:undefined, ambBuf:{}, ambSt:{}, ambKeep:[], ambVol:0.3, booted:false, map:null};
 const SND_ROOM = {palli:0.05, crypt:0.3, flesh:0.16, void:0.42, throne:0.45};   // how much echo each place gives
+const SND_V = {karmara:3};   // remade sheets: bump to make browsers fetch the new file
 function sndGet(url, ok, fail){            // XHR, not fetch: with the PC launcher's flag it can read the game's own files
   try{
     const x = new XMLHttpRequest(); x.open('GET', url, true); x.responseType = 'arraybuffer';
@@ -1524,7 +1526,7 @@ function sndLoad(sheet, then){
   if(SND.st[sheet]){ if(then) then(); return; }
   SND.st[sheet] = 'loading';
   const done = good => { SND.st[sheet] = good ? 'ok' : 'bad'; if(then) then(); };
-  sndGet('assets/sfx/md_sfx_' + sheet + '.mp3', ab => sndDecode(ab, b => { SND.buf[sheet] = b; done(true); }, () => done(false)), () => done(false));
+  sndGet('assets/sfx/md_sfx_' + sheet + '.mp3' + (SND_V[sheet] && location.protocol !== 'file:' ? '?v=' + SND_V[sheet] : ''), ab => sndDecode(ab, b => { SND.buf[sheet] = b; done(true); }, () => done(false)), () => done(false));
 }
 function sndBoot(){                        // after the first tap: the room echo, then the sheets every game needs, one after another
   if(SND.booted || !AU.ctx) return; SND.booted = true;
