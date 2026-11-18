@@ -367,6 +367,11 @@ input[type=range]{width:100%}
 
 /* big screens (a PC on a monitor or TV): the HUD, menus and dialogs grow with the window (--ui set in resize()) */
 #hud,#modal,#dlgwrap,#screens{zoom:var(--ui,1)}
+#hudeye{display:none}
+body.nohud #topbar,body.nohud #minimap,body.nohud #bossbar,body.nohud #toasts,body.nohud #banner,body.nohud #p2hud,body.nohud #oilb,body.nohud #mapover,body.nohud #xp,body.nohud .flask{visibility:hidden}
+body.nohud:not(.touchui) #bottom{visibility:hidden}
+body.nohud.touchui #touch,body.nohud.touchui #skills{opacity:.22}
+body.nohud.touchui #hudeye{display:block;position:fixed;top:calc(8px + var(--st));right:calc(8px + var(--sr));pointer-events:auto;opacity:.5;font:18px VT323,monospace;color:#e8e0d0;background:rgba(8,6,12,.6);border:1px solid #4a3e5a;border-radius:6px;padding:4px 10px}
 /* ---- couch co-op + controllers (coop.js) ---- */
 #p2hud{position:absolute;right:calc(10px + var(--sr));bottom:calc(10px + var(--sb));width:290px;background:rgba(8,6,12,.8);border:2px solid rgba(125,249,255,.55);border-radius:4px;padding:6px 8px 7px;pointer-events:none;box-shadow:0 0 0 1px #000}
 #p2hud .nm{font-size:18px;color:#d8f8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -429,6 +434,7 @@ input[type=range]{width:100%}
   <div id="p2hud" class="hide"></div>
   <button id="oilb" class="hide" title="Weapon oils (O)"><img alt=""><div class="t"></div><div class="k">O</div></button>
   <canvas id="mapover" class="hide"></canvas>
+  <button id="hudeye" title="Show the HUD">HUD</button>
   <div id="touch" class="hide">
     <div id="joyhint">◀ drag to move ▶</div>
     <div id="joy" class="hide"><i></i></div>
@@ -453,6 +459,7 @@ input[type=range]{width:100%}
 <script>
 const DEMO_BUILD = true;
 const DEMO = typeof DEMO_BUILD !== 'undefined';   // set by build.py --demo
+let CHEAT = null;   // the testing cheats (cheats.js). Only in our own full builds: build.py leaves cheats.js out of the demo and of --nocheats builds
 const DEMO_TEXT = `You have reached the end of the free demo.\n\nBelow the Weeping Rift lie nine more depths, the sealed chambers, Khala, Asura, Vessa, and Ilvaroth himself.\n\nThank you for playing. The full game is coming from Wellz Digitalez.`;
 // ============ STORE: where heroes are saved ============
 // The phone build runs as a claude.ai artifact: there the saves live in the artifact's database, in the player's own
@@ -541,7 +548,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.13';
+const GAME_VER = '0.1.14';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -2528,6 +2535,7 @@ function hitMonster(m, amt, o = {}){
   if(m.elite && m.elite.id === 'warded') amt *= 0.7;
   if(m.shield > 0) amt *= 0.3;
   amt = Math.max(1, Math.round(amt*(0.92 + R()*0.16)));
+  if(CHEAT && CHEAT.ohk) amt = Math.max(amt, Math.ceil(m.hp));   // cheat: one-hit kills
   m.hp -= amt; m.flash = 0.1; m.alert = true; if(im) imbueHit(m, amt);
   if(!o.silent) fxSpr('spark', m.x + (R() - 0.5)*6, m.y - m.r*0.8 + (R() - 0.5)*6, 11, 0.16, {ang:R()*6.28});
   if(o.kb && !m.d.stationary && !(m.root > 0)){ const a = Math.atan2(m.y - (o.fy ?? P.y), m.x - (o.fx ?? P.x)); const k = m.boss ? o.kb*0.15 : o.kb; m.kbx += Math.cos(a)*k; m.kby += Math.sin(a)*k; }
@@ -2552,6 +2560,7 @@ function hitMonster(m, amt, o = {}){
 }
 function hurtPlayer(amt, src, melee){
   const P = G.P; if(P.invuln > 0 || P.down > 0 || G.state !== 'play') return;
+  if(CHEAT && CHEAT.god) return;   // cheat: god mode
   if(src && src.weak > 0) amt *= 0.75;   // Poison Oil weakens enemy attacks
   const lvl = src && src.lvl ? src.lvl : P.lvl;
   const dr = Math.min(0.75, P.d.armor/(P.d.armor + 50 + 10*lvl));
@@ -2664,6 +2673,7 @@ function checkUnlocks(){
 }
 function playerDie(){
   const P = G.P; if(G.state !== 'play' || P.down > 0) return;
+  if(CHEAT && CHEAT.god){ P.hp = Math.max(1, P.d.maxhp); return; }   // cheat: god mode (poison, falls, anything)
   if(coop() && heroesUp().some(h => h !== P)){ heroDown(P); return; }   // co-op: the other hero can still bring this one back
   G.state = 'dead'; P.hp = 0; P.deaths++;
   P.spin = P.dash = P.ult = P.cast = P.swing = P.dodge = null; INPUT.attack = false;   // a fallen hero stops whatever skill was playing
@@ -5737,7 +5747,7 @@ function drawHiRes(cx, cy){
   const near = G.state === 'play' && !uiBlocking() ? nearestInteract() : null;   // what the interact button would reach (gear included)
   G.nearObj = near;
   const labs = [], tgt = near && near.l;
-  for(const l of G.loot){ l.lab = null; if(l.map !== M || !l.item || l.t < 1) continue; const d = Math.hypot(l.x - P.x, l.y - P.y); if(d > 90 && l.item.rarity === 'typical') continue; if(d > 160) continue;
+  for(const l of G.loot){ l.lab = null; if(UI.noHud || l.map !== M || !l.item || l.t < 1) continue; const d = Math.hypot(l.x - P.x, l.y - P.y); if(d > 90 && l.item.rarity === 'typical') continue; if(d > 160) continue;
     const [sx, sy] = ws(l.x, l.y - 18), nm = itemName(l.item); labs.push({l, sx, sy, nm, tw:ctx.measureText(nm).width + fs*0.6}); }
   // names never cover each other: the one a press would grab keeps its place, the rest step up out of the way
   labs.sort((a, c) => (c.l === tgt) - (a.l === tgt) || c.sy - a.sy);
@@ -5749,11 +5759,11 @@ function drawHiRes(cx, cy){
     if(L.l === tgt){ ctx.lineWidth = Math.max(1, Z*0.45); ctx.strokeStyle = '#ffcd75'; ctx.strokeRect(x0, y0, L.tw, lh); } }
   // NPC & elite names
   ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`;
-  for(const o of M.objects){ if(o.type !== 'npc' && o.type !== 'rift' && o.type !== 'tp') continue; const [sx, sy] = ws(o.x, o.y - (o.type === 'npc' ? 34 : 30));
+  if(!UI.noHud) for(const o of M.objects){ if(o.type !== 'npc' && o.type !== 'rift' && o.type !== 'tp') continue; const [sx, sy] = ws(o.x, o.y - (o.type === 'npc' ? 34 : 30));
     ctx.lineWidth = Z*0.9; ctx.strokeStyle = '#05040a'; const lab = o.type === 'npc' ? o.name : o.type === 'rift' ? 'The Rift' : (o.label || 'Town Portal'); ctx.strokeText(lab, sx, sy); ctx.fillStyle = o.type === 'npc' ? '#ffcd75' : '#b98cff'; ctx.fillText(lab, sx, sy);
     if(o.type === 'npc'){ ctx.font = `${Math.round(fs*0.85)}px VT323, monospace`; ctx.strokeText(o.role, sx, sy + fs); ctx.fillStyle = '#a8a0b8'; ctx.fillText(o.role, sx, sy + fs); ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`;
       if(npcHasNews(o.id)){ const bob = Math.sin(G.time*4)*Z*1.5; ctx.font = `bold ${fs*2}px VT323, monospace`; ctx.strokeText('!', sx, sy - fs*1.4 + bob); ctx.fillStyle = '#ffcd75'; ctx.fillText('!', sx, sy - fs*1.4 + bob); ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`; } } }
-  for(const m of M.monsters){ if(!m.elite || !M.vis[Math.floor(m.y/TS)*M.w + Math.floor(m.x/TS)]) continue; const [sx, sy] = ws(m.x, m.y - 30); ctx.lineWidth = Z*0.8; ctx.strokeStyle = '#05040a'; ctx.strokeText(m.name, sx, sy); ctx.fillStyle = m.elite.color; ctx.fillText(m.name, sx, sy); ctx.font = `${Math.round(fs*0.8)}px VT323, monospace`; ctx.strokeText(m.elite.name, sx, sy + fs*0.9); ctx.fillStyle = '#d8d0e0'; ctx.fillText(m.elite.name, sx, sy + fs*0.9); ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`; }
+  if(!UI.noHud) for(const m of M.monsters){ if(!m.elite || !M.vis[Math.floor(m.y/TS)*M.w + Math.floor(m.x/TS)]) continue; const [sx, sy] = ws(m.x, m.y - 30); ctx.lineWidth = Z*0.8; ctx.strokeStyle = '#05040a'; ctx.strokeText(m.name, sx, sy); ctx.fillStyle = m.elite.color; ctx.fillText(m.name, sx, sy); ctx.font = `${Math.round(fs*0.8)}px VT323, monospace`; ctx.strokeText(m.elite.name, sx, sy + fs*0.9); ctx.fillStyle = '#d8d0e0'; ctx.fillText(m.elite.name, sx, sy + fs*0.9); ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`; }
   // floating combat text
   for(const t of G.texts){
     const k = t.t; const [sx, sy] = ws(t.x, t.y - k*26 + k*k*10);
@@ -5764,7 +5774,7 @@ function drawHiRes(cx, cy){
   ctx.globalAlpha = 1;
   // interact prompt (desktop)
   const o = near;
-  if(o && !isTouch){ const [sx, sy] = ws(o.x, o.y + 10); ctx.font = `${fs}px VT323, monospace`; const s = `${coop() ? 'P1 ' : ''}${p1PadMode() ? '✕' : '[E]'} ${interactLabel(o)}`; ctx.lineWidth = Z; ctx.strokeStyle = '#05040a'; ctx.strokeText(s, sx, sy); ctx.fillStyle = '#f4f4f4'; ctx.fillText(s, sx, sy); }
+  if(o && !isTouch && !UI.noHud){ const [sx, sy] = ws(o.x, o.y + 10); ctx.font = `${fs}px VT323, monospace`; const s = `${coop() ? 'P1 ' : ''}${p1PadMode() ? '✕' : '[E]'} ${interactLabel(o)}`; ctx.lineWidth = Z; ctx.strokeStyle = '#05040a'; ctx.strokeText(s, sx, sy); ctx.fillStyle = '#f4f4f4'; ctx.fillText(s, sx, sy); }
   // co-op: the second hero's prompt, and who has fallen
   if(coop() && G.state === 'play' && !uiBlocking()){ const H = G.heroes[1], o2 = H.down > 0 ? null : asHero(H, nearestInteract);
     if(o2){ const [sx, sy] = ws(o2.x, o2.y + (o2 === o ? 19 : 10)); ctx.font = `${fs}px VT323, monospace`; const t2 = `P2 ✕ ${interactLabel(o2)}`; ctx.lineWidth = Z; ctx.strokeStyle = '#05040a'; ctx.strokeText(t2, sx, sy); ctx.fillStyle = HERO_COL[1]; ctx.fillText(t2, sx, sy); } }
@@ -5775,17 +5785,17 @@ function drawHiRes(cx, cy){
 const $ = id => document.getElementById(id);
 const isTouch = matchMedia('(pointer:coarse)').matches || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
 const UI = {panel:null, dialog:false, dirty:true, sel:null, tab:'buy', journalSel:null, riftDiff:null, miniOn:true,
-  mapShow:{}, mapAlpha:0.8, mapOver:false, mapZoom:8, rebind:null, trailerOn:true};   // map: what shows on it, how see-through, the middle map on PC and its size
+  mapShow:{}, mapAlpha:0.8, mapOver:false, mapZoom:8, rebind:null, trailerOn:true, noHud:false};   // map: what shows on it, how see-through, the middle map on PC and its size
 
 // ---- PC key bindings: up to two keys per action, changed in Settings > Controls (Esc, Enter and the mouse stay fixed) ----
 const BIND_DEFAULT = {up:['w', 'arrowup'], left:['a', 'arrowleft'], down:['s', 'arrowdown'], right:['d', 'arrowright'],
   s1:['1', null], s2:['2', null], s3:['3', null], s4:['4', null], s5:['5', 'v'], dodge:[' ', 'shift'], interact:['e', 'f'],
   hp:['q', null], mp:['r', null], portal:['t', null], inv:['i', 'b'], char:['c', null], skills:['k', null], journal:['j', null],
-  map:['m', null], overlay:['tab', null], oils:['o', null], zoom:['z', null]};
+  map:['m', null], overlay:['tab', null], oils:['o', null], zoom:['z', null], hud:['h', null]};
 const BIND_NAMES = [['up', 'Move up'], ['left', 'Move left'], ['down', 'Move down'], ['right', 'Move right'], ['s1', 'Skill 1'], ['s2', 'Skill 2'],
   ['s3', 'Skill 3'], ['s4', 'Skill 4'], ['s5', 'Skill 5'], ['dodge', 'Dodge'], ['interact', 'Talk, read, pick up'], ['hp', 'Health potion'],
   ['mp', 'Mana potion'], ['portal', 'Town portal'], ['inv', 'Bag'], ['char', 'Character'], ['skills', 'Skills'], ['journal', 'Journal'],
-  ['map', 'Full map'], ['overlay', 'Map in the middle'], ['oils', 'Weapon oils'], ['zoom', 'Zoom in (then back out)']];
+  ['map', 'Full map'], ['overlay', 'Map in the middle'], ['oils', 'Weapon oils'], ['zoom', 'Zoom in (then back out)'], ['hud', 'Hide or show the HUD']];
 const BIND = JSON.parse(JSON.stringify(BIND_DEFAULT));
 function keyAct(k){ for(const a in BIND) if(BIND[a].includes(k)) return a; return null; }
 function keyName(k){
@@ -5982,6 +5992,7 @@ function initHUD(){
   onTap($('bMenu'), () => openPanel('menu'), true); onTap($('bInv'), () => openPanel('inv'), true); onTap($('bChar'), () => openPanel('char'), true);
   onTap($('bSkill'), () => openPanel('skills'), true); onTap($('bJournal'), () => openPanel('journal'), true); onTap($('bPortal'), () => castTownPortal(), true);
   onTap($('hpf'), () => drinkPotion('hp')); onTap($('mpf'), () => drinkPotion('mp'));
+  onTap($('hudeye'), () => setNoHud(false), true);
   onTap($('potH'), () => drinkPotion('hp'), true); onTap($('potM'), () => drinkPotion('mp'), true);
   onTap($('oilb'), () => { UI.panel === 'oils' ? closePanel() : openPanel('oils'); }, true);
   onTap($('bMap'), () => openPanel('map'), true); onTap($('minimap'), () => openPanel('map'), true);
@@ -6401,7 +6412,7 @@ function panelShell(title, body, foot, side){
   if(side && sideDetails(side === 'wide')) return `<div class="sidewin">${foot || '<div class="sub">Select an item to see its details here.</div>'}</div><div class="panel">${head}<div class="pb">${body}</div></div>`;
   return `<div class="panel">${head}<div class="pb">${body}</div>${foot ? `<div class="pf">${foot}</div>` : ''}</div>`;
 }
-const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }};
+const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }, get cheats(){ return renderCheats; }};
 function refreshPanel(){
   const p = UI.panel; if(!p) return; const m = $('modal');
   if(UI.duo && coop()){   // both heroes' pages side by side, each drawn as its own hero
@@ -6727,7 +6738,7 @@ function renderJournal(){
   return panelShell('Journal', h);
 }
 function renderMenu(){
-  return panelShell('Paused', `<div class="mbtns" style="width:100%"><button class="btn" onclick="closePanel()">Resume</button><button class="btn" onclick="saveGame();toast('Game saved.','#a7f070');closePanel()">Save Game</button><button class="btn" onclick="UI.panel='saves';refreshPanel()">Load Game</button><button class="btn" onclick="UI.panel='settings';refreshPanel()">Settings</button><button class="btn" onclick="UI.panel='help';UI.helpTab=null;refreshPanel()">Help &amp; FAQ</button><button class="btn" onclick="openReport()">Report a Bug / Share an Idea</button><button class="btn red" onclick="quitToMenu()">Save & Quit to Main Menu</button></div>`);
+  return panelShell('Paused', `<div class="mbtns" style="width:100%"><button class="btn" onclick="closePanel()">Resume</button><button class="btn" onclick="saveGame();toast('Game saved.','#a7f070');closePanel()">Save Game</button><button class="btn" onclick="UI.panel='saves';refreshPanel()">Load Game</button><button class="btn" onclick="UI.panel='settings';refreshPanel()">Settings</button>${CHEAT ? `<button class="btn" onclick="UI.panel='cheats';refreshPanel()">Cheats</button>` : ''}<button class="btn" onclick="UI.panel='help';UI.helpTab=null;refreshPanel()">Help &amp; FAQ</button><button class="btn" onclick="openReport()">Report a Bug / Share an Idea</button><button class="btn red" onclick="quitToMenu()">Save & Quit to Main Menu</button></div>`);
 }
 function slotSummary(d){ const P = d.P, un = P.unlocked || {}; const top = un.malformed ? 'malformed' : un.nightmare ? 'nightmare' : 'breeze'; return `Lv ${P.lvl} ${CLASSES[P.cls].name} · <span style="color:${DIFFS[top].color}">${DIFFS[top].name}</span> · Depth ${Math.min(10, (P.done || 0) + 1)}`; }
 function renderSaves(){
@@ -6736,12 +6747,16 @@ function renderSaves(){
   return panelShell('Load Hero', h + '</div>');
 }
 function renderSettings(){
-  return panelShell('Settings', `${setRows('game')}${gfxRow('refreshPanel()')}${shadeRow('refreshPanel()')}${zoomRow()}${uiRow()}<div>Music volume</div><input type="range" min="0" max="100" value="${Math.round(AU.musicVol*100)}" oninput="setVolumes(this.value/100, AU.sfxVol);saveSettings()"><div style="margin-top:10px">Sound effects volume</div><input type="range" min="0" max="100" value="${Math.round(AU.sfxVol*100)}" oninput="setVolumes(AU.musicVol, this.value/100);saveSettings();sfx('hit')"><div style="margin-top:10px">Narration volume</div><input type="range" min="0" max="100" value="${Math.round(VO.vol*100)}" oninput="setVoiceVol(this.value/100);saveSettings()"><div class="row" style="margin-top:14px"><button class="btn" onclick="UI.panel=G.state==='play'?'menu':null;if(UI.panel)refreshPanel();else closePanel()">Back</button></div>`);
+  return panelShell('Settings', `${setRows('game')}${gfxRow('refreshPanel()')}${shadeRow('refreshPanel()')}${zoomRow()}${uiRow()}${hudRow()}<div>Music volume</div><input type="range" min="0" max="100" value="${Math.round(AU.musicVol*100)}" oninput="setVolumes(this.value/100, AU.sfxVol);saveSettings()"><div style="margin-top:10px">Sound effects volume</div><input type="range" min="0" max="100" value="${Math.round(AU.sfxVol*100)}" oninput="setVolumes(AU.musicVol, this.value/100);saveSettings();sfx('hit')"><div style="margin-top:10px">Narration volume</div><input type="range" min="0" max="100" value="${Math.round(VO.vol*100)}" oninput="setVoiceVol(this.value/100);saveSettings()"><div class="row" style="margin-top:14px"><button class="btn" onclick="UI.panel=G.state==='play'?'menu':null;if(UI.panel)refreshPanel();else closePanel()">Back</button></div>`);
 }
 function saveSettings(){ stSet('md_settings', JSON.stringify({m:AU.musicVol, s:AU.sfxVol, v:VO.vol, mini:UI.miniOn, gq:GFX.q, us:GFX.uis, sh:GFX.sh, cz:GFX.cz, ms:UI.mapShow, ma:UI.mapAlpha, mo:UI.mapOver, mz:UI.mapZoom, kb:BIND, tr:UI.trailerOn})); }
 // Interface size: 70% to 130% (past that the phone's controls run out of room); the label follows the slider, the size changes when it is let go (on a PC the menus resize with it)
 function uiRow(){ const p = Math.round((GFX.uis || 1)*100);
   return `<div style="margin-top:10px">Interface size <span class="sub">(${p}%)</span><div class="sub" style="font-size:14px">${isTouch ? 'The buttons, skills, potions and flasks' : 'The bars, buttons and menus'}</div></div><input type="range" min="70" max="130" step="5" value="${p}" oninput="this.previousElementSibling.querySelector('.sub').textContent='('+this.value+'%)'" onchange="setUISize(this.value/100)">`; }
+// Hide the HUD (2026-11-17): the bars, buttons, map and names on the ground go, for clean screenshots and videos. H on a PC (rebindable),
+// or Settings. On a phone the touch controls stay, faint, and the HUD button in the corner brings everything back. Not saved: a new session shows it.
+function setNoHud(on){ UI.noHud = !!on; document.body.classList.toggle('nohud', UI.noHud); UI.dirty = true; }
+function hudRow(){ return `<div class="row" style="justify-content:space-between;margin:10px 0"><span>HUD<div class="sub" style="font-size:14px">${isTouch ? 'Hide the bars and labels for clean screenshots and videos. The controls stay, faint; tap HUD in the corner to bring it all back' : `Hide the bars, buttons and labels for clean screenshots and videos (${bindKey('hud')} hides and shows it)`}</div></span><button class="btn sm" onclick="setNoHud(!UI.noHud);refreshPanel()">${UI.noHud ? 'Hidden' : 'Shown'}</button></div>`; }
 function setUISize(s){ GFX.uis = clamp(s, 0.7, 1.3); setUIVars(); TOUCH.placed = false; layoutTouch(); saveSettings(); UI.dirty = true; }
 function gfxRow(after){ return `<div class="row" style="justify-content:space-between;margin:10px 0"><span>Graphics<div class="sub" style="font-size:14px">${['Battery saver: lightest, 30 frames a second, no glow', 'Balanced: runs cooler on phones', 'Sharp: full detail, works the phone hardest'][GFX.q]}</div></span><button class="btn sm" onclick="GFX.q=(GFX.q+2)%3;saveSettings();resize();${after}">${['Battery saver', 'Balanced', 'Sharp'][GFX.q]}</button></div>`; }
 // Lighting: Classic, Shadows or Full (shade.js). Choosing one also lifts any lowering the game did by itself for slow frames.
@@ -6758,7 +6773,7 @@ function loadSettings(){ try{ const s = JSON.parse(stGet('md_settings')); if(s){
     if(s.cz && +s.cz !== GFX.cz){ GFX.cz = clamp(+s.cz || 1, 1, 2); resize(); }
     if(s.sh != null && SH_URL == null) GFX.sh = clamp(+s.sh || 0, 0, 2);
     refreshKeyHints(); setUIVars(); TOUCH.placed = false; const gq = s.gq != null ? s.gq : s.low ? 0 : null; if(gq != null && gq !== GFX.q){ GFX.q = gq; resize(); } } }catch(e){} }
-function quitToMenu(){ saveGame(); closePanel(); G.state = 'menu'; showHUD(false); G.heroes = null; INPUT = INPUT1; UI.owner = UI.padOwner = null; G.P = null; G.M = null; showMainMenu(); }
+function quitToMenu(){ saveGame(); setNoHud(false); closePanel(); G.state = 'menu'; showHUD(false); G.heroes = null; INPUT = INPUT1; UI.owner = UI.padOwner = null; G.P = null; G.M = null; showMainMenu(); }
 
 // ---------------- NPCs & quests ----------------
 function questOption(q){
@@ -7966,6 +7981,7 @@ addEventListener('keydown', e => {
   if(UI.dialog){ if(a === 'interact' || k === ' ' || k === 'enter'){ if(CUT.on){ cutNext(); return; } const b = document.querySelector('#dlgopts .btn, .note .btn'); if(b) b.click(); } return; }
   const PANEL_OF = {inv:'inv', char:'char', skills:'skills', journal:'journal', map:'map', oils:'oils'};
   if(PANEL_OF[a]){ UI.panel === PANEL_OF[a] ? closePanel() : openPanel(PANEL_OF[a]); return; }
+  if(a === 'hud'){ e.preventDefault(); if(!e.repeat) setNoHud(!UI.noHud); return; }   // hide or show the HUD (clean screenshots and videos)
   if(a === 'overlay'){ e.preventDefault(); if(!e.repeat){ UI.mapOver = !UI.mapOver; saveSettings(); } return; }   // the map in the middle of the screen
   if(UI.panel) return;
   if(/^s[1-5]$/.test(a || '')){ useSlot(+a[1] - 1); return; }
@@ -8033,7 +8049,7 @@ function loop(now){
   const ms0 = now - lastT, dt = Math.min(0.05, ms0/1000); lastT = now;
   try{
     menuFrame(now, dt);
-    sndTick(); try{ karmaTick(); }catch(e){}
+    sndTick(); try{ karmaTick(); }catch(e){} if(CHEAT) cheatTick();
     if(G.M && G.P){
       unfocusIfFree();
       if(!isTouch || joy.id === null){ const [kx, ky] = keyMove(); if(joy.id === null){ INPUT.mx = kx; INPUT.my = ky; } }
