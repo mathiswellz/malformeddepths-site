@@ -262,6 +262,11 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
   .dollcol{order:-1;width:min(58%,250px);margin:0 auto}
 }
 .cell.dup img{filter:grayscale(1) brightness(.65)}
+/* Godly (2026-11-18): names and frames glow purple, slowly breathing */
+.godly{color:#c58bff !important;text-shadow:0 0 6px rgba(180,107,255,.85),0 0 14px rgba(138,60,255,.55);animation:godglow 1.8s ease-in-out infinite}
+@keyframes godglow{50%{text-shadow:0 0 10px rgba(205,150,255,1),0 0 22px rgba(150,70,255,.85)}}
+.cell.godly{border-color:#b46bff !important;box-shadow:0 0 6px 1px rgba(180,107,255,.7),inset 0 0 8px rgba(180,107,255,.35);animation:godcell 1.8s ease-in-out infinite;text-shadow:none}
+@keyframes godcell{50%{box-shadow:0 0 12px 3px rgba(190,120,255,.9),inset 0 0 12px rgba(180,107,255,.5)}}
 .cell.dup{border-color:#4a4450 !important}
 .sidewin.blank{visibility:hidden}
 /* two windows side by side: the chest or Karmara's imbuing on the left, the inventory on the right */
@@ -581,7 +586,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.20';
+const GAME_VER = '0.1.21';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -793,8 +798,16 @@ const ELITE_PREFIX = ['Rotting','Vile','Gnashing','Weeping','Hollow','Twisted','
 const RARITY = [
   {id:'typical', name:'Typical', color:'#f0ece4', affix:[0, 2], val:1,  mult:1.0},
   {id:'grand',   name:'Grand',   color:'#ffcd4a', affix:[3, 4], val:4,  mult:1.2},
-  {id:'heroic',  name:'Heroic',  color:'#ff4545', affix:[4, 5], val:12, mult:1.45}
+  {id:'heroic',  name:'Heroic',  color:'#ff4545', affix:[4, 5], val:12, mult:1.45},
+  // above Heroic (2026-11-18, Mathis): never rolled at random; only the gods' own things are Godly. Its name glows purple
+  {id:'godly',   name:'Godly',   color:'#b46bff', affix:[5, 6], val:30, mult:1.75}
 ];
+// Godly pieces are made, not rolled: a fixed name, picture and set of bonuses, sized to the hero's level (makeUnique)
+const UNIQUES = {
+  eye:{name:'The Eye of Malformity', slot:'amulet', rarity:'godly', icon:'u_eye_malformity', fallback:'j_amulet_h', power:'allskills',
+    lore:'Ilvaroth\'s own eye, torn from him as he fell. It has not stopped looking.',
+    affixes:['dmg', 'crit', 'hp', 'mp', 'cdr']}   // for every class: damage, crits, life, mana and quicker skills, and +1 to all skills
+};
 const OLD_RARITY = {common:'typical', magic:'typical', rare:'grand', legendary:'heroic'};
 const HEROIC_POWERS = [
   {id:'allskills',  name:'+1 to all skill ranks'},
@@ -824,7 +837,7 @@ const OILS = {
 };
 function oilPrice(k, lvl){ return k === 'malformed' ? 60 + lvl*11 : k === 'slime' ? 50 + lvl*9 : 30 + lvl*6; }
 const UP_CHANCE = [1, 1, 1, 1, 1, 1, 0.7, 0.55, 0.4, 0.25]; // success chance to reach +1 ... +10
-const REFORGE_CARBON = {typical:1, grand:3, heroic:6};
+const REFORGE_CARBON = {typical:1, grand:3, heroic:6, godly:12};
 const SLOTS = ['weapon','helm','chest','gloves','boots','ring','amulet'];
 const SLOT_NAMES = {weapon:'Weapon', helm:'Helm', chest:'Chest', gloves:'Gloves', boots:'Boots', ring:'Ring', amulet:'Amulet'};
 // Where gear is worn (2026-11-17, Mathis): every hero has two rings; the Rogue fights with a dagger in each hand. SLOTS above are the kinds of
@@ -1321,7 +1334,8 @@ function hdIcon(key){ if(!HD_ICONS.has(key)) return null; let im = HDI[key]; if(
 function hdIconURL(key, fb){ return HD_ICONS.has(key) ? 'assets/icons/' + key + '.webp' : fb(); }
 function itemIconKey(it){
   if(it.kind === 'hpot' || it.kind === 'mpot' || it.kind === 'carbon') return it.kind;
-  const h = it.rarity === 'heroic';
+  if(it.uniq && UNIQUES[it.uniq]){ const U = UNIQUES[it.uniq]; return HD_ICONS.has(U.icon) ? U.icon : U.fallback; }
+  const h = it.rarity === 'heroic' || it.rarity === 'godly';
   if(it.slot === 'weapon'){ const B = WEAPON_BASES[it.wtype]; if(!B) return null; const i = B.names.indexOf(it.base); return `w_${it.wtype}_${h ? 'h' : i >= 0 ? i : clamp(Math.floor(it.ilvl/10), 0, 4)}`; }
   if(it.slot === 'ring' || it.slot === 'amulet'){ const i = JEWELRY[it.slot].indexOf(it.base); return `j_${it.slot}_${h ? 'h' : i >= 0 ? i : clamp(Math.floor(it.ilvl/13), 0, 3)}`; }
   const C = CLASSES[it.cls] || CLASSES.knight, A = ARMOR_BASES[C.armor]; if(!A || !A[it.slot]) return null;
@@ -1374,7 +1388,8 @@ function skillIconURL(sk, scale = 3){
 const MATS = {
   typical:{a:'#7a7a86', A:'#a8a8b4', z:'#4a4a56', G:'#c3cad8', g:'#8b93a6', Y:'#8a6a3e', y:'#c8a060'},
   grand:{a:'#b08a2a', A:'#ffd84a', z:'#6a5010', G:'#fff0a0', g:'#d0b050', Y:'#c08a3e', y:'#ffd84a'},
-  heroic:{a:'#a01a2a', A:'#e43b44', z:'#5a0a14', G:'#ffb0b0', g:'#d05060', Y:'#ff6a3a', y:'#ffcd75'}
+  heroic:{a:'#a01a2a', A:'#e43b44', z:'#5a0a14', G:'#ffb0b0', g:'#d05060', Y:'#ff6a3a', y:'#ffcd75'},
+  godly:{a:'#5a2a92', A:'#b46bff', z:'#2a1048', G:'#e2c8ff', g:'#9a6ad0', Y:'#c07bff', y:'#f0d8ff'}
 };
 function itemOver(it){ return MATS[it.rarity] || MATS.typical; }
 function itemIcon(it){
@@ -2346,13 +2361,23 @@ function rollRarity(diff, luck = 1){
 const SUFFIX = {str:'Might', dex:'Precision', int:'the Mind', vit:'Vigor', hp:'Life', mp:'Clarity', crit:'Ruin', as:'Haste', ms:'Swiftness', dmg:'Slaughter', loh:'the Leech', arm:'Warding', cdr:'Ages'};
 const RARE_A = ['Grim', 'Dread', 'Hollow', 'Blood', 'Ash', 'Grave', 'Night', 'Bone', 'Storm', 'Rot', 'Wraith', 'Clay'];
 const RARE_B = ['bite', 'call', 'shroud', 'mark', 'song', 'ward', 'fang', 'veil', 'grasp', 'oath', 'weep', 'brand'];
-const TIER_MULT = {typical:1, grand:1.6, heroic:2.6};
+const TIER_MULT = {typical:1, grand:1.6, heroic:2.6, godly:3.6};
 function weaponTierName(B, ilvl){ return B.names[clamp(Math.floor(ilvl/10), 0, B.names.length - 1)]; }
 function armorTierName(names, slot, ilvl){ return names[clamp(Math.floor(ilvl/(slot === 'helm' || slot === 'chest' ? 13 : 17)), 0, names.length - 1)]; }
 // gear that drops, sits in a chest, fills the shop or comes as a reward is made for the hero who finds it: their level or one above,
 // never below (the depth's monster level used to set it), and always something they can wear now
 function gearLevel(){ const P = G.P; return clamp((P ? P.lvl : 1) + (R() < 0.5 ? 1 : 0), 1, LEVEL_CAP); }
 function makeGear(rarity, slot, cls){ const P = G.P, it = makeItem(gearLevel(), rarity, slot, cls); if(P) it.req = clamp(Math.min(P.lvl, it.ilvl), 1, LEVEL_CAP); return it; }
+// a Godly piece: its fixed bonuses rolled at the hero's level, x1.7 (Heroic is x1.4), and its heroic power
+function makeUnique(key, ilvl){
+  const U = UNIQUES[key], P = G.P; ilvl = clamp(Math.round(ilvl || gearLevel()), 1, LEVEL_CAP);
+  const it = makeItem(ilvl, 'typical', U.slot, null);
+  it.rarity = U.rarity; it.uniq = key; it.name = U.name; it.cls = null; it.affixes = [];
+  for(const id of U.affixes){ const af = AFFIXES.find(a => a.id === id); if(af) it.affixes.push({id, v:Math.max(1, Math.round(af.roll(ilvl)*1.7))}); }
+  if(U.power) it.power = U.power;
+  it.value = Math.round((8 + ilvl*4)*rarityDef(U.rarity).val); if(P) it.req = clamp(Math.min(P.lvl, ilvl), 1, LEVEL_CAP);
+  return it;
+}
 function makeItem(ilvl, rarity, slot, cls){
   ilvl = clamp(Math.round(ilvl), 1, LEVEL_CAP);
   rarity = OLD_RARITY[rarity] || rarity || 'typical';
@@ -2723,10 +2748,11 @@ function killMonster(m){
   else if(elite){ if(R() < 0.3) cn = RRI(1, 2); }
   else if(R() < 0.02) cn = 1;
   if(cn) dropLoot({carbon:Math.max(1, Math.round(cn*carbonMult()))}, m.x, m.y);
+  if(m.type === 'ilvaroth') dropItem(makeUnique('eye'), m.x, m.y);   // Godly: The Eye of Malformity, every time he falls (2026-11-18, Mathis)
   if(m.isBoss) bossDefeated(m);
   if(m.isQuest) questBossDefeated(m);
 }
-function dropItem(it, x, y){ dropLoot({item:it}, x, y); if(it.rarity === 'heroic') sfx('legend', {x, y}); else if(it.rarity === 'grand') sfx('raredrop', {x, y}); else sfx('itemdrop', {x, y}); }
+function dropItem(it, x, y){ dropLoot({item:it}, x, y); if(it.rarity === 'heroic' || it.rarity === 'godly') sfx('legend', {x, y}); else if(it.rarity === 'grand') sfx('raredrop', {x, y}); else sfx('itemdrop', {x, y}); }
 function dropGold(n, x, y){ dropLoot({gold:n}, x, y); }
 function dropLoot(o, x, y){
   const a = R()*Math.PI*2, d = 6 + R()*14;
@@ -2749,11 +2775,25 @@ function bossDefeated(m){
   } else {
     P.wonDiff[diff] = true; P.prog[diff] = 10; P.done = Math.max(P.done, 10);
     if(!P.won) P.won = true;
-    setTimeout(() => whenFree(() => showDialog('Ilvaroth', ILVAROTH_DEATH, [{label:'Return to Palli', fn:() => { closeDialog(); goTown(); }}], 'boss')), 1500);
-    M.objects.push({type:'homeportal', x:m.x, y:m.y + 20}); bossBody(M, m);
+    const open = () => { if(G.M !== M || M.objects.some(o => o.type === 'homeportal')) return; const at = homePortalSpot(M, m);
+      M.objects.push({type:'homeportal', x:at.x, y:at.y}); ring(at.x, at.y - 12, 40, '#ffcd75', 0.6); burst(at.x, at.y - 12, 30, ['#fff6d8', '#ffcd75', '#f2a541'], 90, 60, 0.9); sfx('portal', at);
+      toast('A way home opens where he fell. Gather what he left, then step through.', '#ffcd75', 5); };
+    setTimeout(() => whenFree(() => showDialog('Ilvaroth', ILVAROTH_DEATH, [{label:'Continue', fn:() => { closeDialog(); open(); }}], 'boss')), 1500);
+    setTimeout(open, 20000);   // the way home opens even if the dialog never showed
+    bossBody(M, m);
     playMusic('town');
   }
   checkUnlocks(); saveGame();
+}
+// the portal home after the final fight: a few steps south of where the boss fell (back toward the way in), on open floor, clear
+// of the body and of the loot scattered around it
+function homePortalSpot(M, m){
+  const tries = [[0, 64], [0, 80], [48, 56], [-48, 56], [64, 0], [-64, 0], [0, -64], [56, -48], [-56, -48], [0, 40]];
+  for(const [dx, dy] of tries){ const x = m.x + dx, y = m.y + dy;
+    if(solidAt(M, x, y) || blockedCircle(M, x, y, 10)) continue;
+    if(G.loot.some(l => l.map === M && Math.hypot(l.x - x, l.y - y) < 22)) continue;
+    return {x, y}; }
+  return {x:m.x, y:m.y + 20};
 }
 // a fallen boss stays where it fell, looking like itself (its last death frame): a body to search when it carries a note
 function bossBody(M, m, note){
@@ -3271,7 +3311,7 @@ function unequip(slot){
 }
 function dropInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx] = null; dropLoot({item:it, own:true}, P.x, P.y); G.loot[G.loot.length - 1].t = -0.6; uiDirty(); }   // it stays on the ground until picked up again
 function sellInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx] = null; if(UI.sel && UI.sel.inv === idx) UI.sel = null; const v = Math.round(itemValue(it)*0.4); P.gold += v; sfx('coin'); toast(`Sold ${itemName(it)} for ${v} gold.`, '#ffcd75'); uiDirty(); }
-function repairCost(it){ if(!it || !it.maxDur) return 0; return Math.ceil((it.maxDur - it.dur)*(1 + it.ilvl*0.25)*({typical:1, grand:1.4, heroic:2}[it.rarity] || 1)); }
+function repairCost(it){ if(!it || !it.maxDur) return 0; return Math.ceil((it.maxDur - it.dur)*(1 + it.ilvl*0.25)*({typical:1, grand:1.4, heroic:2, godly:2.6}[it.rarity] || 1)); }
 function repairAll(){
   const P = G.P; let cost = 0; const all = [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean);
   all.forEach(it => cost += repairCost(it));
@@ -3308,7 +3348,8 @@ const ASCEND_CARBON = {typical:15, grand:30};
 function ascendCost(it){ if(!ASCEND_CARBON[it.rarity]) return null; return {carbon:ASCEND_CARBON[it.rarity], gold:Math.round((60 + it.ilvl*20)*TIER_MULT[it.rarity]), to: it.rarity === 'typical' ? 'grand' : 'heroic'}; }
 function ascendBlock(it){
   if(!it || !it.slot) return 'Choose a piece of gear.';
-  if(it.rarity === 'heroic') return 'Heroic is the highest tier.';
+  if(it.rarity === 'heroic') return 'Heroic is the highest tier Karmara can forge.';
+  if(it.rarity === 'godly') return 'Godly is beyond any forge.';
   if(!G.P.unlocked.malformed) return 'Karmara can raise an item\'s tier once you have unlocked Malformed.';
   if((it.plus || 0) < 10) return `The item must be +10 before its tier can be raised (it is +${it.plus || 0}).`;
   return null;
@@ -5226,7 +5267,7 @@ function drawLoot(l){
   const hdk = l.gold ? (l.gold < 25 ? 'gold_0' : l.gold < 120 ? 'gold_1' : 'gold_2') : l.pot ? (l.pot === 'hp' ? 'hpot' : 'mpot') : l.carbon ? 'carbon' : l.item ? itemIconKey(l.item) : null, him = hdk && hdIcon(hdk);
   if(him){                            // ChatGPT icon on the floor, about 2/3 of a tile, with the old rarity beam
     const it = l.item, s = it ? 11 : 9;
-    if(it && it.rarity !== 'typical'){ const rc = rarityDef(it.rarity).color, hh = it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if(it.rarity === 'heroic' && R() < 0.3) G.parts.push({x:x + (R() - 0.5)*6, y:y - R()*20, vx:0, vy:-25, life:0.8, max:0.8, c:rc, g:0, s:1}); }
+    if(it && it.rarity !== 'typical'){ const rc = rarityDef(it.rarity).color, hh = it.rarity === 'godly' ? 140 : it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if((it.rarity === 'heroic' && R() < 0.3) || (it.rarity === 'godly' && R() < 0.8)) G.parts.push({x:x + (R() - 0.5)*(it.rarity === 'godly' ? 12 : 6), y:y - R()*(it.rarity === 'godly' ? 40 : 20), vx:0, vy:-25, life:0.8, max:0.8, c:it.rarity === 'godly' && R() < 0.4 ? '#f0d8ff' : rc, g:0, s:1}); }
     const ft = (HD_ICON_FOOT[hdk] || 0)*s, gnd = k >= 1;   // the picture's lowest point rests inside its shadow (gold no longer floats)
     b.fillStyle = 'rgba(3,2,8,.5)'; b.beginPath(); b.ellipse(x, y + 1.5, s*(l.gold ? 0.5 : 0.45), s*0.17, 0, 0, Math.PI*2); b.fill();
     const sm = b.imageSmoothingEnabled; b.imageSmoothingEnabled = true; b.drawImage(him, x - s/2, y - s + 1.5 + ft + (gnd ? 0.6 : 0), s, s); b.imageSmoothingEnabled = sm;
@@ -5237,7 +5278,7 @@ function drawLoot(l){
   if(l.pot){ const img = getIconSprite(l.pot === 'hp' ? 'hpot' : 'mpot'); b.drawImage(img, Math.round(x - 6), Math.round(y - 10)); return; }
   if(l.carbon){ const img = getIconSprite('carbon'); b.drawImage(img, Math.round(x - 6), Math.round(y - 10)); if(Math.floor(G.time*3 + l.x) % 4 === 0){ b.fillStyle = '#ffffff'; b.fillRect(Math.round(x) - 1, Math.round(y) - 7, 1, 1); } return; }
   const it = l.item, rc = rarityDef(it.rarity).color;
-  if(it.rarity !== 'typical'){ const hh = it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if(it.rarity === 'heroic' && R() < 0.3) G.parts.push({x:x + (R() - 0.5)*6, y:y - R()*20, vx:0, vy:-25, life:0.8, max:0.8, c:'#ff4545', g:0, s:1}); }
+  if(it.rarity !== 'typical'){ const hh = it.rarity === 'godly' ? 140 : it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if(it.rarity === 'heroic' && R() < 0.3) G.parts.push({x:x + (R() - 0.5)*6, y:y - R()*20, vx:0, vy:-25, life:0.8, max:0.8, c:'#ff4545', g:0, s:1}); }
   b.fillStyle = 'rgba(3,2,8,.5)'; b.fillRect(Math.round(x) - 5, Math.round(y) + 1, 10, 2);
   const img = getIconSprite(it.slot === 'weapon' ? it.wtype : it.slot, MATS[it.rarity] || MATS.typical);
   b.drawImage(img, Math.round(x - 6), Math.round(y - 11));
@@ -5870,7 +5911,9 @@ function drawHiRes(cx, cy){
   const lh = fs*1.2, placed = [];
   for(const L of labs){ let y = L.sy; for(let n = 0; n < 8; n++){ const q = placed.find(q => Math.abs(q.sx - L.sx) < (q.tw + L.tw)/2 + 2 && Math.abs(q.y - y) < lh + 2); if(!q) break; y = q.y - lh - 2; } L.y = y; placed.push(L); }
   for(let i = labs.length - 1; i >= 0; i--){ const L = labs[i], x0 = L.sx - L.tw/2, y0 = L.y - fs*0.6;   // the target is drawn last, on top
-    ctx.fillStyle = 'rgba(8,6,12,.75)'; ctx.fillRect(x0, y0, L.tw, lh); ctx.fillStyle = rarityDef(L.l.item.rarity).color; ctx.fillText(L.nm, L.sx, L.y);
+    ctx.fillStyle = 'rgba(8,6,12,.75)'; ctx.fillRect(x0, y0, L.tw, lh); ctx.fillStyle = rarityDef(L.l.item.rarity).color;
+    if(L.l.item.rarity === 'godly'){ ctx.shadowColor = '#b46bff'; ctx.shadowBlur = Z*(2.5 + 1.5*Math.sin(G.time*4)); ctx.fillText(L.nm, L.sx, L.y); ctx.shadowBlur = 0; ctx.fillStyle = '#e6d0ff'; }   // Godly: the name glows
+    ctx.fillText(L.nm, L.sx, L.y);
     L.l.lab = [x0, y0, L.tw, lh];   // where its name sits on screen (a click there picks it up)
     if(L.l === tgt){ ctx.lineWidth = Math.max(1, Z*0.45); ctx.strokeStyle = '#ffcd75'; ctx.strokeRect(x0, y0, L.tw, lh); } }
   // NPC & elite names
@@ -6075,9 +6118,10 @@ function setRows(after){   // the buttons into map settings and controls, on bot
 function uiBlocking(){ return !!UI.panel || UI.dialog || G.state !== 'play'; }
 function uiDirty(){ autoSort(); UI.dirty = true; if(UI.panel && UI.panel !== 'menu' && UI.panel !== 'settings') refreshPanel(); }
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]); }
+const GODLY_COL = '#b46bff';   // Godly names glow (CSS .godly)
 function toast(msg, color = '#e8e0d0', dur = 3){
   if(G.heroes && G.heroes.length > 1 && G.P === G.heroes[1]) msg = 'P2 · ' + msg;
-  const t = document.createElement('div'); t.className = 'toast'; t.style.color = color; t.textContent = msg;
+  const t = document.createElement('div'); t.className = 'toast' + (color === GODLY_COL ? ' godly' : ''); t.style.color = color; t.textContent = msg;
   const box = $('toasts'); box.appendChild(t); while(box.children.length > 3) box.firstChild.remove();
   setTimeout(() => { t.style.transition = 'opacity .5s'; t.style.opacity = 0; setTimeout(() => t.remove(), 500); }, dur*1000);
 }
@@ -6550,12 +6594,12 @@ function cellHTML(it, sel, onclick, opts = {}){
   const P = G.P, dd = (opts.drop ? ` data-drop="${opts.drop}"` : '') + (it && opts.drag ? ` data-drag="${opts.drag}"` : '') + (it && opts.sell != null ? ` data-sell="${opts.sell}"` : '');
   if(!it) return `<button class="cell empty${sel ? ' sel' : ''}"${dd} onclick="${onclick}">${opts.label ? `<span class="lbl">${opts.label}</span>` : ''}</button>`;
   const bad = it.slot && !canEquip(it), dup = opts.dup ? ' dup' : '';
-  return `<button class="cell${sel ? ' sel' : ''}${dup}"${dd}${opts.dup ? ' title="Its heroic power is not counting: another piece you wear has the same one"' : ''} style="border-color:${rarColor(it)}aa" onclick="${onclick}"><img src="${itemIcon(it)}" draggable="false">${it.plus ? `<span class="pl">+${it.plus}</span>` : ''}${bad ? '<span class="brk">✕</span>' : it.maxDur && it.dur === 0 ? '<span class="brk">!</span>' : ''}</button>`;
+  return `<button class="cell${sel ? ' sel' : ''}${dup}${it.rarity === 'godly' ? ' godly' : ''}"${dd}${opts.dup ? ' title="Its heroic power is not counting: another piece you wear has the same one"' : ''} style="border-color:${rarColor(it)}aa" onclick="${onclick}"><img src="${itemIcon(it)}" draggable="false">${it.plus ? `<span class="pl">+${it.plus}</span>` : ''}${bad ? '<span class="brk">✕</span>' : it.maxDur && it.dur === 0 ? '<span class="brk">!</span>' : ''}</button>`;
 }
 function itemCard(it, ctx){
   const P = G.P; if(!it) return '';
   const rar = rarityDef(it.rarity);
-  let h = `<div class="card"><div class="nm" style="color:${rar.color}">${esc(itemName(it))}</div><div class="sub">${rar.name} ${SLOT_NAMES[it.slot]}${it.wtype ? ' · ' + it.wtype[0].toUpperCase() + it.wtype.slice(1) : ''} · Item level ${it.ilvl}</div>`;
+  let h = `<div class="card"><div class="nm${it.rarity === 'godly' ? ' godly' : ''}" style="color:${rar.color}">${esc(itemName(it))}</div>${it.uniq && UNIQUES[it.uniq] ? `<div class="sub" style="font-style:italic;color:#c9b3e6">${esc(UNIQUES[it.uniq].lore)}</div>` : ''}<div class="sub">${rar.name} ${SLOT_NAMES[it.slot]}${it.wtype ? ' · ' + it.wtype[0].toUpperCase() + it.wtype.slice(1) : ''} · Item level ${it.ilvl}</div>`;
   if(it.cls) h += `<div class="${it.cls === P.cls ? 'sub' : 'bad'}">${CLASSES[it.cls].name} only</div>`;
   h += `<div class="${(it.req || 1) > P.lvl ? 'bad' : 'sub'}">Requires level ${it.req || 1}</div>`;
   const place = eqWhere(it, P), tgt = place ? null : eqTarget(it, P), eq = tgt ? P.eq[tgt] : null; const cmp = eq && eq !== it;   // against the piece it would replace (two rings, two daggers: the weaker)
@@ -7018,7 +7062,7 @@ function gearPicker(includeEq, filter, sellable = false){
 }
 // selling in bulk at the forge: everything, or one tier. Upgraded (+) items are never sold in bulk. The first press asks, the second sells.
 const SELL_SETS = [['all', 'Sell all'], ['typical', 'All Typical'], ['grand', 'All Grand'], ['heroic', 'All Heroic']];
-function bulkList(kind){ return G.P.inv.map((it, i) => [it, i]).filter(([it]) => it && !it.plus && (kind === 'all' || it.rarity === kind)); }
+function bulkList(kind){ return G.P.inv.map((it, i) => [it, i]).filter(([it]) => it && !it.plus && it.rarity !== 'godly' && (kind === 'all' || it.rarity === kind)); }   // Godly pieces are only ever sold one at a time
 function sellBulk(kind){
   const P = G.P, L = bulkList(kind); if(!L.length) return;
   if(UI.sellAsk !== kind){ UI.sellAsk = kind; sfx('click'); refreshPanel(); setTimeout(() => { if(UI.sellAsk === kind){ UI.sellAsk = null; if(UI.panel === 'shop') refreshPanel(); } }, 4000); return; }
@@ -7097,7 +7141,7 @@ function openImbue(){ closeDialog(); UI.imb = null; UI.imbPow = null; UI.sel = n
 function imbPick(ref){ const it = refItem(ref); if(!it) return; UI.imb = ref; UI.imbPow = null; sfx('pickup'); refreshPanel(); }
 function imbItem(){ const it = refItem(UI.imb); return it && it.slot ? it : null; }
 function imbueApply(){
-  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || it.rarity !== 'heroic' || !cost || it.power === id) return;
+  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || !(it.rarity === 'heroic' || it.rarity === 'godly') || !cost || it.power === id) return;
   if(P.carbon < cost){ toast(`You need ${cost} Carbon.`, '#e43b44'); sfx('error'); return; }
   P.carbon -= cost; it.power = id; derive(P); UI.imbPow = null;
   sfx('upsuccess'); sfx('legend'); toast(`${itemName(it)} now carries: ${powerDef(id).name}`, '#ff4545', 4); saveGame(); uiDirty(); refreshPanel();
@@ -7107,7 +7151,7 @@ function renderImbue(){
   let h = `<div class="sub" style="margin-bottom:8px">"Power sits on heroic steel like heat on a blade. I can draw it off and lay another in its place. It eats Carbon, though. A lot of it."</div>`;
   h += `<div class="imbrow"><div class="imbslot" data-drop="imb">${it ? `<button class="cell" style="border-color:${rarColor(it)}aa" onclick="UI.imb=null;UI.imbPow=null;refreshPanel()"><img src="${itemIcon(it)}" draggable="false"></button>` : '<div class="sub">Heroic gear</div>'}</div>`;
   h += `<div style="flex:1;min-width:0">${it ? `<div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub">${it.power ? 'Carries: ' + powerDef(it.power).name : 'No heroic power'}</div>` : '<div class="sub">Choose a heroic piece from your inventory: tap it, or drag it here.</div>'}<div style="color:#c3cad8;margin-top:4px">${P.carbon} Carbon on you</div></div></div>`;
-  if(it && it.rarity !== 'heroic') h += `<div class="card bad" style="color:#ff7a7a">"That's ${rarityDef(it.rarity).name} steel. There's no power in it to move. Bring me something Heroic."</div>`;
+  if(it && it.rarity !== 'heroic' && it.rarity !== 'godly') h += `<div class="card bad" style="color:#ff7a7a">"That's ${rarityDef(it.rarity).name} steel. There's no power in it to move. Bring me something Heroic."</div>`;
   else if(it){
     // what the hero already wears (2026-11-18, Mathis): every power on their other worn pieces is named before they choose, so they
     // never pay to lay in a power that would not count
