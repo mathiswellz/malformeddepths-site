@@ -252,7 +252,7 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
 .doll{position:relative;width:100%;aspect-ratio:3/5;background:radial-gradient(ellipse at 50% 45%,rgba(140,120,170,.12),transparent 70%);border:1px solid #2a2234;border-radius:6px;overflow:hidden}
 .doll .sil{position:absolute;left:4%;top:4%;width:92%;height:93%;pointer-events:none;opacity:.15}
 .doll .sil.stand{filter:brightness(0) invert(.85)}
-.doll img.sil{object-fit:contain;object-position:50% 100%}
+.doll img.sil{left:0;top:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;opacity:.17}   /* ChatGPT's body (batch 21): drawn at the box's own 3:5, head at the top, feet at the bottom */
 .dslot{position:absolute;width:21.5%;transform:translate(-50%,-50%)}
 .dslot .cell{width:100%}
 .dslot .cell.empty{border-style:dashed;border-color:#3a3048;background:rgba(11,8,16,.55)}
@@ -581,7 +581,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.18';
+const GAME_VER = '0.1.19';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -6588,7 +6588,7 @@ const DOLL_POS = {helm:[50, 9], amulet:[78, 20], chest:[50, 36], weapon:[15, 40]
 // the body: ChatGPT's silhouettes once they are in (batch 21: assets/doll_male.webp, doll_female.webp, listed in DOLL_ART); until then the
 // hero's own front-facing standing frame, flattened to a pale shape by CSS. It is drawn as an SVG fitted inside the figure's box
 // (contain, feet on the bottom), so it scales with the box on every screen and never spills past it (Mathis, 2026-11-18: too large)
-const DOLL_ART = {}, DOLL_BODY = {knight:'male', rogue:'male', mage:'female'};
+const DOLL_ART = {male:'assets/doll_male.webp', female:'assets/doll_female.webp'}, DOLL_BODY = {knight:'male', rogue:'male', mage:'female'};   // batch 21 is in (2026-11-18)
 function dollSilHTML(cls){
   const art = DOLL_ART[DOLL_BODY[cls]]; if(art) return `<img class="sil" src="${art}" alt="" draggable="false">`;
   const r = HDIR_MAN[cls] && HDIR_MAN[cls].idl_s_1; if(!r) return '';
