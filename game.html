@@ -242,6 +242,29 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .panel.wide{width:min(980px,100%);flex:0 1 auto;min-width:0}
+/* the Inventory (2026-11-17): the backpack, and the gear worn on a faded silhouette of the body */
+.panel.inv{width:min(720px,100%);flex:0 1 720px;min-width:0}
+.invcols{display:flex;gap:12px;align-items:flex-start}
+.bagcol{flex:1 1 auto;min-width:0}
+.dollcol{flex:none;width:250px}
+.doll{position:relative;width:250px;height:390px;background:radial-gradient(ellipse at 50% 45%,rgba(140,120,170,.12),transparent 70%);border:1px solid #2a2234;border-radius:6px;overflow:hidden}
+.doll .sil{position:absolute;left:50%;top:14px;pointer-events:none;opacity:.17;transform-origin:50% 0}
+.doll .sil.stand{filter:brightness(0) invert(.85)}
+.doll img.sil{height:92%;transform:translateX(-50%)}
+.dslot{position:absolute;width:54px;transform:translate(-50%,-50%)}
+.cell.dup img{filter:grayscale(1) brightness(.65)}
+.cell.dup{border-color:#4a4450 !important}
+.sidewin.blank{visibility:hidden}
+/* two windows side by side: the chest or Karmara's imbuing on the left, the inventory on the right */
+.pair{display:flex;gap:12px;align-items:center;justify-content:center;width:100%;height:100%;min-height:0}
+.pair .panel{max-height:100%}
+.panel.chestwin{width:min(460px,100%);flex:0 1 460px;min-width:0}
+.chestwin .pf{max-height:min(42vh,320px)}
+.imbrow{display:flex;gap:12px;align-items:center}
+.imbslot{width:86px;height:86px;flex:none;border:2px dashed #6a5880;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;background:#0b0810;font-size:15px}
+.imbslot .cell{width:76px;height:76px}
+.imbslot.dndok,.imbslot.dndhov{border-color:var(--gold)}
+@media (max-width:1060px){.pair .dollcol{display:none}.pair .panel.chestwin{flex-basis:380px}.pair .panel.inv{flex-basis:420px}}
 .stashduo{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
 @media (max-width:640px){.stashduo{gap:8px}.stashduo .grid{grid-template-columns:repeat(4,1fr);gap:3px}.stashduo.money{grid-template-columns:1fr}}
 .cell{aspect-ratio:1;background:#0b0810;border:2px solid #2a2234;position:relative;display:flex;align-items:center;justify-content:center;padding:0;border-radius:3px}
@@ -250,7 +273,7 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
 .cell .lbl{position:absolute;bottom:0;left:0;right:0;font-size:12px;color:#6a6080;text-align:center;line-height:1}
 .cell .brk{position:absolute;top:1px;right:3px;color:var(--blood);font-size:14px}
 .cell .pl{position:absolute;top:0;left:3px;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000,-1px 0 0 #000}
-.eqgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
+.eqgrid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-bottom:8px}
 .card{border:2px solid var(--edge);background:#0b0810;padding:8px 10px;margin-top:8px;border-radius:4px;line-height:1.15}
 .card .nm{font-size:22px}
 .card .sub{color:var(--dim);font-size:16px}
@@ -548,7 +571,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.14';
+const GAME_VER = '0.1.15';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -621,6 +644,8 @@ const OPENING = [
   {shot:'waking', text:"You awaken in a house of reeds and lantern light. You don't remember your name, or how you came to be here.\n\nAn old man watches over you."}];
 const INTRO_TEXT = "You awaken on the bank of a river. Cold water laps at your fingers.\n\nYou don't remember your name, or how you came to be here. Only the sound of the water, and a voice humming a song you almost know...\n\nAn old man waits beneath a tree by the river.";
 const KARMARA_INTRO = "Hah! The river spits out a fighter. I'm Karmara. Twenty years I've hammered steel in Palli, and since that hole opened, everyone wants blades.\n\nBring me your broken gear and I'll mend it. Got coin? I've got steel. Got junk? I'll buy it.\n\nHere, take these potions. Nobody walks into that Rift on my watch without something to drink.";
+// 2026-11-17 (Mathis): once Nightmare is open, Karmara has learned to move the power in heroic steel. She shows it with a gift; Imbue opens.
+const KARMARA_IMBUE = "Hold up. I've been working on something while you were down in the red dark.\n\nThe power in heroic steel sits on the metal like heat on a blade, and heat can be moved. I can draw it off a piece now and lay a different one in its place.\n\nYou'll want that. Wear two pieces with the same power and only one ever counts.\n\nHere. I made this one to prove it to myself. It's yours. Bring me any heroic piece and I'll imbue it with whatever you need.";
 const KARMARA_LINES = ["Steel doesn't care what's on the other end of it. Neither should you.", "Back in one piece? Your gear isn't. Let me see it.", "Ganesh has been staring at that river more than usual. Old men and their ghosts.", "If you find any Aranyan steel down there, bring it to me. I'd give my left hand to study it."];
 const VAIDYA_INTRO = "Hold still, stranger. You've river water in your lungs and the cold of the grave on your skin.\n\nI'm Vaidya. I mend what can be mended. Since the Rift opened, most who come to me can't be.\n\nCome back whenever you're hurt and I'll heal you for free. My potions cost a little coin. Herbs don't grow themselves.";
 const VAIDYA_LINES = ["Sit. Breathe. There, the color's back in your face.", "My apprentice Niru went into the Rift a month ago. If you see her... no. Never mind.", "Strange. Your heartbeat sounds like water over stones.", "Drink the red ones for wounds, the blue ones for the mind. Don't mix them up."];
@@ -681,7 +706,7 @@ const GANESH_AGAIN = {
 // ---------- classes & skills ----------
 const CLASSES = {
   knight: {name:'Knight', primary:'str', desc:'A bulwark of steel and faith. Heavy armor, huge health, and devastating close-range strikes.',
-    base:{str:14, dex:8, int:5, vit:13}, hp:70, mp:30, armor:'heavy', weapons:['sword','axe','mace'], light:'#ffcd75',
+    base:{str:14, dex:8, int:5, vit:13}, hp:70, mp:45, armor:'heavy', weapons:['sword','axe','mace'], light:'#ffcd75',
     basic:{name:'Slash', kind:'melee', range:34, arc:1.9, cd:0.55, mult:1.0},
     skills:[
       {id:'bash',  name:'Shield Bash', cd:5,  mana:8,  req:1, icon:'shield', color:'#c3cad8', desc:'Slam your shield forward, dealing heavy damage and stunning enemies in front of you.'},
@@ -690,7 +715,7 @@ const CLASSES = {
       {id:'cry',   name:'War Cry',     cd:16, mana:18, req:7, icon:'buff',   color:'#e43b44', desc:'A terrifying roar. Boosts your damage and armor for 8 seconds and makes nearby enemies flee.'}
     ]},
   mage: {name:'Mage', primary:'int', desc:'A scholar of the old Aranyan arts. Fragile, but commands fire, frost and the space between places.',
-    base:{str:5, dex:8, int:15, vit:9}, hp:45, mp:70, armor:'cloth', weapons:['staff','wand'], light:'#7df9ff',
+    base:{str:5, dex:8, int:15, vit:9}, hp:45, mp:80, armor:'cloth', weapons:['staff','wand'], light:'#7df9ff',
     basic:{name:'Arcane Bolt', kind:'bolt', range:220, cd:0.5, mult:1.0},
     skills:[
       {id:'fireball', name:'Fireball',   cd:2.5, mana:10, req:1, icon:'fire',   color:'#ef7d57', desc:'Hurl a ball of fire that explodes on impact, burning everything nearby.'},
@@ -699,7 +724,7 @@ const CLASSES = {
       {id:'meteor',   name:'Meteor',     cd:18,  mana:30, req:7, icon:'meteor', color:'#ffcd75', desc:'Call down a meteor on your target after a short delay. Leaves the ground burning.'}
     ]},
   rogue: {name:'Rogue', primary:'dex', desc:'A shadow with knives. Lightning-fast attacks, deadly critical hits, and poison.',
-    base:{str:8, dex:15, int:6, vit:10}, hp:55, mp:45, armor:'leather', weapons:['dagger'], light:'#a7f070',
+    base:{str:8, dex:15, int:6, vit:10}, hp:55, mp:55, armor:'leather', weapons:['dagger'], light:'#a7f070',
     basic:{name:'Stab', kind:'melee', range:28, arc:1.4, cd:0.32, mult:0.72},
     skills:[
       {id:'fan',     name:'Fan of Knives', cd:4,  mana:10, req:1, icon:'knives', color:'#c3cad8', desc:'Throw a ring of piercing knives in every direction.'},
@@ -784,13 +809,19 @@ const UP_CHANCE = [1, 1, 1, 1, 1, 1, 0.7, 0.55, 0.4, 0.25]; // success chance to
 const REFORGE_CARBON = {typical:1, grand:3, heroic:6};
 const SLOTS = ['weapon','helm','chest','gloves','boots','ring','amulet'];
 const SLOT_NAMES = {weapon:'Weapon', helm:'Helm', chest:'Chest', gloves:'Gloves', boots:'Boots', ring:'Ring', amulet:'Amulet'};
+// Where gear is worn (2026-11-17, Mathis): every hero has two rings; the Rogue fights with a dagger in each hand. SLOTS above are the kinds of
+// item; EQ_SLOTS are the places on the body, EQ_TYPE says which kind goes where (a place not listed takes its own kind).
+const EQ_SLOTS = ['weapon','offhand','helm','chest','gloves','boots','ring','ring2','amulet'];
+const EQ_TYPE = {offhand:'weapon', ring2:'ring'};
+const EQ_NAMES = {weapon:'Weapon', offhand:'Off-hand', helm:'Helm', chest:'Chest', gloves:'Gloves', boots:'Boots', ring:'Ring', ring2:'Ring', amulet:'Amulet'};
+const DUAL_WIELD = {rogue:true};   // classes with an off-hand weapon
 const WEAPON_BASES = {
   sword:{names:['Short Sword','Longsword','Broadsword','Bastard Sword','Warden Blade'], speed:1.0, mult:1.0},
   axe:  {names:['Hatchet','Battle Axe','Bearded Axe','Executioner','Ruin Cleaver'], speed:0.88, mult:1.18},
   mace: {names:['Club','Mace','Flanged Mace','Morning Star','Judgment'], speed:0.92, mult:1.1},
   staff:{names:['Gnarled Staff','Ashwood Staff','Runed Staff','Voidglass Staff','Staff of Aranya'], speed:0.9, mult:1.15, bonus:'int'},
   wand: {names:['Bone Wand','Ashwood Wand','Runed Wand','Voidglass Wand','Wand of the Seven'], speed:1.15, mult:0.85},
-  dagger:{names:['Shiv','Dagger','Kris','Stiletto','Whisper Blade'], speed:1.0, mult:1.0}
+  dagger:{names:['Shiv','Dagger','Kris','Stiletto','Whisper Blade'], speed:1.0, mult:0.65}   // 0.65 (was 1.0): the Rogue carries two now (DAGGER_NERF)
 };
 const ARMOR_BASES = {
   heavy:  {helm:['Iron Cap','Great Helm','Visored Helm','Warden Helm'], chest:['Chain Shirt','Breastplate','Full Plate','Warden Plate'], gloves:['Iron Gauntlets','Plated Gauntlets','War Gauntlets'], boots:['Iron Greaves','Plated Sabatons','War Greaves'], mult:1.45},
@@ -2323,6 +2354,7 @@ function migrateItem(it){
   if(OLD_RARITY[it.rarity]) it.rarity = OLD_RARITY[it.rarity];
   if(!RARITY.find(r => r.id === it.rarity)) it.rarity = 'typical';
   it.plus = it.plus || 0; it.req = it.req || Math.max(1, (it.ilvl || 1) - 1);
+  if(it.wtype === 'dagger' && !it.dw){ it.dw = 1; it.min = Math.max(1, Math.round(it.min*0.65)); it.max = Math.max(it.min + 1, Math.round(it.max*0.65)); }   // daggers made before dual wielding
   return it;
 }
 const upMul = it => 1 + 0.08*(it.plus || 0);
@@ -2346,10 +2378,9 @@ function newPlayer(cls, name){
     ganeshHeard:-1, notes:{}, talked:{}, seeds:{}, kills:0, deaths:0, playTime:0, walk:0, won:false, swCd:0, shockCd:0, slots:[null, null, null, null, null]};
   C.skills.forEach(s => P.skills[s.id] = 0);
   P.skills[C.skills[0].id] = 1;
-  P.eq.weapon = makeItem(1, 'typical', 'weapon', cls);
-  P.eq.chest = makeItem(1, 'typical', 'chest', cls);
-  P.eq.weapon.affixes = P.eq.weapon.affixes.filter(a => a.implicit); P.eq.weapon.name = P.eq.weapon.base;
-  P.eq.chest.affixes = []; P.eq.chest.name = P.eq.chest.base;
+  // a full set of plain Typical gear, no rings or amulet: the hero wakes by the river already dressed for war (2026-11-17, Mathis)
+  for(const s of eqSlots(P)){ const ty = eqType(s); if(ty === 'ring' || ty === 'amulet') continue;
+    const it = makeItem(1, 'typical', ty, cls); it.affixes = it.affixes.filter(a => a.implicit); it.name = it.base; it.req = 1; P.eq[s] = it; }
   derive(P); P.hp = P.d.maxhp; P.mp = P.d.maxmp;
   return P;
 }
@@ -2364,7 +2395,8 @@ function migratePlayer(P){
   P.wonDiff = P.wonDiff || (P.won ? {breeze:true} : {}); P.ganeshAgain = P.ganeshAgain || {};
   P.notes = P.notes || {}; P.talked = P.talked || {}; P.seeds = P.seeds || {};
   P.inv = (P.inv || []).concat(new Array(INV_SIZE).fill(null)).slice(0, INV_SIZE);
-  P.inv.forEach(migrateItem); SLOTS.forEach(s => migrateItem(P.eq[s]));
+  P.inv.forEach(migrateItem); EQ_SLOTS.forEach(s => migrateItem(P.eq[s]));
+  if(P.eq.offhand && !DUAL_WIELD[P.cls]){ const i = P.inv.indexOf(null); if(i >= 0) P.inv[i] = P.eq.offhand; delete P.eq.offhand; }
   P.swCd = 0; P.shockCd = 0; P.kills = P.kills || 0; P.deaths = P.deaths || 0;
   if(!Array.isArray(P.slots)){ const C = CLASSES[P.cls]; P.slots = C.skills.map(sk => P.skills && P.skills[sk.id] ? sk.id : null).slice(0, 4).concat([P.lvl >= ULTIMATES[P.cls].req ? 'ult' : null]); }
   P.slots = cleanSlots(P);
@@ -2373,24 +2405,37 @@ function migratePlayer(P){
   return P;
 }
 function itemActive(it){ return it && (!it.maxDur || it.dur > 0); }
+// the places this hero can wear gear, and what goes where (data.js EQ_SLOTS)
+function eqSlots(P = G.P){ return DUAL_WIELD[P.cls] ? EQ_SLOTS : EQ_SLOTS.filter(s => s !== 'offhand'); }
+const eqType = s => EQ_TYPE[s] || s;
+function eqPlaces(it, P = G.P){ return it && it.slot ? eqSlots(P).filter(s => eqType(s) === it.slot) : []; }
+function eqWhere(it, P = G.P){ return eqSlots(P).find(s => P.eq[s] === it) || null; }   // the place an equipped item is in
+// where a piece goes when equipped without saying where: an empty place first; with both full, the weaker one (rings by value, daggers by damage)
+function eqTarget(it, P = G.P){
+  const pl = eqPlaces(it, P); if(!pl.length) return null; const free = pl.find(s => !P.eq[s]); if(free) return free;
+  const score = x => x.slot === 'weapon' ? itMin(x) + itMax(x) : itemValue(x);
+  return pl.reduce((a, b) => score(P.eq[b]) < score(P.eq[a]) ? b : a);
+}
 function derive(P){
   const C = CLASSES[P.cls], s = {...P.stats}, add = {hp:0, mp:0, crit:0, as:0, ms:0, dmg:0, loh:0, arm:0, cdr:0};
   const pw = {allskills:0, lifesteal:0, thorns:0, shock:0, secondwind:0, greed:0};
-  let armor = 0, wmin = 2, wmax = 4, wspd = 1;
-  for(const slot of SLOTS){
+  let armor = 0, wmin = 2, wmax = 4, wspd = 1; const off = DUAL_WIELD[P.cls] && itemActive(P.eq.offhand) ? P.eq.offhand : null;
+  const dupPow = {}, owner = {};   // heroic powers do not stack: the first piece (in EQ_SLOTS order) with a power keeps it, the rest are greyed out
+  for(const slot of eqSlots(P)){
     const it = P.eq[slot]; if(!itemActive(it)) continue;
     armor += itArmor(it);
     if(slot === 'weapon'){ wmin = itMin(it); wmax = itMax(it); wspd = it.speed; }
     for(const a of it.affixes){ const v = afVal(it, a); if(s[a.id] !== undefined) s[a.id] += v; else add[a.id] += v; }
-    if(it.power) pw[it.power] += 1;
+    if(it.power){ if(owner[it.power]) dupPow[it.id] = owner[it.power]; else { owner[it.power] = slot; pw[it.power] = 1; } }   // dupPow[id] = the place whose piece holds it
   }
+  if(off){ if(P.eq.weapon && itemActive(P.eq.weapon)){ wmin += itMin(off); wmax += itMax(off); wspd = (wspd + off.speed)/2; } else { wmin = itMin(off); wmax = itMax(off); wspd = off.speed; } }   // two daggers: both blades' damage
   let bDmg = 0, bArm = 0, bAs = 0, bMs = 0;
   for(const b of P.buffs){ if(b.id === 'cry'){ bDmg += b.dmg; bArm += b.arm; } if(b.id === 'venom') bAs += 0.25; if(b.id === 'power') bDmg += 0.25; if(b.id === 'speed'){ bMs += 0.3; bAs += 0.2; } }
   const d = P.d = {};
-  d.stats = s;
+  d.stats = s; d.dupPow = dupPow;
   d.powers = {allskills:pw.allskills, lifesteal:0.03*pw.lifesteal, thorns:0.35*pw.thorns, shock:Math.min(0.5, 0.12*pw.shock), secondwind:pw.secondwind > 0, greed:0.5*pw.greed};
   d.maxhp = Math.round((C.hp + s.vit*5 + (P.lvl - 1)*4)*0.85 + add.hp);   // souls-like: heroes 15% frailer
-  d.maxmp = Math.round(C.mp + s.int*3 + (P.lvl - 1)*2 + add.mp);
+  d.maxmp = Math.round(C.mp + s.int*3 + (P.lvl - 1)*3 + add.mp);
   d.mult = (1 + s[C.primary]*0.015 + add.dmg/100 + bDmg)*0.85;   // and hit 15% softer
   d.min = wmin; d.max = wmax;
   d.crit = Math.min(0.75, 0.05 + s.dex*0.0015 + add.crit/100);
@@ -2399,7 +2444,7 @@ function derive(P){
   d.as = wspd*(1 + s.dex*0.003 + add.as/100 + bAs);
   d.ms = 74*(1 + Math.min(0.6, add.ms/100 + bMs));
   d.loh = add.loh; d.cdr = Math.min(0.4, add.cdr/100);
-  d.hpReg = 0.1 + s.vit*0.012; d.mpReg = 1.4 + s.int*0.09;   // life comes back slowly (was 0.4 + vit*0.06); none at all in Palli
+  d.hpReg = 0.1 + s.vit*0.012; d.mpReg = 1.4 + s.int*0.05;   // life comes back slowly (was 0.4 + vit*0.06); none at all in Palli
   d.avg = (wmin + wmax)/2*d.mult;
   if(P.hp > d.maxhp) P.hp = d.maxhp; if(P.mp > d.maxmp) P.mp = d.maxmp;
 }
@@ -2426,6 +2471,15 @@ function skillRank(id){ const P = G.P, r = P.skills[id] || 0; return r ? r + (P.
 function skillMult(id){ const r = Math.max(1, skillRank(id)); return 1 + 0.22*(r - 1); }
 function skillCdFor(sk, rank){ return sk.cd*(1 - 0.035*(Math.max(1, rank) - 1))*(1 - G.P.d.cdr); }
 function skillCd(sk){ return skillCdFor(sk, skillRank(sk.id)); }
+// Mana (2026-11-17, Mathis: mana almost never ran out, mana potions never needed). A skill costs 2.5x its old price (data.js keeps the old
+// one as the base), plus 4% for every rank past the first; an ultimate 2x. Regen leans less on Intelligence (derive) and the pool grows
+// 3 a level. Tuned so a hard fight empties a Knight or Rogue in ~20-30 s of steady skills and a Mage in ~40-80 s: a mana potion a fight.
+const MANA_MULT = 2.5, ULT_MANA_MULT = 2, MANA_PER_RANK = 0.04;
+function manaCost(sk, P = G.P, rank){
+  if(!sk) return 0; if(sk === ULTIMATES[P.cls]) return Math.round(sk.mana*ULT_MANA_MULT);
+  const r0 = rank != null ? rank : (P.skills[sk.id] || 0), r = Math.max(1, r0 + (r0 && P.d && P.d.powers ? P.d.powers.allskills : 0));
+  return Math.round(sk.mana*MANA_MULT*(1 + MANA_PER_RANK*(r - 1)));
+}
 function addBuff(id, dur, extra = {}){ const P = G.P; P.buffs = P.buffs.filter(b => b.id !== id); P.buffs.push({id, t:dur, dur, ...extra}); derive(P); }
 
 // ---------------- messages & fx helpers ----------------
@@ -2713,7 +2767,7 @@ function basicAttack(){
   if(P.atkT > 0 || P.spin || P.dash || P.cast) return;
   const ang = aimAngle(); P.aim = ang; P.face = Math.cos(ang) >= 0 ? 1 : -1;
   P.atkT = B.cd/P.d.as;
-  const w = P.eq.weapon; if(w && w.dur > 0 && R() < 0.12){ w.dur--; if(w.dur === 0){ toast(`${itemName(w)} has broken! Visit Karmara.`, '#e43b44'); derive(P); } }
+  const w = P.eq.offhand && DUAL_WIELD[P.cls] && R() < 0.5 ? P.eq.offhand : P.eq.weapon; if(w && w.dur > 0 && R() < 0.12){ w.dur--; if(w.dur === 0){ toast(`${itemName(w)} has broken! Visit Karmara.`, '#e43b44'); derive(P); } }
   const venom = P.buffs.find(b => b.id === 'venom');
   if(B.kind === 'melee'){
     P.swing = {t:0, dur:0.2, ang, arc:B.arc};
@@ -2761,9 +2815,9 @@ function useSkill(i){
   if(!P.skills[sk.id]){ toast(`${sk.name} is not learned yet. Open the skill tree.`, '#94b0c2'); sfx('error'); return; }
   const rank = skillRank(sk.id);
   if((P.cds[sk.id] || 0) > 0){ sfx('error'); return; }
-  if(P.mp < sk.mana){ toast('Not enough mana.', '#5fa8ff'); sfx('error'); return; }
+  const cost = manaCost(sk); if(P.mp < cost){ toast('Not enough mana.', '#5fa8ff'); sfx('error'); return; }
   if(P.dash || P.cast) return;
-  P.mp -= sk.mana; P.cds[sk.id] = skillCd(sk);
+  P.mp -= cost; P.cds[sk.id] = skillCd(sk);
   const s = skillMult(sk.id), ang = aimAngle(); P.aim = ang; P.face = Math.cos(ang) >= 0 ? 1 : -1;
   const cx = P.x, cy = P.y - 6;
   const dirx = Math.cos(ang), diry = Math.sin(ang);
@@ -2836,7 +2890,7 @@ function useUltimate(){
   const U = ULTIMATES[P.cls];
   if(P.lvl < U.req){ toast(`Your ultimate, ${U.name}, unlocks at level ${U.req}.`, '#94b0c2'); sfx('error'); return; }
   if((P.cds.ult || 0) > 0){ sfx('error'); return; }
-  if(P.mp < U.mana){ toast('Not enough mana.', '#5fa8ff'); sfx('error'); return; }
+  if(P.mp < manaCost(U)){ toast('Not enough mana.', '#5fa8ff'); sfx('error'); return; }
   if(P.dash || P.cast || P.ult) return;
   const sc = ultScale(), M = G.M;
   const near = range => M.monsters.filter(m => !m.dead && m.type !== 'egg' && dist(m, P) < range && M.vis[Math.floor(m.y/TS)*M.w + Math.floor(m.x/TS)] && losClear(M, P.x, P.y - 4, m.x, m.y)).sort((a, b) => dist(a, P) - dist(b, P));
@@ -2863,7 +2917,7 @@ function useUltimate(){
     G.fx.push({kind:'singularity', x:tx, y:ty, r:150, t:0, dur:3.0, tick:0, dmg:rollDamage(0.6*sc), boom:rollDamage(8*sc)});
     { const sa = Math.hypot(tx - P.x, ty - P.y) > 8 ? Math.atan2(ty - P.y, tx - P.x) : ang; P.aim = sa; P.swing = {t:0, dur:0.3, ang:sa, arc:0.4, cast:true}; } sfx('blink'); sfx('singularity');
   }
-  P.mp -= U.mana; P.cds.ult = ultCd(); G.shake = 6;
+  P.mp -= manaCost(U); P.cds.ult = ultCd(); G.shake = 6;
   uiDirty();
 }
 // ---------------- dodge ----------------
@@ -2969,6 +3023,7 @@ function enterMap(M, x, y){
   G.banner = {text:M.isTown ? 'Palli' : M.name, sub: M.isTown ? 'A village beside the river Sarai' : `Depth ${M.level} of 10 · ${DIFFS[M.diff].name}`, t:0};
   uiDirty();
 }
+const GANESH_DOOR = {x:192, y:427};   // just outside the door of Ganesh's house (its sprite sits on y 415, door in the middle)
 function goTown(viaPortal, at){
   if(!G.town) G.town = genTown();
   const T = G.town, P = G.P;
@@ -3148,11 +3203,12 @@ function equipBlock(it){
   return null;
 }
 function canEquip(it){ return !equipBlock(it); }
-function equipItem(idx){
-  const P = G.P, it = P.inv[idx]; if(!it || !it.slot) return;
-  const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); return; }
-  const prev = P.eq[it.slot] || null; P.eq[it.slot] = it; P.inv[idx] = prev;
-  derive(P); sfx('equip'); uiDirty();
+function equipItem(idx, place){   // place: where on the body (a ring into ring or ring2); left out, eqTarget picks
+  const P = G.P, it = P.inv[idx]; if(!it || !it.slot) return null;
+  const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); return null; }
+  const s = place && eqPlaces(it, P).includes(place) ? place : eqTarget(it, P); if(!s) return null;
+  const prev = P.eq[s] || null; P.eq[s] = it; P.inv[idx] = prev;
+  derive(P); sfx('equip'); uiDirty(); return s;
 }
 function unequip(slot){
   const P = G.P, it = P.eq[slot]; if(!it) return; const i = P.inv.indexOf(null);
@@ -3163,7 +3219,7 @@ function dropInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx
 function sellInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx] = null; if(UI.sel && UI.sel.inv === idx) UI.sel = null; const v = Math.round(itemValue(it)*0.4); P.gold += v; sfx('coin'); toast(`Sold ${itemName(it)} for ${v} gold.`, '#ffcd75'); uiDirty(); }
 function repairCost(it){ if(!it || !it.maxDur) return 0; return Math.ceil((it.maxDur - it.dur)*(1 + it.ilvl*0.25)*({typical:1, grand:1.4, heroic:2}[it.rarity] || 1)); }
 function repairAll(){
-  const P = G.P; let cost = 0; const all = [...SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean);
+  const P = G.P; let cost = 0; const all = [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean);
   all.forEach(it => cost += repairCost(it));
   if(cost === 0){ toast('Nothing needs repair.', '#94b0c2'); return; }
   if(P.gold < cost){ toast(`You need ${cost} gold.`, '#e43b44'); sfx('error'); return; }
@@ -3290,10 +3346,11 @@ function startNew(slot, cls, name){
   G.slot = slot; G.P = newPlayer(cls, name); wxStart(G.P); G.town = null; G.portal = null; G.loot = []; G.stash = loadStash();
   G.state = 'play'; hideAllScreens(); showHUD(true);
   G.town = genTown();
-  enterMap(G.town, G.town.start.x, G.town.start.y);
-  G.P.lying = 3.2; G.P.face = 1;
+  // 2026-11-17 (Mathis): the opening ends with the hero waking in Ganesh's house, so the hero starts outside it, standing at his door,
+  // facing the village (the getting up now plays when a fallen hero comes back to Palli: respawn)
+  enterMap(G.town, GANESH_DOOR.x, GANESH_DOOR.y); G.P.face = 1; G.P.aim = Math.PI/2;
   saveGame();
-  playOpening(cls, played => { if(played){ G.P.lying = 1.6; G.P.face = 1; } else setTimeout(() => showDialog('', INTRO_TEXT, [{label:'Rise', fn:closeDialog}], 'intro'), 300); });   // no pictures: the old intro
+  playOpening(cls, played => { if(!played) setTimeout(() => showDialog('', INTRO_TEXT, [{label:'Rise', fn:closeDialog}], 'intro'), 300); });   // no pictures: the old intro
 }
 
 // ---------------- weapon oils ----------------
@@ -6054,8 +6111,8 @@ function buildSkillBar(){
     const id = P.slots[n], sk = slotSkill(P, id), el = document.createElement('button'); el.dataset.slot = n; el.dataset.id = sk ? id : '';
     const kn = bindKey('s' + (n + 1));
     if(!sk){ el.className = 'sk empty'; el.title = 'Empty slot: set a skill here from the skill tree'; el.innerHTML = `<span class="plus">+</span><span class="key">${kn}</span>`; }
-    else if(id === 'ult'){ const open = P.lvl >= sk.req; el.className = 'sk ult' + (open ? '' : ' ultlocked'); el.innerHTML = `<img src="${skillIconURL(sk)}" draggable="false"><div class="cd"></div><div class="ct"></div><span class="key">${n + 1}</span><span class="mn">${sk.mana}</span>${open ? '' : `<span class="lk">Lv ${sk.req}</span>`}`; }
-    else { el.className = 'sk' + (P.skills[sk.id] ? '' : ' locked'); el.innerHTML = `<img src="${skillIconURL(sk)}" draggable="false"><div class="cd"></div><div class="ct"></div><span class="key">${n + 1}</span><span class="mn">${sk.mana}</span>`; }
+    else if(id === 'ult'){ const open = P.lvl >= sk.req; el.className = 'sk ult' + (open ? '' : ' ultlocked'); el.innerHTML = `<img src="${skillIconURL(sk)}" draggable="false"><div class="cd"></div><div class="ct"></div><span class="key">${n + 1}</span><span class="mn">${manaCost(sk, P)}</span>${open ? '' : `<span class="lk">Lv ${sk.req}</span>`}`; }
+    else { el.className = 'sk' + (P.skills[sk.id] ? '' : ' locked'); el.innerHTML = `<img src="${skillIconURL(sk)}" draggable="false"><div class="cd"></div><div class="ct"></div><span class="key">${n + 1}</span><span class="mn">${manaCost(sk, P)}</span>`; }
     el.addEventListener('pointerdown', e => { if(e.pointerType === 'mouse' && e.button !== 0) return; e.stopPropagation(); e.preventDefault(); auInit();
       if(!sk){ UI.clickBlock = performance.now() + 3000; if(G.state === 'play' && !uiBlocking()) openPanel('skills'); } else useSlot(n); });
     box.appendChild(el);
@@ -6195,11 +6252,11 @@ function updateHUD(dt){
     const id = (P.slots || [])[n], sk = slotSkill(P, id);
     if(el.dataset.id !== (sk ? id : '')){ UI.dirty = true; return; }   // the bar changed under us: rebuild next frame
     if(!sk) return;
-    if(id === 'ult'){ const cd = P.cds.ult || 0, tot = ultCd(); setSty(el.querySelector('.cd'), 'height', (cd > 0 ? 100*cd/tot : 0).toFixed(1) + '%'); setTxt(el.querySelector('.ct'), cd > 0 ? Math.ceil(cd) : ''); el.classList.toggle('ready', P.lvl >= sk.req && cd <= 0 && P.mp >= sk.mana); el.classList.toggle('nomana', P.lvl >= sk.req && P.mp < sk.mana); if(P.lvl >= sk.req && el.classList.contains('ultlocked')) UI.dirty = true; return; }
+    if(id === 'ult'){ const cd = P.cds.ult || 0, tot = ultCd(); setSty(el.querySelector('.cd'), 'height', (cd > 0 ? 100*cd/tot : 0).toFixed(1) + '%'); setTxt(el.querySelector('.ct'), cd > 0 ? Math.ceil(cd) : ''); el.classList.toggle('ready', P.lvl >= sk.req && cd <= 0 && P.mp >= manaCost(sk, P)); el.classList.toggle('nomana', P.lvl >= sk.req && P.mp < manaCost(sk, P)); if(P.lvl >= sk.req && el.classList.contains('ultlocked')) UI.dirty = true; return; }
     const cd = P.cds[sk.id] || 0, tot = skillCd(sk);
     setSty(el.querySelector('.cd'), 'height', (cd > 0 ? 100*cd/tot : 0).toFixed(1) + '%');
     setTxt(el.querySelector('.ct'), cd > 0 ? (cd < 1 ? cd.toFixed(1) : Math.ceil(cd)) : '');
-    el.classList.toggle('nomana', P.mp < sk.mana && !!P.skills[sk.id]);
+    el.classList.toggle('nomana', P.mp < manaCost(sk, P) && !!P.skills[sk.id]);
   });
   setTxt($('aname'), M.isTown ? 'Palli' : M.name);
   setHtml($('alv'), (coop() ? `<span style="color:${HERO_COL[0]}">P1</span> ` : '') + `${esc(P.name)} · Lv ${P.lvl} ${C.name}` + (M.isTown ? '' : `<br>Depth ${M.level} · <span style="color:${DIFFS[M.diff].color}">${DIFFS[M.diff].name}</span>`));
@@ -6412,7 +6469,7 @@ function panelShell(title, body, foot, side){
   if(side && sideDetails(side === 'wide')) return `<div class="sidewin">${foot || '<div class="sub">Select an item to see its details here.</div>'}</div><div class="panel">${head}<div class="pb">${body}</div></div>`;
   return `<div class="panel">${head}<div class="pb">${body}</div>${foot ? `<div class="pf">${foot}</div>` : ''}</div>`;
 }
-const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }, get cheats(){ return renderCheats; }};
+const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }, get cheats(){ return renderCheats; }, get imbue(){ return renderImbue; }};
 function refreshPanel(){
   const p = UI.panel; if(!p) return; const m = $('modal');
   if(UI.duo && coop()){   // both heroes' pages side by side, each drawn as its own hero
@@ -6431,8 +6488,8 @@ function rarColor(it){ return rarityDef(it.rarity).color; }
 function cellHTML(it, sel, onclick, opts = {}){
   const P = G.P, dd = (opts.drop ? ` data-drop="${opts.drop}"` : '') + (it && opts.drag ? ` data-drag="${opts.drag}"` : '') + (it && opts.sell != null ? ` data-sell="${opts.sell}"` : '');
   if(!it) return `<button class="cell${sel ? ' sel' : ''}"${dd} onclick="${onclick}">${opts.label ? `<span class="lbl">${opts.label}</span>` : ''}</button>`;
-  const bad = it.slot && !canEquip(it);
-  return `<button class="cell${sel ? ' sel' : ''}"${dd} style="border-color:${rarColor(it)}aa" onclick="${onclick}"><img src="${itemIcon(it)}" draggable="false">${it.plus ? `<span class="pl">+${it.plus}</span>` : ''}${bad ? '<span class="brk">✕</span>' : it.maxDur && it.dur === 0 ? '<span class="brk">!</span>' : ''}</button>`;
+  const bad = it.slot && !canEquip(it), dup = opts.dup ? ' dup' : '';
+  return `<button class="cell${sel ? ' sel' : ''}${dup}"${dd}${opts.dup ? ' title="Its heroic power is not counting: another piece you wear has the same one"' : ''} style="border-color:${rarColor(it)}aa" onclick="${onclick}"><img src="${itemIcon(it)}" draggable="false">${it.plus ? `<span class="pl">+${it.plus}</span>` : ''}${bad ? '<span class="brk">✕</span>' : it.maxDur && it.dur === 0 ? '<span class="brk">!</span>' : ''}</button>`;
 }
 function itemCard(it, ctx){
   const P = G.P; if(!it) return '';
@@ -6440,7 +6497,7 @@ function itemCard(it, ctx){
   let h = `<div class="card"><div class="nm" style="color:${rar.color}">${esc(itemName(it))}</div><div class="sub">${rar.name} ${SLOT_NAMES[it.slot]}${it.wtype ? ' · ' + it.wtype[0].toUpperCase() + it.wtype.slice(1) : ''} · Item level ${it.ilvl}</div>`;
   if(it.cls) h += `<div class="${it.cls === P.cls ? 'sub' : 'bad'}">${CLASSES[it.cls].name} only</div>`;
   h += `<div class="${(it.req || 1) > P.lvl ? 'bad' : 'sub'}">Requires level ${it.req || 1}</div>`;
-  const eq = P.eq[it.slot]; const cmp = eq && eq !== it;
+  const place = eqWhere(it, P), tgt = place ? null : eqTarget(it, P), eq = tgt ? P.eq[tgt] : null; const cmp = eq && eq !== it;   // against the piece it would replace (two rings, two daggers: the weaker)
   if(it.slot === 'weapon'){ const avg = (itMin(it) + itMax(it))/2; let diff = ''; if(cmp){ const d = avg - (itMin(eq) + itMax(eq))/2; diff = ` <span class="${d >= 0 ? 'good' : 'bad'}">(${d >= 0 ? '+' : ''}${d.toFixed(1)})</span>`; } h += `<div>Damage: ${itMin(it)}–${itMax(it)}${diff}</div><div class="sub">Attack speed: ${it.speed.toFixed(2)}</div>`; }
   if(it.armor){ let diff = ''; if(cmp){ const d = itArmor(it) - itArmor(eq); diff = ` <span class="${d >= 0 ? 'good' : 'bad'}">(${d >= 0 ? '+' : ''}${d})</span>`; } h += `<div>Armor: ${itArmor(it)}${diff}</div>`; }
   // extra stats: when another piece is equipped in that slot, each stat shows what swapping gains or loses, and stats only the
@@ -6454,7 +6511,10 @@ function itemCard(it, ctx){
     h += `<div class="af">${affixLabel(a, it)}${diff}</div>`;
   });
   if(cmp) for(const id in tEq) if(!tIt[id]){ const af = AFFIXES.find(x => x.id === id); h += `<div class="bad">−${tEq[id]}${af.label.startsWith('%') ? af.label : ' ' + af.label} <span class="sub">(only on your equipped item)</span></div>`; }
-  if(it.power){ const pw = powerDef(it.power); if(pw) h += `<div style="color:#ff4545">Heroic power: ${pw.name}</div>`; }
+  if(it.power){ const pw = powerDef(it.power), dup = place && P.d.dupPow && P.d.dupPow[it.id], other = !place && pw && eqSlots(P).find(s => s !== tgt && P.eq[s] && P.eq[s].power === it.power);
+    const fix = P.imbueOpen ? ' Karmara can imbue it with a different one.' : '';
+    if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">Heroic power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
+      : `<div style="color:#ff4545">Heroic power: ${pw.name}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +10</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
@@ -6462,25 +6522,50 @@ function itemCard(it, ctx){
   return h + '</div>';
 }
 function moneyRow(){ const P = G.P; return `<div class="row" style="justify-content:space-between;margin-bottom:6px"><span style="color:var(--gold)">${P.gold} gold</span><span style="color:#c3cad8">${P.carbon} Carbon</span></div>`; }
-function renderInv(){
-  const P = G.P;
-  let eq = '<div class="eqgrid" data-drop="eqall">';
-  SLOTS.forEach(s => { eq += cellHTML(P.eq[s], UI.sel && UI.sel.eq === s, `selEq('${s}')`, {label:SLOT_NAMES[s], drag:'eq:' + s, drop:'eq:' + s}); });
-  eq += '</div>';
-  let g = '<div class="grid" data-drop="bag">';
-  P.inv.forEach((it, i) => g += cellHTML(it, UI.sel && UI.sel.inv === i, `selInv(${i})`, {drag:'inv:' + i, drop:'inv:' + i}));
-  g += '</div>';
-  const sorts = `<div class="sortbar"><span class="sub">Sort</span>${BAG_SORTS.map(([k, label]) => `<button class="btn sm${UI.sortBy === k ? ' gold' : ''}" onclick="sortBag('${k}')">${label}${UI.sortBy === k ? (UI.sortDir > 0 ? ' ▼' : ' ▲') : ''}</button>`).join('')}</div>`;
-  let det = '';
+// ---------- the Inventory (2026-11-17, Mathis): the backpack on the left, the gear worn on a faded silhouette of the hero's body on the right
+// (a man's for the Knight and the Rogue, a woman's for the Mage). The how-to line that used to sit under it lives in Help & FAQ now.
+const DOLL_POS = {helm:[50, 8], amulet:[75, 20], chest:[50, 35], weapon:[15, 38], offhand:[85, 38], gloves:[15, 60], ring:[15, 82], ring2:[85, 82], boots:[50, 92]};
+// the body: ChatGPT's silhouettes once they are in (batch 21: assets/doll_male.webp, doll_female.webp, listed in DOLL_ART); until then the
+// hero's own front-facing standing frame, flattened to a pale shape by CSS (no canvas, so it works from a file on a PC too)
+const DOLL_ART = {}, DOLL_BODY = {knight:'male', rogue:'male', mage:'female'};
+function dollSilHTML(cls){
+  const art = DOLL_ART[DOLL_BODY[cls]]; if(art) return `<img class="sil" src="${art}" alt="" draggable="false">`;
+  const r = HDIR_MAN[cls] && HDIR_MAN[cls].idl_s_1; if(!r) return '';
+  hdirImg(cls); const ax = r[4], sc = Math.min(330/r[3], 110/Math.max(ax, r[2] - ax));   // centred on the feet's anchor, inside the box
+  return `<div class="sil stand" style="width:${r[2]}px;height:${r[3]}px;background:url(assets/hero_${cls}_dirs.webp?v=6) -${r[0]}px -${r[1]}px;transform-origin:${ax}px 0;transform:translateX(-${ax}px) scale(${sc.toFixed(3)})"></div>`;
+}
+function dollHTML(P = G.P){
+  let h = `<div class="doll" data-drop="eqall">${dollSilHTML(P.cls)}`;
+  for(const s of eqSlots(P)){ const [x, y] = DOLL_POS[s], it = P.eq[s];
+    h += `<div class="dslot" style="left:${x}%;top:${y}%">${cellHTML(it, UI.sel && UI.sel.eq === s, `selEq('${s}')`, {label:EQ_NAMES[s], drag:'eq:' + s, drop:'eq:' + s, dup:!!(it && P.d.dupPow && P.d.dupPow[it.id])})}</div>`; }
+  return h + '</div>';
+}
+function bagHTML(P = G.P, opts = {}){
+  let g = `<div class="grid" data-drop="bag">`;
+  P.inv.forEach((it, i) => g += cellHTML(it, UI.sel && UI.sel.inv === i, `selInv(${i})`, opts.nodrag ? {} : {drag:'inv:' + i, drop:'inv:' + i}));
+  const sorts = opts.nosort ? '' : `<div class="sortbar"><span class="sub">Sort</span>${BAG_SORTS.map(([k, label]) => `<button class="btn sm${UI.sortBy === k ? ' gold' : ''}" onclick="sortBag('${k}')">${label}${UI.sortBy === k ? (UI.sortDir > 0 ? ' ▼' : ' ▲') : ''}</button>`).join('')}</div>`;
+  return `<div class="sub" style="margin-bottom:4px">Backpack (${P.inv.filter(Boolean).length}/${INV_SIZE})</div>${sorts}${g}</div>`;
+}
+// the backpack and the silhouette side by side: the Inventory, and the right-hand window at the chest and at Karmara's imbuing
+function invCols(P = G.P, opts = {}){ return `<div class="invcols"><div class="bagcol">${bagHTML(P, opts)}</div><div class="dollcol">${dollHTML(P)}</div></div>`; }
+function invDetails(){
+  const P = G.P; let det = '';
   if(UI.sel){
     if(UI.sel.eq){ const it = P.eq[UI.sel.eq]; if(it) det = itemCard(it) + `<div class="row" style="margin-top:8px"><button class="btn" onclick="unequip('${UI.sel.eq}');UI.sel=null;refreshPanel()">Unequip</button></div>`; }
-    else { const it = P.inv[UI.sel.inv]; if(it){ const why = equipBlock(it); det = itemCard(it) + (P.eq[it.slot] && !why ? `<div class="sub" style="margin-top:6px">Currently equipped:</div>` + itemCard(P.eq[it.slot]) : '') + (why ? `<div class="bad" style="margin-top:6px;color:#ff7a7a">${esc(why)}</div>` : '') + `<div class="row" style="margin-top:8px">${!why ? `<button class="btn gold" onclick="equipItem(${UI.sel.inv});UI.sel=null;refreshPanel()">Equip</button>` : ''}<button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`; } }
+    else { const it = P.inv[UI.sel.inv]; if(it){ const why = equipBlock(it), tgt = eqTarget(it, P), cur = tgt && P.eq[tgt];
+      det = itemCard(it) + (cur && !why ? `<div class="sub" style="margin-top:6px">${eqPlaces(it, P).length > 1 ? `Would replace your ${EQ_NAMES[tgt].toLowerCase()} (the weaker one):` : 'Currently equipped:'}</div>` + itemCard(cur) : '') + (why ? `<div class="bad" style="margin-top:6px;color:#ff7a7a">${esc(why)}</div>` : '') + `<div class="row" style="margin-top:8px">${!why ? `<button class="btn gold" onclick="equipItem(${UI.sel.inv});UI.sel=null;refreshPanel()">Equip</button>` : ''}<button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`; } }
   }
   if(UI.dndMsg){ det = `<div class="bad" style="color:#ff7a7a;margin-bottom:4px">${esc(UI.dndMsg)}</div>` + det; UI.dndMsg = null; }
-  return panelShell('Inventory', `${moneyRow()}<div class="sub" style="margin-bottom:4px">Equipped</div>${eq}<div class="sub" style="margin-bottom:4px">Backpack (${P.inv.filter(Boolean).length}/${INV_SIZE})</div>${sorts}${g}`, det || `<div class="sub">${isTouch ? 'Tap an item to see its details. Hold an item, then drag it to equip, take off or move it.' : 'Click an item for its details. Right-click to put it on or take it off, or drag it to equip, take off or move it.'}</div>`, true);
+  return det;
 }
-function selEq(s){ UI.sel = G.P.eq[s] ? {eq:s} : null; G.lastUp = null; refreshPanel(); }
-function selInv(i){ UI.sel = G.P.inv[i] ? {inv:i} : null; G.lastUp = null; UI.sellAsk = null; refreshPanel(); }
+function renderInv(){
+  const det = invDetails(), body = `${moneyRow()}${invCols()}`;
+  // a wide screen: the details in their own window to the left (an empty, invisible one keeps the place while nothing is chosen)
+  if(sideDetails()) return `<div class="sidewin${det ? '' : ' blank'}">${det}</div>` + panelShell('Inventory', body).replace('<div class="panel">', '<div class="panel inv">');
+  return panelShell('Inventory', body, det || null).replace('<div class="panel">', '<div class="panel inv">');
+}
+function selEq(s){ if(UI.panel === 'imbue'){ imbPick({eq:s}); return; } UI.sel = G.P.eq[s] ? {eq:s} : null; G.lastUp = null; refreshPanel(); }
+function selInv(i){ if(UI.panel === 'imbue'){ imbPick({inv:i}); return; } UI.sel = G.P.inv[i] ? {inv:i} : null; G.lastUp = null; UI.sellAsk = null; refreshPanel(); }
 // ---------- bag sorting: tap a sort to apply it, tap the same one again to flip the order ----------
 const BAG_SORTS = [['level', 'Level'], ['rarity', 'Rarity'], ['type', 'Type'], ['value', 'Value'], ['usable', 'Usable']];
 function bagKey(it, by){
@@ -6522,7 +6607,7 @@ function quickEquip(kind, key){
   const P = G.P;
   if(kind === 'inv'){ const i = +key, it = P.inv[i]; if(!it) return;
     const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); UI.dndMsg = why; uiDirty(); return; }
-    equipItem(i); UI.sel = {eq:it.slot}; refreshPanel(); return; }
+    const s = equipItem(i); UI.sel = s ? {eq:s} : null; refreshPanel(); return; }
   const it = P.eq[key]; if(!it) return; const j = P.inv.indexOf(null);
   if(j < 0){ toast('Your inventory is full.', '#e43b44'); sfx('error'); UI.dndMsg = 'Your inventory is full.'; uiDirty(); return; }
   unequip(key); const k = P.inv.indexOf(it); UI.sel = k >= 0 ? {inv:k} : null; sfx('pickup'); refreshPanel();
@@ -6533,8 +6618,8 @@ const DND = {p:null};
 function dndOK(src, dst){
   const P = G.P; if(!src || !dst || src === dst) return false;
   const [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
-  if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'inv') return true; if(dk === 'eq') return it.slot === dv; return dk === 'eqall'; }
-  if(sk === 'eq'){ if(!P.eq[sv]) return false; return dk === 'inv' || dk === 'bag'; }
+  if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'imb') return true; if(dk === 'inv') return true; if(dk === 'eq') return eqPlaces(it, P).includes(dv); return dk === 'eqall'; }
+  if(sk === 'eq'){ if(!P.eq[sv]) return false; return dk === 'inv' || dk === 'bag' || dk === 'imb'; }
   if(sk === 'sk') return dk === 'sl';
   if(sk === 'sl') return dk === 'sl' || dk === 'sklist';
   return false;
@@ -6542,7 +6627,8 @@ function dndOK(src, dst){
 // where the dragged thing would land, so only the cells that matter light up
 function dndHot(src, dst){
   const P = G.P, [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
-  if(sk === 'inv' && dk === 'eq'){ const it = P.inv[+sv]; return it && it.slot === dv ? (equipBlock(it) ? 'no' : 'ok') : false; }
+  if(sk === 'inv' && dk === 'eq'){ const it = P.inv[+sv]; return it && eqPlaces(it, P).includes(dv) ? (equipBlock(it) ? 'no' : 'ok') : false; }
+  if(dk === 'imb') return 'ok';
   if(dk === 'sl') return dndOK(src, dst);
   return false;   // bag cells light up only under the finger
 }
@@ -6550,19 +6636,21 @@ function dndDrop(src, dst){
   const P = G.P, [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
   if(sk === 'inv'){
     const i = +sv, it = P.inv[i]; if(!it) return;
+    if(dk === 'imb'){ imbPick({inv:i}); return; }
     if(dk === 'inv'){ const j = +dv; [P.inv[i], P.inv[j]] = [P.inv[j], P.inv[i]]; if(UI.sel && UI.sel.inv === i) UI.sel = {inv:j}; else if(UI.sel && UI.sel.inv === j) UI.sel = {inv:i};
       if(P.sortBy){ P.sortBy = P.sortDir = UI.sortBy = UI.sortDir = null; UI.dndMsg = 'You moved an item, so the bag no longer sorts itself. Pick a sort to turn it back on.'; }   // arranged by hand: the auto-sort steps aside
       sfx('pickup'); uiDirty(); return; }
     // anywhere on the equipment: into its own slot (what was there drops into this bag cell)
     const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); UI.dndMsg = why; uiDirty(); return; }
-    equipItem(i); UI.sel = {eq:it.slot}; refreshPanel(); return;
+    const s = equipItem(i, dk === 'eq' ? dv : null); UI.sel = s ? {eq:s} : null; refreshPanel(); return;
   }
   if(sk === 'eq'){
     const slot = sv, it = P.eq[slot]; if(!it) return;
+    if(dk === 'imb'){ imbPick({eq:slot}); return; }
     let j = dk === 'inv' ? +dv : -1;
     if(j >= 0 && P.inv[j]){
       const o = P.inv[j];
-      if(o.slot === slot && !equipBlock(o)){ P.eq[slot] = o; P.inv[j] = it; derive(P); sfx('pickup'); UI.sel = {inv:j}; uiDirty(); return; }   // swap with a fitting item
+      if(o.slot === eqType(slot) && !equipBlock(o)){ P.eq[slot] = o; P.inv[j] = it; derive(P); sfx('pickup'); UI.sel = {inv:j}; uiDirty(); return; }   // swap with a fitting item
       j = -1;
     }
     if(j < 0) j = P.inv.indexOf(null);
@@ -6662,7 +6750,7 @@ function skillNumbers(sk, r){
   const m = {bash:[1.9, 'damage, stuns ' + (1.2 + 0.1*rr).toFixed(1) + 's'], charge:[2.0, 'damage'], whirl:[0.72, 'damage per spin (8 spins)'], cry:[0, `+${Math.round((0.3 + 0.06*rr)*100)}% damage, +${25 + 8*rr} armor`],
     fireball:[2.2, 'damage + burning'], nova:[1.3, `damage, freezes ${(2 + 0.15*rr).toFixed(1)}s`], blink:[1.0, 'blast damage'], meteor:[5, 'damage + burning ground'],
     fan:[0.95, 'damage per knife (14 knives)'], step:[2.2, 'guaranteed critical'], venom:[0.5, 'poison per second per hit'], blossom:[0.45, 'damage per hit (18 hits)']}[sk.id];
-  return `${m[0] ? `~${Math.round(avg*m[0]*s)} ` : ''}${m[1]} · ${cd}s cooldown · ${sk.mana} mana`;
+  return `${m[0] ? `~${Math.round(avg*m[0]*s)} ` : ''}${m[1]} · ${cd}s cooldown · ${manaCost(sk, P, r)} mana`;
 }
 function renderSkills(){
   const P = G.P, C = CLASSES[P.cls], keys = slotKeys(); P.slots = cleanSlots(P);
@@ -6683,7 +6771,7 @@ function renderSkills(){
   });
   { const U = ULTIMATES[P.cls], open = P.lvl >= U.req, sc = 1 + 0.04*Math.max(0, P.lvl - 30), avg = P.d.avg;
     const num = P.cls === 'knight' ? `~${Math.round(avg*4.5*sc)} damage per pillar (7 pillars) + ~${Math.round(avg*3*sc)} burst, heals 25%` : P.cls === 'mage' ? `~${Math.round(avg*0.6*sc)} damage 4 times a second, then ~${Math.round(avg*8*sc)} collapse` : `12 strikes of ~${Math.round(avg*2.2*sc*P.d.critMult)} critical damage`;
-    h += `<div class="conn"></div><div class="skn${open ? '' : ' lock'}" style="border-color:#c08a3e;box-shadow:0 0 14px rgba(255,205,117,.25)">${icon(U, 'ult')}<div style="flex:1"><div><b style="font-size:22px;color:var(--gold)">${U.name}</b> <span class="sub">Ultimate</span></div><div class="sub" style="font-size:16px;line-height:1.05">${U.desc}</div><div style="font-size:16px;margin-top:3px;color:${open ? '#cfc4e0' : '#ff7a7a'}">${open ? `${num} · ${Math.round(ultCd())}s cooldown · ${U.mana} mana. Grows stronger every level after 30.` : `Unlocks at level ${U.req}. No skill points needed.`}</div>${picker('ult')}</div></div>`; }
+    h += `<div class="conn"></div><div class="skn${open ? '' : ' lock'}" style="border-color:#c08a3e;box-shadow:0 0 14px rgba(255,205,117,.25)">${icon(U, 'ult')}<div style="flex:1"><div><b style="font-size:22px;color:var(--gold)">${U.name}</b> <span class="sub">Ultimate</span></div><div class="sub" style="font-size:16px;line-height:1.05">${U.desc}</div><div style="font-size:16px;margin-top:3px;color:${open ? '#cfc4e0' : '#ff7a7a'}">${open ? `${num} · ${Math.round(ultCd())}s cooldown · ${manaCost(U)} mana. Grows stronger every level after 30.` : `Unlocks at level ${U.req}. No skill points needed.`}</div>${picker('ult')}</div></div>`; }
   h += `</div>`;
   h += `<div class="sub" style="margin-top:10px;font-size:16px">${isTouch ? 'Tap a slot on your bar to use its skill. Skills aim at the nearest enemy.' : `Press ${[1, 2, 3, 4, 5].map(n => bindKey('s' + n)).join(' ')} (or right click for slot 1) to use the skills on your bar. Skills aim at your mouse cursor.`} Each rank adds damage and shortens the cooldown. Higher ranks need higher levels.</div>`;
   return panelShell('Skill Tree', h);
@@ -6828,6 +6916,8 @@ function talkTo(id){
   } else if(id === 'karmara'){
     const shop = tab => () => { closeDialog(); genShopIfNeeded(); UI.tab = tab; UI.shopOpen = true; openPanel('shop'); };
     const opts = [{label:'Trade', fn:shop('buy')}, {label:'Upgrade gear', fn:shop('upgrade')}, {label:'Reforge', fn:shop('reforge')}, {label:'Repair', fn:shop('repair')}];
+    if(P.imbueOpen) opts.push({label:'Imbue', fn:openImbue});
+    if(!first && P.unlocked.nightmare && !P.imbueOpen){ karmaraTechnique(); return; }
     const qo = questOption('aldren'); if(qo) opts.unshift(qo);
     const nq = niruOption('karmara'); if(nq) opts.splice(qo ? 1 : 0, 0, nq);
     opts.push({label:'Farewell', fn:closeDialog});
@@ -6844,10 +6934,18 @@ function talkTo(id){
     else showDialog('Vaidya', (healed ? 'There. Your wounds are closed.\n\n' : '') + rpick(VAIDYA_LINES), opts, 'vaidya');
   }
 }
+// Nightmare is open: Karmara has learned to move the power in heroic steel, and proves it with a gift (once per hero)
+function karmaraTechnique(){
+  const P = G.P; P.imbueOpen = true;
+  const it = makeItem(P.lvl, 'heroic', rpick(SLOTS), P.cls); it.req = P.lvl;
+  const i = P.inv.indexOf(null); if(i >= 0){ P.inv[i] = it; autoSort(P); } else dropLoot({item:it}, P.x, P.y + 12);
+  sfx('legend'); saveGame(); uiDirty();
+  showDialog('Karmara', KARMARA_IMBUE + `\n\n(Received ${itemName(it)}${i < 0 ? ', at your feet: your bag is full' : ''})`, [{label:'Show me', fn:openImbue}, {label:'Later', fn:closeDialog}], 'karmara');
+}
 function genShopIfNeeded(){ if(!G.shop || G.shopLvl !== G.P.lvl || G.shopDone !== G.P.done){ genShop(); G.shopLvl = G.P.lvl; G.shopDone = G.P.done; } }
 function gearPicker(includeEq, filter, sellable = false){
   const P = G.P; let h = '';
-  if(includeEq){ h += '<div class="sub" style="margin-bottom:4px">Equipped</div><div class="eqgrid">'; SLOTS.forEach(s => { const it = P.eq[s]; h += (it && filter(it)) ? cellHTML(it, UI.sel && UI.sel.eq === s, `selEq('${s}')`) : `<div class="cell" style="opacity:.35"></div>`; }); h += '</div>'; }
+  if(includeEq){ h += '<div class="sub" style="margin-bottom:4px">Equipped</div><div class="eqgrid">'; eqSlots(P).forEach(s => { const it = P.eq[s]; h += (it && filter(it)) ? cellHTML(it, UI.sel && UI.sel.eq === s, `selEq('${s}')`) : `<div class="cell" style="opacity:.35"></div>`; }); h += '</div>'; }
   h += '<div class="sub" style="margin-bottom:4px">Backpack</div><div class="grid">';
   P.inv.forEach((it, i) => { h += (it && filter(it)) ? cellHTML(it, UI.sel && UI.sel.inv === i, `selInv(${i})`, sellable ? {sell:i} : {}) : `<div class="cell" style="opacity:.35"></div>`; });
   return h + '</div>';
@@ -6863,7 +6961,7 @@ function sellBulk(kind){
 }
 function renderShop(){
   const P = G.P; const tab = UI.tab;
-  let h = `<div class="tabs">${[['buy', 'Buy'], ['sell', 'Sell'], ['repair', 'Repair'], ['upgrade', 'Upgrade'], ['reforge', 'Reforge']].map(([t, l]) => `<button class="btn${tab === t ? ' on' : ''}" style="font-size:17px;padding:6px 2px" onclick="UI.tab='${t}';UI.sel=null;UI.sellAsk=null;G.lastUp=null;refreshPanel()">${l}</button>`).join('')}</div>${moneyRow()}`;
+  let h = `<div class="tabs">${[['buy', 'Buy'], ['sell', 'Sell'], ['repair', 'Repair'], ['upgrade', 'Upgrade'], ['reforge', 'Reforge']].concat(P.imbueOpen ? [['imbue', 'Imbue']] : []).map(([t, l]) => `<button class="btn${tab === t ? ' on' : ''}" style="font-size:17px;padding:6px 2px" onclick="${t === 'imbue' ? 'openImbue()' : `UI.tab='${t}';UI.sel=null;UI.sellAsk=null;G.lastUp=null;refreshPanel()`}">${l}</button>`).join('')}</div>${moneyRow()}`;
   const sel = refItem(UI.sel); let foot = '';
   if(tab === 'buy'){
     h += '<div class="list">'; G.shop.forEach((it, i) => { if(!it) return; h += `<button class="li" onclick="UI.sel={shop:${i}};refreshPanel()"><img src="${itemIcon(it)}"><div style="flex:1"><div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub" style="font-size:15px">${SLOT_NAMES[it.slot]}${it.slot === 'weapon' ? ` · ${itMin(it)}–${itMax(it)} dmg` : it.armor ? ` · ${itArmor(it)} armor` : ''} · Lv ${it.req}</div></div><div style="color:var(--gold)">${it.price}g</div></button>`; }); h += '</div>';
@@ -6874,7 +6972,7 @@ function renderShop(){
     h += gearPicker(false, () => true, true) + `<div class="sub" style="margin-top:8px">${isTouch ? '' : 'Right-click an item to sell it at once. '}Upgraded (+) items are only sold one at a time.</div><div class="row" style="margin-top:4px;flex-wrap:wrap;gap:6px">${sets}</div>`;
     if(UI.sel && UI.sel.inv !== undefined && sel){ foot += itemCard(sel) + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="sellInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Sell for ${Math.round(itemValue(sel)*0.4)}g</button></div>`; }
   } else if(tab === 'repair'){
-    let cost = 0, list = ''; [...SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean).forEach(it => { const c = repairCost(it); if(c > 0){ cost += c; list += `<div class="stat"><span style="color:${rarColor(it)}">${esc(itemName(it))}</span><span class="sub">${it.dur}/${it.maxDur} · ${c}g</span></div>`; } });
+    let cost = 0, list = ''; [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean).forEach(it => { const c = repairCost(it); if(c > 0){ cost += c; list += `<div class="stat"><span style="color:${rarColor(it)}">${esc(itemName(it))}</span><span class="sub">${it.dur}/${it.maxDur} · ${c}g</span></div>`; } });
     h += list || '<div class="card sub">"Your gear\'s in good shape. For now."</div>';
     if(cost) h += `<div class="row" style="margin-top:10px"><button class="btn gold" onclick="repairAll()" ${P.gold < cost ? 'disabled' : ''}>Repair all for ${cost}g</button></div>`;
   } else if(tab === 'upgrade'){
@@ -6908,21 +7006,53 @@ function renderShop(){
 }
 function buyShop(i){ const P = G.P, it = G.shop[i]; if(!it || P.gold < it.price) return; const slot = P.inv.indexOf(null); if(slot < 0){ toast('Your inventory is full.', '#e43b44'); return; } P.gold -= it.price; delete it.price; P.inv[slot] = it; G.shop[i] = null; sfx('coin'); UI.sel = null; autoSort(P); refreshPanel(); }
 function sellJunk(){ const P = G.P; let n = 0, g = 0; P.inv.forEach((it, i) => { if(it && it.rarity === 'typical' && !it.plus){ g += Math.round(itemValue(it)*0.4); P.inv[i] = null; n++; } }); P.gold += g; if(n){ sfx('coin'); toast(`Sold ${n} items for ${g} gold.`, '#ffcd75'); } UI.sel = null; autoSort(P); refreshPanel(); }
-function renderStash(){
+function renderStash(){   // two windows (2026-11-17, Mathis): the chest on the left, the inventory on the right
   const P = G.P, S = G.stash;
   let h = `<div class="sub" style="margin-bottom:6px">Every hero you create shares this chest.</div>`;
-  const mrow = (kind, amts) => `<div class="row" style="margin:3px 0"><span class="sub" style="width:44px">Store</span>${amts.map(a => `<button class="btn sm" onclick="stashMoney('${kind}','in',${a === 'all' ? "'all'" : a})">${a === 'all' ? 'All' : a}</button>`).join('')}</div><div class="row" style="margin:3px 0 6px"><span class="sub" style="width:44px">Take</span>${amts.map(a => `<button class="btn sm" onclick="stashMoney('${kind}','out',${a === 'all' ? "'all'" : a})">${a === 'all' ? 'All' : a}</button>`).join('')}</div>`;
-  h += `<div class="card"><div class="stashduo money"><div><div style="color:var(--gold)">Gold: ${S.gold} in chest · ${P.gold} on you</div>${mrow('gold', [100, 1000, 'all'])}</div><div><div style="color:#c3cad8">Carbon: ${S.carbon} in chest · ${P.carbon} on you</div>${mrow('carbon', [1, 10, 'all'])}</div></div><div class="sub" style="font-size:15px">Gold and Carbon are currencies. They never take up a backpack slot.</div></div>`;
-  // the chest on the left, the backpack on the right (2026-11-15, Mathis)
-  h += `<div class="stashduo"><div><div class="sub" style="margin:8px 0 4px">Shared chest (${S.items.filter(Boolean).length}/${STASH_SIZE})</div><div class="grid">`;
+  // gold and Carbon: one line each, store and take side by side (compact, so the chest itself keeps its room)
+  const btns = (kind, dir, amts) => amts.map(a => `<button class="btn sm" onclick="stashMoney('${kind}','${dir}',${a === 'all' ? "'all'" : a})">${a === 'all' ? 'All' : a}</button>`).join('');
+  const mrow = (kind, name, color, amts) => `<div style="color:${color};margin-top:2px">${name}: ${S[kind]} in chest · ${P[kind]} on you</div><div class="row" style="gap:4px;margin:2px 0 4px"><span class="sub">Store</span>${btns(kind, 'in', amts)}<span class="sub" style="margin-left:8px">Take</span>${btns(kind, 'out', amts)}</div>`;
+  h += `<div class="card">${mrow('gold', 'Gold', 'var(--gold)', [100, 1000, 'all'])}${mrow('carbon', 'Carbon', '#c3cad8', [1, 10, 'all'])}<div class="sub" style="font-size:15px">Gold and Carbon never take up a backpack slot.</div></div>`;
+  h += `<div class="sub" style="margin:8px 0 4px">Shared chest (${S.items.filter(Boolean).length}/${STASH_SIZE})</div><div class="grid">`;
   S.items.forEach((it, j) => h += cellHTML(it, UI.sel && UI.sel.stash === j, `selStash(${j})`));
-  h += `</div></div><div><div class="sub" style="margin:8px 0 4px">Your backpack (${P.inv.filter(Boolean).length}/${INV_SIZE})</div><div class="grid">`;
-  P.inv.forEach((it, i) => h += cellHTML(it, UI.sel && UI.sel.inv === i, `selInv(${i})`));
-  h += '</div></div></div>';
-  let foot = '<div class="sub">Tap an item in the chest to take it, or in your backpack to store it.</div>';
+  h += '</div>';
+  let foot = '';
   if(UI.sel && UI.sel.stash !== undefined && S.items[UI.sel.stash]) foot = itemCard(S.items[UI.sel.stash], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashTake(${UI.sel.stash})">Take</button></div>`;
   else if(UI.sel && UI.sel.inv !== undefined && P.inv[UI.sel.inv]) foot = itemCard(P.inv[UI.sel.inv], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashPut(${UI.sel.inv})">Store in chest</button></div>`;
-  return panelShell('Shared Chest', h, foot, 'wide').replace('<div class="panel">', '<div class="panel wide">');
+  else if(UI.sel && UI.sel.eq && P.eq[UI.sel.eq]) foot = itemCard(P.eq[UI.sel.eq], 'nosell') + '<div class="sub" style="margin-top:6px">Take it off first to store it.</div>';
+  const left = panelShell('Shared Chest', h, foot || null).replace('<div class="panel">', '<div class="panel chestwin">');
+  const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {nodrag:true})}`).replace('<div class="panel">', '<div class="panel inv">');
+  return `<div class="pair">${left}${right}</div>`;
+}
+// ---------- Karmara's imbuing (2026-11-17, Mathis): open once Nightmare is unlocked. A heroic piece goes in the slot on the left (from the
+// inventory on the right: tap it, or drag it over); the powers it could carry are listed with their price in Carbon; one press lays the new one in.
+const IMBUE_COST = {allskills:60, lifesteal:50, secondwind:45, shock:40, thorns:35, greed:30};
+function openImbue(){ closeDialog(); UI.imb = null; UI.imbPow = null; UI.sel = null; UI.panel = 'imbue'; refreshPanel(); $('modal').classList.remove('hide'); }
+function imbPick(ref){ const it = refItem(ref); if(!it) return; UI.imb = ref; UI.imbPow = null; sfx('pickup'); refreshPanel(); }
+function imbItem(){ const it = refItem(UI.imb); return it && it.slot ? it : null; }
+function imbueApply(){
+  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || it.rarity !== 'heroic' || !cost || it.power === id) return;
+  if(P.carbon < cost){ toast(`You need ${cost} Carbon.`, '#e43b44'); sfx('error'); return; }
+  P.carbon -= cost; it.power = id; derive(P); UI.imbPow = null;
+  sfx('upsuccess'); sfx('legend'); toast(`${itemName(it)} now carries: ${powerDef(id).name}`, '#ff4545', 4); saveGame(); uiDirty(); refreshPanel();
+}
+function renderImbue(){
+  const P = G.P, it = imbItem();
+  let h = `<div class="sub" style="margin-bottom:8px">"Power sits on heroic steel like heat on a blade. I can draw it off and lay another in its place. It eats Carbon, though. A lot of it."</div>`;
+  h += `<div class="imbrow"><div class="imbslot" data-drop="imb">${it ? `<button class="cell" style="border-color:${rarColor(it)}aa" onclick="UI.imb=null;UI.imbPow=null;refreshPanel()"><img src="${itemIcon(it)}" draggable="false"></button>` : '<div class="sub">Heroic gear</div>'}</div>`;
+  h += `<div style="flex:1;min-width:0">${it ? `<div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub">${it.power ? 'Carries: ' + powerDef(it.power).name : 'No heroic power'}</div>` : '<div class="sub">Choose a heroic piece from your inventory: tap it, or drag it here.</div>'}<div style="color:#c3cad8;margin-top:4px">${P.carbon} Carbon on you</div></div></div>`;
+  if(it && it.rarity !== 'heroic') h += `<div class="card bad" style="color:#ff7a7a">"That's ${rarityDef(it.rarity).name} steel. There's no power in it to move. Bring me something Heroic."</div>`;
+  else if(it){
+    h += '<div class="list" style="margin-top:8px">';
+    for(const pw of HEROIC_POWERS){ const c = IMBUE_COST[pw.id], cur = it.power === pw.id, on = UI.imbPow === pw.id;
+      h += `<button class="li${on ? ' on' : ''}" ${cur ? 'disabled' : ''} onclick="UI.imbPow='${pw.id}';refreshPanel()" style="${on ? 'border-color:var(--gold)' : ''}"><div style="flex:1;color:${cur ? '#7d7484' : '#ff4545'}">${pw.name}${cur ? ' <span class="sub">(it carries this now)</span>' : ''}</div><div style="color:${P.carbon >= c ? '#c3cad8' : '#ff7a7a'}">${c} Carbon</div></button>`; }
+    h += '</div>';
+  }
+  const pw = UI.imbPow && powerDef(UI.imbPow), c = UI.imbPow && IMBUE_COST[UI.imbPow];
+  const foot = it && pw ? `<div class="row"><button class="btn gold" onclick="imbueApply()" ${P.carbon < c ? 'disabled' : ''}>Imbue: ${pw.name} for ${c} Carbon</button></div>` : null;
+  const left = panelShell('Imbue', h, foot).replace('<div class="panel">', '<div class="panel chestwin">');
+  const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {})}`).replace('<div class="panel">', '<div class="panel inv">');
+  return `<div class="pair">${left}${right}</div>`;
 }
 function renderHealer(){
   const P = G.P; const hp = 20 + P.lvl*3, mp = 20 + P.lvl*3, respec = 50 + P.lvl*30;
@@ -7132,7 +7262,8 @@ function beginGame(){
 function showDeath(){
   $('screens').innerHTML = `<div class="screen fadein" style="background:radial-gradient(ellipse at center,rgba(40,0,8,.55),rgba(5,4,10,.95))"><h1 class="logo" style="font-size:clamp(40px,11vw,86px)">You have been<span>Unmade</span></h1><div class="tag">The river remembers your shape.</div><button class="btn gold" onclick="respawn()">Rise again in Palli</button></div>`;
 }
-function respawn(){ hideAllScreens(); unfocusIfFree(); G.state = 'play'; for(const P of party()){ P.down = 0; P.revive = 0; derive(P); P.hp = P.d.maxhp; P.mp = P.d.maxmp; P.poisoned = 0; } G.projs = []; G.fx = []; goTown(); }
+function respawn(){ hideAllScreens(); unfocusIfFree(); G.state = 'play'; for(const P of party()){ P.down = 0; P.revive = 0; derive(P); P.hp = P.d.maxhp; P.mp = P.d.maxmp; P.poisoned = 0; } G.projs = []; G.fx = []; goTown();
+  for(const P of party()){ P.lying = 1.6; P.face = 1; P.aim = Math.PI/2; } }   // back in Palli, the fallen hero gets up off the ground (2026-11-17, Mathis)
 function showEnding(){
   G.state = 'ending';
   $('screens').innerHTML = `<div class="screen fadein" style="background:radial-gradient(ellipse at center,rgba(40,30,10,.5),rgba(5,4,10,.96))"><h1 class="logo" style="font-size:clamp(40px,11vw,86px)">The Seal<span style="color:var(--gold)">Holds</span></h1>
@@ -7267,6 +7398,10 @@ async function sendReport(){
 
 // ---- Help & FAQ (pause menu). Controls are built from the player's own key choices; HELP_FAQ is the list to grow as questions come in.
 const HELP_FAQ = [
+  ['How do I use the inventory?', 'Click an item (tap it on a phone) to see its details and compare it with what you wear. On a PC, right-click an item to put it on or take it off. You can also drag items: onto the body to wear them, back into the backpack to take them off, or between backpack slots to move them (on a phone, hold an item for a moment, then drag).'],
+  ['How many rings can I wear?', 'Two. Every hero has a ring slot by each hand. A new ring goes into an empty slot, or replaces the weaker of the two; drag it onto a slot to choose.'],
+  ['Why does the Rogue hold two daggers?', 'The Rogue fights with a dagger in each hand, and both blades add their damage. Each dagger hits a little softer than a single weapon would, so look for a good pair.'],
+  ['Why is one of my heroic pieces grayed out?', 'The same heroic power never stacks. If two pieces you wear have the same power, only one counts and the other is grayed out. Wear a piece with a different power, or, once Nightmare is open, ask Karmara to imbue it with a new one.'],
   ['How do I save?', 'Open the pause menu and choose Save Game. The game also saves by itself as you play, and Save & Quit saves before going back to the main menu.'],
   ['How do I get back to Palli?', 'Open a town portal (T on a keyboard by default, the touchpad on a controller). The portal you open in the depths waits beside the standing stone in Palli, so you can step back down to where you left off.'],
   ['How do Nightmare and Malformed open up?', 'Every hero begins in Breeze. Conquer the depths and the harder difficulties open, with stronger monsters and better rewards. Change difficulty at the Rift.'],
@@ -7422,7 +7557,7 @@ function p2HUD(){
   asHero(P, () => {
     sl.forEach((id, n) => { const sk = slotSkill(P, id), el = sks[n]; if(!sk || !el) return;
       if(id === 'ult'){ const cd = P.cds.ult || 0; el.querySelector('.cd').style.height = (cd > 0 ? 100*cd/ultCd() : 0) + '%'; return; }
-      const cd = P.cds[sk.id] || 0, tot = skillCd(sk); el.querySelector('.cd').style.height = (cd > 0 ? 100*cd/tot : 0) + '%'; el.classList.toggle('nomana', P.mp < sk.mana && !!P.skills[sk.id]); });
+      const cd = P.cds[sk.id] || 0, tot = skillCd(sk); el.querySelector('.cd').style.height = (cd > 0 ? 100*cd/tot : 0) + '%'; el.classList.toggle('nomana', P.mp < manaCost(sk, P) && !!P.skills[sk.id]); });
   });
   const pots = `<span style="color:#ff6a6a">Health ×${P.pots.hp}</span> <span style="color:#7fb4ff">Mana ×${P.pots.mp}</span>` + (P.imbue ? ` <span style="color:${OILS[P.imbue.k].color}">${esc(OILS[P.imbue.k].name || P.imbue.k)} ${Math.ceil(P.imbue.t)}s</span>` : '');
   if(el.dataset.pots !== pots){ el.dataset.pots = pots; el.querySelector('.pots').innerHTML = pots; }
