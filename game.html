@@ -571,7 +571,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.15';
+const GAME_VER = '0.1.16';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -643,7 +643,9 @@ const OPENING = [
   {shot:'riverbank', text:"Cold water laps at your fingers.\n\nOnly the sound of the water, and a voice humming a song you almost know..."},
   {shot:'waking', text:"You awaken in a house of reeds and lantern light. You don't remember your name, or how you came to be here.\n\nAn old man watches over you."}];
 const INTRO_TEXT = "You awaken on the bank of a river. Cold water laps at your fingers.\n\nYou don't remember your name, or how you came to be here. Only the sound of the water, and a voice humming a song you almost know...\n\nAn old man waits beneath a tree by the river.";
-const KARMARA_INTRO = "Hah! The river spits out a fighter. I'm Karmara. Twenty years I've hammered steel in Palli, and since that hole opened, everyone wants blades.\n\nBring me your broken gear and I'll mend it. Got coin? I've got steel. Got junk? I'll buy it.\n\nHere, take these potions. Nobody walks into that Rift on my watch without something to drink.";
+// Mathis's script (2026-11-18), recorded by her voice actress: the potions are their own page, where her manner changes
+const KARMARA_INTRO = "Hah! The river spits out anybody these days. I'm Karmara. For twenty years I been doin' this shit. Forging weapons for anybody wanna go down The Rift. Ever since that hole opened, everyone want blades.\n\nBring me yo broken gear, I'll put it together. You got the coin, I got the steel. Got any junk? I'll buy it.";
+const KARMARA_INTRO2 = "Here, take these potions. Can't have you dying down there.";
 // 2026-11-17 (Mathis): once Nightmare is open, Karmara has learned to move the power in heroic steel. She shows it with a gift; Imbue opens.
 const KARMARA_IMBUE = "Hold up. I've been working on something while you were down in the red dark.\n\nThe power in heroic steel sits on the metal like heat on a blade, and heat can be moved. I can draw it off a piece now and lay a different one in its place.\n\nYou'll want that. Wear two pieces with the same power and only one ever counts.\n\nHere. I made this one to prove it to myself. It's yours. Bring me any heroic piece and I'll imbue it with whatever you need.";
 const KARMARA_LINES = ["Steel doesn't care what's on the other end of it. Neither should you.", "Back in one piece? Your gear isn't. Let me see it.", "Ganesh has been staring at that river more than usual. Old men and their ghosts.", "If you find any Aranyan steel down there, bring it to me. I'd give my left hand to study it."];
@@ -1470,7 +1472,7 @@ function sfx(name, src){
 // suits the place. Each place's ambience loops underneath (md_amb_<place>.mp3: two takes, each a seamless loop).
 // Until a sheet has loaded, or where files can't be read (the PC build opened without its launcher), sfx() plays the
 // synthesized sound instead.
-const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa'];
+const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara'];
 // SND_MAN:BEGIN (made by sfx/gen_snd.py from the sheets' manifests; times in ms)
 const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[1,3479,983],[1,4711,998],[1,5959,1000]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]]};
 const SND_AMB = {"crypt":[[500,18500],[20000,18500]],"flesh":[[500,18500],[20000,18500]],"palli":[[500,18500],[20000,18500]],"throne":[[500,18500],[20000,18500]],"void":[[500,18500],[20000,18500]]};
@@ -1481,6 +1483,11 @@ SND_MAN.anvil = [[6, 0, 673], [6, 923, 522], [6, 1696, 772], [6, 2718, 702], [6,
 // z6d5QNJYFhLz78IGZinm, 3 takes (median pitch 372, 317, 295 Hz); the old takes stay in the bosses sheet, unused
 const VESSA_LAUGH = {vol:0.8, pv:0.02, room:0.35, lp:6000};   // her hall already echoes: only a little more room, and not sharp
 SND_MAN.vessa_laugh = [[7, 0, 2728], [7, 2978, 2798], [7, 6026, 2554]];   // softened (5.5 kHz low-pass), a little hall reverb and a slight echo baked in (Mathis)
+// Karmara's voice (2026-11-18, Mathis's voice actress): sheet 'karmara' (assets/sfx/md_sfx_karmara.mp3, cut from Karmara_MD.mp3, levelled
+// +11.3 dB with a limiter, 70 Hz high-pass): eight greetings for when the hero walks up (the last is "What you need?"), and her
+// first-meeting speech in two parts ("Hah! The river spits out..." to "I'll buy it.", then "Here, take these potions...", its own page)
+SND_MAN.karmara_greet = [[8,0,560],[8,810,620],[8,1680,680],[8,2610,570],[8,3430,620],[8,4300,910],[8,5460,680],[8,6390,900]];
+SND_MAN.karmara_intro1 = [[8,7540,19480]]; SND_MAN.karmara_intro2 = [[8,27270,3500]];
 const SND = {buf:{}, st:{}, last:{}, prev:{}, vo:{}, nvo:0, dec:undefined, roomIn:null, amb:null, ambArea:undefined, ambBuf:{}, ambSt:{}, ambKeep:[], ambVol:0.3, booted:false, map:null};
 const SND_ROOM = {palli:0.05, crypt:0.3, flesh:0.16, void:0.42, throne:0.45};   // how much echo each place gives
 function sndGet(url, ok, fail){            // XHR, not fetch: with the PC launcher's flag it can read the game's own files
@@ -1555,7 +1562,7 @@ function sndTick(){
     if(SND.amb){ const a = SND.amb; a.g.gain.setTargetAtTime(0.0001, t, 0.7); try{ a.s.stop(t + 4); }catch(e){} SND.amb = null; }
     if(area && SND_AMB[area]) sndAmbLoad(area);
   }
-  if(M && M !== SND.map){ SND.map = M; if(M.monsters && M.monsters.some(m => m.boss)){ sndLoad('bosses'); sndLoad('v3_bosses'); if(M.monsters.some(m => m.boss && /vessa/.test(m.type || m.kind || m.id || ''))) sndLoad('vessa'); } }
+  if(M && M !== SND.map){ SND.map = M; if(M.monsters && M.monsters.some(m => m.boss)){ sndLoad('bosses'); sndLoad('v3_bosses'); if(M.monsters.some(m => m.boss && /vessa/.test(m.type || m.kind || m.id || ''))) sndLoad('vessa'); } if(M.isTown) sndLoad('karmara'); }
   // Palli's background is recorded in the rain: when it is dry the rain's hiss is filtered out and it plays softer, so the village
   // only sounds rainy when it is raining (it used to rain in the ears all the time); snow muffles it further
   const a = SND.amb; if(a && a.f && !AU.held && (SND.wxT = (SND.wxT || 0) + 1) % 15 === 0){ const t = AU.ctx.currentTime; a.f.frequency.setTargetAtTime(sndAmbCut(), t, 1.2); a.g.gain.setTargetAtTime(sndAmbGain(a.area), t, 1.2); }
@@ -1826,7 +1833,24 @@ function voDone(){ VO.num = 0; voDuck(false); voBtn(); }
 function voToggle(num){ const note = NOTES.flat().find(n => n && n.num === num); if(VO.num === num) voStop(); else voPlay(note); }
 function voDuck(on){ if(!AU.musicBus || !AU.ctx) return; AU.musicBus.gain.setTargetAtTime(on ? AU.musicVol*0.3 : AU.musicVol, AU.ctx.currentTime, 0.3); }
 function voBtn(){ document.querySelectorAll('.vobtn').forEach(b => { const on = VO.num === +b.dataset.num; b.textContent = on ? '\u25A0 Stop' : '\u25B6 Listen'; b.classList.toggle('on', on); }); }
-function setVoiceVol(v){ VO.vol = v; if(VO.el) VO.el.volume = v; if(v <= 0) voStop(); }
+function setVoiceVol(v){ VO.vol = v; if(VO.el) VO.el.volume = v; if(v <= 0){ voStop(); npcHush(); } }
+// ---- the townsfolk's voices: one line at a time, at the narration volume (Settings), straight into the mix rather than through the
+// sound-effects slider; a speech ducks the music while it plays. A new line or a closed dialog stops the one before.
+const NPCV = {src:null, g:null, duck:false};
+function npcSay(name, o = {}){
+  npcHush(); if(!AU.ctx || SND.off || VO.vol <= 0) return false;
+  const pool = SND_MAN[name]; if(!pool) return false; const sheet = SND_SHEETS[pool[0][0]], buf = SND.buf[sheet];
+  if(!buf){ sndLoad(sheet); return false; }
+  let k = Math.floor(Math.random()*pool.length); if(pool.length > 1 && k === SND.prev[name]) k = (k + 1 + Math.floor(Math.random()*(pool.length - 1))) % pool.length; SND.prev[name] = k;
+  const [, st, du] = pool[k], c = AU.ctx, s = c.createBufferSource(), g = c.createGain(); s.buffer = buf; g.gain.value = (o.vol ?? 1)*VO.vol;
+  s.connect(g); let out = g;
+  if(o.at && c.createStereoPanner){ const L = sndEar(); if(L){ const p = c.createStereoPanner(); p.pan.value = Math.max(-0.4, Math.min(0.4, (o.at.x - L.x)/200)); g.connect(p); out = p; } }
+  out.connect(AU.master); s.start(c.currentTime, Math.max(0, st/1000 - 0.004), du/1000 + 0.02);
+  NPCV.src = s; NPCV.g = g; NPCV.duck = !!o.duck; if(o.duck) voDuck(true);
+  s.onended = () => { if(NPCV.src !== s) return; NPCV.src = null; if(NPCV.duck){ NPCV.duck = false; voDuck(false); } };
+  return true;
+}
+function npcHush(){ const s = NPCV.src; if(!s) return; NPCV.src = null; try{ const t = AU.ctx.currentTime; NPCV.g.gain.setTargetAtTime(0.0001, t, 0.03); s.stop(t + 0.15); }catch(e){} if(NPCV.duck){ NPCV.duck = false; voDuck(false); } }
 
 // ============ WORLD: town, dungeon generation, map art, FOV ============
 const TS = 16;
@@ -4662,7 +4686,11 @@ function karmaTick(){
   if(KARMA_SND.m !== M){ KARMA_SND.m = M; KARMA_SND.o = M.objects.find(o => o.type === 'npc' && o.id === 'karmara'); KARMA_SND.u = null; }
   const o = KARMA_SND.o; if(!o) return;
   const u = (G.time + 0.4) % KARMA_LEN, p = KARMA_SND.u; KARMA_SND.u = u;
-  if(p == null || Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26 || Math.hypot(P.x - o.x, P.y - o.y) > 300) return;   // talking, or out of earshot
+  // the hero walks up and she turns to talk: a greeting from her voice actress (one of eight), at most every 15 s (2026-11-18, Mathis)
+  const near = Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26;
+  if(near && !KARMA_SND.near && G.state === 'play' && !UI.dialog && G.time - (KARMA_SND.greetT ?? -99) > 15){ KARMA_SND.greetT = G.time; npcSay('karmara_greet', {at:o, vol:0.8}); }
+  KARMA_SND.near = near;
+  if(p == null || near || Math.hypot(P.x - o.x, P.y - o.y) > 300) return;   // talking, or out of earshot
   const span = u >= p ? u - p : u + KARMA_LEN - p; if(span > 0.5) return;      // a pause or a jump: no catch-up blows
   for(let j = 0; j < KARMA_HITS.length; j++){ const h = KARMA_HITS[j]; if(u >= p ? h > p && h <= u : h > p || h <= u){
     const last = KARMA_SEQ[KARMA_HIDX[j] + 1][0] !== 4;            // kept soft (Mathis: not loud, not sharp): low volume, the click taken
@@ -6921,7 +6949,9 @@ function talkTo(id){
     const qo = questOption('aldren'); if(qo) opts.unshift(qo);
     const nq = niruOption('karmara'); if(nq) opts.splice(qo ? 1 : 0, 0, nq);
     opts.push({label:'Farewell', fn:closeDialog});
-    if(first){ P.talked.karmara = true; P.pots.hp = Math.min(10, P.pots.hp + 2); showDialog('Karmara', KARMARA_INTRO + '\n\n(Received 2 Health Potions)', opts, 'karmara'); saveGame(); }
+    // first meeting (2026-11-18, Mathis): her speech, then a second page for the potions, where her manner changes; both voiced
+    if(first){ P.talked.karmara = true; P.pots.hp = Math.min(10, P.pots.hp + 2); saveGame(); npcSay('karmara_intro1', {duck:true, vol:0.9});
+      showDialog('Karmara', KARMARA_INTRO, [{label:'Next', fn:() => { npcSay('karmara_intro2', {duck:true, vol:0.9}); showDialog('Karmara', KARMARA_INTRO2 + '\n\n(Received 2 Health Potions)', opts, 'karmara'); }}], 'karmara'); }
     else showDialog('Karmara', rpick(KARMARA_LINES), opts, 'karmara');
   } else if(id === 'vaidya'){
     const healed = P.hp < P.d.maxhp || P.mp < P.d.maxmp; P.hp = P.d.maxhp; P.mp = P.d.maxmp; P.poisoned = 0;
@@ -7189,7 +7219,7 @@ function galPlay(id){
   $('screens').innerHTML = ''; menuScene('off'); sfx('click');
   playCutscene(g.shots(), () => showGallery());
 }
-function closeDialog(){ voStop(); UI.dialog = false; $('dlgwrap').classList.add('hide'); $('dlgwrap').innerHTML = ''; }
+function closeDialog(){ voStop(); npcHush(); UI.dialog = false; $('dlgwrap').classList.add('hide'); $('dlgwrap').innerHTML = ''; }
 function showNote(note, fresh){
   UI.dialog = true; const w = $('dlgwrap'); w.classList.remove('hide');
   w.innerHTML = `<div class="modal" style="background:rgba(3,2,6,.75)"><div class="note fadein${note.burnt ? ' burnt' : ''}"><h3>${esc(note.t)}</h3><div class="who">${esc(note.who)}</div><div class="tx">${esc(note.s)}</div><div class="row" style="margin-top:14px;justify-content:space-between"><span style="font-size:16px;color:#6a4a2a">${fresh ? 'Added to your journal.' : ''}</span><span class="row" style="gap:8px">${voHas(note) && VO.vol > 0 ? `<button class="btn vobtn" data-num="${note.num}" onclick="voToggle(${note.num})">\u25B6 Listen</button>` : ''}<button class="btn" onclick="closeDialog()">Close</button></span></div></div></div>`;
