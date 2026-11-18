@@ -1637,8 +1637,33 @@ function sndRoute(name, src){
 }
 
 // ---------- music ----------
+// Recorded tracks (Mathis's ElevenLabs music) play instead of the synth where there is one: Palli has 'After the Storm' (warm
+// acoustic guitar, violins, cello; 2026-11-17). Each file is one seamless loop with 0.5 s of its own end before it and its own
+// start after it, so the loop points hold whatever delay the mp3 decoder adds. Decoded at 32 kHz like the sounds; picked up
+// where it left off when you come back; if the file can't load, the synth plays.
+const MUS = {buf:{}, st:{}, pos:{}, src:null};
+const MUS_TRACKS = {town:{file:'assets/music/md_music_palli.mp3', pad:0.5, len:143.322154, gain:0.5}};
+function musPlay(name){
+  const T = MUS_TRACKS[name]; if(!T || MUS.st[name] === 'bad' || SND.off) return false;
+  if(MUS.st[name] === 'ok'){ musStart(name); return true; }
+  if(!MUS.st[name]){
+    MUS.st[name] = 'loading';
+    const fail = () => { MUS.st[name] = 'bad'; if(AU.track === name){ AU.track = null; playMusic(name); } };
+    sndGet(T.file, ab => sndDecode(ab, buf => { MUS.buf[name] = buf; MUS.st[name] = 'ok'; if(AU.track === name && !MUS.src) musStart(name); }, fail), fail);
+  }
+  return true;
+}
+function musStart(name){
+  const c = AU.ctx, T = MUS_TRACKS[name], buf = MUS.buf[name]; if(!c || !buf) return;
+  const t = c.currentTime, s = c.createBufferSource(), g = c.createGain();
+  s.buffer = buf; s.loop = true; s.loopStart = T.pad; s.loopEnd = T.pad + T.len;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(T.gain, t + 2.5); s.connect(g); g.connect(AU.musicBus);
+  const off = T.pad + (MUS.pos[name] || 0) % T.len; s.start(t, off);
+  MUS.src = {name, t0:t, off}; AU.nodes.push(g, s);
+}
 function stopMusicNodes(){
   const c = AU.ctx; if(!c) return; const t = c.currentTime;
+  if(MUS.src){ const m = MUS.src, T = MUS_TRACKS[m.name]; MUS.pos[m.name] = (m.off - T.pad + t - m.t0) % T.len; MUS.src = null; }
   AU.nodes.forEach(n => { try{ if(n.gain){ n.gain.cancelScheduledValues(t); n.gain.setTargetAtTime(0.0001, t, 0.8); } if(n.stop) n.stop(t + 4); }catch(e){} });
   AU.nodes = [];
   if(AU.timer){ clearInterval(AU.timer); AU.timer = null; }
@@ -1689,6 +1714,7 @@ function playMusic(track){
       if(Math.random() < 0.015) sfx('whisper');
     }, 500);
   } else if(track === 'town'){
+    if(musPlay('town')) return;
     drone([midi(root - 12)], 'triangle', 300, 0.1, 0.04);
     const chords = [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -1, 2]];
     AU.timer = setInterval(() => {
