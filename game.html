@@ -586,7 +586,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.22';
+const GAME_VER = '0.1.23';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -821,8 +821,24 @@ const HEROIC_POWERS = [
   {id:'executioner', name:'Deal 40% more damage to enemies below 30% life'},
   {id:'ward',        name:"A ward absorbs damage equal to 15% of your life, and returns after 8 seconds unhurt"},
   {id:'rime',        name:'When hit, 25% chance to freeze nearby enemies for 1.5 seconds'},
-  {id:'bloodrush',   name:'Each kill gives +20% attack and movement speed for 4 seconds'}
+  {id:'bloodrush',   name:'Each kill gives +20% attack and movement speed for 4 seconds'},
+  // twelve more (2026-11-18, Mathis): six for anyone, two for each hero. A class power only rolls on that hero's gear and only works for them.
+  {id:'manasiphon',  name:'Every hit restores 1% of your mana'},
+  {id:'giantsbane',  name:'Deal 30% more damage to bosses and elites'},
+  {id:'ironskin',    name:'Take 12% less damage from everything'},
+  {id:'swiftness',   name:'+15% movement speed'},
+  {id:'chainspark',  name:'Critical hits arc lightning to 2 nearby enemies'},
+  {id:'corpseburst', name:'Slain enemies have a 25% chance to explode, hurting those nearby'},
+  {id:'bulwark',     name:'Shield Bash hits 50% harder and stuns 1 second longer', cls:'knight'},
+  {id:'crusader',    name:'War Cry heals you for 20% of your life', cls:'knight'},
+  {id:'pyre',        name:'Fireball splits into three', cls:'mage'},
+  {id:'permafrost',  name:'Frozen enemies take 30% more damage', cls:'mage'},
+  {id:'venomlord',   name:'Venom Coat lasts twice as long', cls:'rogue'},
+  {id:'phantom',     name:'Shadow Step strikes twice', cls:'rogue'}
 ];
+// the powers an item can roll: anyone's, plus its hero's own (jewelry has no hero, so it rolls only the shared ones)
+function powerPool(cls){ return HEROIC_POWERS.filter(p => !p.cls || p.cls === cls); }
+function rollPower(it, cls){ return rpick(powerPool(cls !== undefined ? cls : it.cls)).id; }
 const CARBON_UP = [1, 1, 2, 2, 3, 3, 4, 5, 6, 8];          // Carbon cost to reach +1 ... +10
 // Weapon oils (Vaidya). Applying one imbues the weapon for OIL_DUR seconds: normal attacks carry its effect. A new oil replaces the old one.
 const OIL_ORDER = ['fire', 'lightning', 'cold', 'bleed', 'poison', 'slime', 'malformed'], OIL_MAX = 5, OIL_DUR = 60;
@@ -2408,7 +2424,7 @@ function makeItem(ilvl, rarity, slot, cls){
     let v = af.roll(ilvl); if(rarity === 'heroic') v = Math.round(v*1.4); else if(rarity === 'grand') v = Math.round(v*1.15);
     it.affixes.push({id:af.id, v});
   }
-  if(rarity === 'heroic') it.power = rpick(HEROIC_POWERS).id;
+  if(rarity === 'heroic') it.power = rollPower(it);
   const firstAf = it.affixes.find(a => !a.implicit);
   if(rarity === 'typical') it.name = firstAf ? `${base} of ${SUFFIX[firstAf.id]}` : base;
   else if(rarity === 'grand') it.name = `${rpick(RARE_A)}${rpick(RARE_B)} ${base}`;
@@ -2486,7 +2502,7 @@ function eqTarget(it, P = G.P){
 }
 function derive(P){
   const C = CLASSES[P.cls], s = {...P.stats}, add = {hp:0, mp:0, crit:0, as:0, ms:0, dmg:0, loh:0, arm:0, cdr:0};
-  const pw = {allskills:0, lifesteal:0, thorns:0, shock:0, secondwind:0, greed:0, wellspring:0, executioner:0, ward:0, rime:0, bloodrush:0};
+  const pw = {allskills:0, lifesteal:0, thorns:0, shock:0, secondwind:0, greed:0, wellspring:0, executioner:0, ward:0, rime:0, bloodrush:0, manasiphon:0, giantsbane:0, ironskin:0, swiftness:0, chainspark:0, corpseburst:0, bulwark:0, crusader:0, pyre:0, permafrost:0, venomlord:0, phantom:0};
   let armor = 0, wmin = 2, wmax = 4, wspd = 1; const off = DUAL_WIELD[P.cls] && itemActive(P.eq.offhand) ? P.eq.offhand : null;
   const dupPow = {}, owner = {};   // heroic powers do not stack: the first piece (in EQ_SLOTS order) with a power keeps it, the rest are greyed out
   for(const slot of eqSlots(P)){
@@ -2494,7 +2510,7 @@ function derive(P){
     armor += itArmor(it);
     if(slot === 'weapon'){ wmin = itMin(it); wmax = itMax(it); wspd = it.speed; }
     for(const a of it.affixes){ const v = afVal(it, a); if(s[a.id] !== undefined) s[a.id] += v; else add[a.id] += v; }
-    if(it.power){ if(owner[it.power]) dupPow[it.id] = owner[it.power]; else { owner[it.power] = slot; pw[it.power] = 1; } }   // dupPow[id] = the place whose piece holds it
+    if(it.power){ if(owner[it.power]) dupPow[it.id] = owner[it.power]; else { owner[it.power] = slot; const pd = powerDef(it.power); if(!pd || !pd.cls || pd.cls === P.cls) pw[it.power] = 1; } }   // dupPow[id] = the place whose piece holds it
   }
   if(off){ if(P.eq.weapon && itemActive(P.eq.weapon)){ wmin += itMin(off); wmax += itMax(off); wspd = (wspd + off.speed)/2; } else { wmin = itMin(off); wmax = itMax(off); wspd = off.speed; } }   // two daggers: both blades' damage
   let bDmg = 0, bArm = 0, bAs = 0, bMs = 0;
@@ -2502,7 +2518,9 @@ function derive(P){
   const d = P.d = {};
   d.stats = s; d.dupPow = dupPow;
   d.powers = {allskills:pw.allskills, lifesteal:0.03*pw.lifesteal, thorns:0.35*pw.thorns, shock:Math.min(0.5, 0.12*pw.shock), secondwind:pw.secondwind > 0, greed:0.5*pw.greed,
-    wellspring:pw.wellspring ? 0.2 : 0, executioner:pw.executioner ? 0.4 : 0, ward:pw.ward ? 0.15 : 0, rime:pw.rime ? 0.25 : 0, bloodrush:pw.bloodrush > 0};
+    wellspring:pw.wellspring ? 0.2 : 0, executioner:pw.executioner ? 0.4 : 0, ward:pw.ward ? 0.15 : 0, rime:pw.rime ? 0.25 : 0, bloodrush:pw.bloodrush > 0,
+    manasiphon:pw.manasiphon ? 0.01 : 0, giantsbane:pw.giantsbane ? 0.3 : 0, ironskin:pw.ironskin ? 0.12 : 0, swiftness:pw.swiftness ? 0.15 : 0, chainspark:pw.chainspark > 0, corpseburst:pw.corpseburst ? 0.25 : 0,
+    bulwark:pw.bulwark > 0, crusader:pw.crusader ? 0.2 : 0, pyre:pw.pyre > 0, permafrost:pw.permafrost ? 0.3 : 0, venomlord:pw.venomlord > 0, phantom:pw.phantom > 0};
   d.maxhp = Math.round((C.hp + s.vit*5 + (P.lvl - 1)*4)*0.85 + add.hp);   // souls-like: heroes 15% frailer
   d.maxmp = Math.round(C.mp + s.int*3 + (P.lvl - 1)*3 + add.mp);
   d.mult = (1 + s[C.primary]*0.015 + add.dmg/100 + bDmg)*0.85;   // and hit 15% softer
@@ -2511,7 +2529,7 @@ function derive(P){
   d.critMult = P.cls === 'rogue' ? 2.1 : 1.75;
   d.armor = Math.round(armor + add.arm + s.str*0.4 + bArm);
   d.as = wspd*(1 + s.dex*0.003 + add.as/100 + bAs);
-  d.ms = 74*(1 + Math.min(0.6, add.ms/100 + bMs));
+  d.ms = 74*(1 + Math.min(0.6, add.ms/100 + bMs + d.powers.swiftness));
   d.loh = add.loh; d.cdr = Math.min(0.4, add.cdr/100);
   d.hpReg = 0.1 + s.vit*0.012; d.mpReg = 1.4 + s.int*0.05;   // life comes back slowly (was 0.4 + vit*0.06); none at all in Palli
   d.avg = (wmin + wmax)/2*d.mult;
@@ -2654,6 +2672,8 @@ function hitMonster(m, amt, o = {}){
   const P = G.P, im = o.imbue && P.imbue;
   if(im && P.imbue.k === 'malformed') amt *= 1.4;
   if(P.d.powers.executioner && m.hp < m.maxhp*0.3) amt *= 1 + P.d.powers.executioner;   // heroic: Executioner
+  if(P.d.powers.giantsbane && (m.boss || m.elite)) amt *= 1 + P.d.powers.giantsbane;     // heroic: Giantsbane
+  if(P.d.powers.permafrost && m.freeze > 0) amt *= 1 + P.d.powers.permafrost;           // heroic: Permafrost (mage)
   let crit = o.crit !== undefined ? o.crit : R() < P.d.crit;
   if(crit) amt *= P.d.critMult;
   if(m.elite && m.elite.id === 'warded') amt *= 0.7;
@@ -2670,6 +2690,7 @@ function hitMonster(m, amt, o = {}){
   if(o.fear && !m.boss) m.fear = o.fear;
   if(!o.noLoh && P.d.loh) P.hp = Math.min(P.d.maxhp, P.hp + P.d.loh);
   if(P.d.powers.lifesteal && !o.noProc) P.hp = Math.min(P.d.maxhp, P.hp + amt*P.d.powers.lifesteal);
+  if(P.d.powers.manasiphon && !o.noProc) P.mp = Math.min(P.d.maxmp, P.mp + P.d.maxmp*P.d.powers.manasiphon);   // heroic: Mana Siphon
   ftext(m.x + (R() - 0.5)*6, m.y - m.r - 10, amt + (crit ? '!' : ''), crit ? '#ffcd75' : (o.color || '#f4f4f4'), crit ? 1.35 : 1);
   const blood = m.type === 'skeleton' || m.type === 'archer' || m.type === 'khala' ? ['#e8e4d8', '#a8a090'] : m.type === 'wraith' ? ['#b98cff', '#5d275d'] : m.type === 'spitter' ? ['#38b764', '#a7f070'] : ['#e43b44', '#b13e53', '#8f3b55'];
   burst(m.x, m.y - 4, crit ? 12 : 6, blood, 70, 160, 0.5);
@@ -2680,6 +2701,12 @@ function hitMonster(m, amt, o = {}){
     P.shockCd = 0.4; ring(m.x, m.y - 4, 52, '#ffcd75', 0.35, 4, 'shock'); sfx('bash', m);
     for(const o2 of G.M.monsters.slice()) if(o2 !== m && Math.hypot(o2.x - m.x, o2.y - m.y) < 52 + o2.r) hitMonster(o2, rollDamage(0.6), {noProc:true, silent:true, kb:30, fx:m.x, fy:m.y});
   }
+  // heroic: Chain Spark, a critical hit arcs to the two nearest foes
+  if(crit && !o.noProc && P.d.powers.chainspark){
+    const near = G.M.monsters.filter(o2 => o2 !== m && !o2.dead && Math.hypot(o2.x - m.x, o2.y - m.y) < 110).sort((a, b) => Math.hypot(a.x - m.x, a.y - m.y) - Math.hypot(b.x - m.x, b.y - m.y)).slice(0, 2);
+    for(const o2 of near){ G.fx.push({kind:'zap', x:m.x, y:m.y - 8, x2:o2.x, y2:o2.y - 8, t:0, dur:0.18, color:'#9fe8ff'}); hitMonster(o2, amt*0.5, {crit:false, noProc:true, silent:true, color:'#9fe8ff'}); }
+    if(near.length) sfx('zap', m);
+  }
   if(m.hp <= 0) killMonster(m);
 }
 function hurtPlayer(amt, src, melee){
@@ -2688,7 +2715,7 @@ function hurtPlayer(amt, src, melee){
   if(src && src.weak > 0) amt *= 0.75;   // Poison Oil weakens enemy attacks
   const lvl = src && src.lvl ? src.lvl : P.lvl;
   const dr = Math.min(0.75, P.d.armor/(P.d.armor + 50 + 10*lvl));
-  amt = Math.max(1, Math.round(amt*(1 - dr)*(0.9 + R()*0.2)));
+  amt = Math.max(1, Math.round(amt*(1 - dr)*(1 - P.d.powers.ironskin)*(0.9 + R()*0.2)));   // heroic: Ironskin
   // heroic: Rime, frost bursts off the hero when struck
   if(P.d.powers.rime && !(P.rimeCd > 0) && R() < P.d.powers.rime){ P.rimeCd = 3; sfx('ice'); ring(P.x, P.y - 6, 70, '#9fe8ff', 0.4);
     for(const m of G.M.monsters) if(!m.dead && Math.hypot(m.x - P.x, m.y - P.y) < 70 + m.r){ m.freeze = Math.max(m.freeze || 0, m.boss ? 0.45 : 1.5); burst(m.x, m.y - 6, 6, ['#cbe9ff', '#86d4ff', '#ffffff'], 40, 120, 0.4); } }
@@ -2713,6 +2740,10 @@ function killMonster(m){
   if(m.dead) return; m.dead = true;
   const M = G.M, P = G.P, D = DIFFS[curDiff()];
   if(P.d.powers.bloodrush) addBuff('rush', 4);   // heroic: Bloodrush
+  if(P.d.powers.corpseburst && !m.boss && R() < P.d.powers.corpseburst){   // heroic: Corpse Burst
+    G.fx.push({kind:'boom', x:m.x, y:m.y - 6, r:56, t:0, dur:0.35, color:'#e43b44', fxn:'boom_fire', tint:'hue:#e43b44'}); burst(m.x, m.y - 6, 22, ['#e43b44', '#b13e53', '#8f3b55'], 140, 160, 0.6); sfx('meteor', m); G.shake = Math.max(G.shake, 3);
+    for(const o2 of G.M.monsters.slice()) if(o2 !== m && !o2.dead && Math.hypot(o2.x - m.x, o2.y - m.y) < 56 + o2.r) hitMonster(o2, rollDamage(1.5), {noProc:true, silent:true, kb:40, fx:m.x, fy:m.y, color:'#ff8080'});
+  }
   const mi = M.monsters.indexOf(m); if(mi >= 0) M.monsters.splice(mi, 1);
   { const ck = monKey(m), split = m.kind === 'malformed' && !m.mini && SPLITTERS.includes(m.type);
     if(ck) (G.corpses = G.corpses || []).push({k:ck, x:m.x, y:m.y, face:m.face, t0:G.time, map:M, split, mini:!!m.mini, sc:m.scale || 1});
@@ -2918,19 +2949,22 @@ function useSkill(i){
     case 'bash': {
       sfx('bash'); G.shake = 3; P.swing = {t:0, dur:0.25, ang, arc:1.6};
       G.fx.push({kind:'slash', x:cx, y:cy, ang, arc:1.7, r:50, t:0, dur:0.22, color:'#c3cad8', wide:true}); fxSpr('shock', cx + Math.cos(ang)*22, cy + Math.sin(ang)*22 + 6, 84, 0.35, {ground:true});
-      hitProps(cx, cy, 52, ang, 1.8); for(const m of G.M.monsters.slice()){ const d = Math.hypot(m.x - cx, m.y - cy); if(d < 52 + m.r && (Math.abs(angDiff(Math.atan2(m.y - cy, m.x - cx), ang)) < 0.9 || d < m.r + 8)) hitMonster(m, rollDamage(1.9*s), {kb:60, stun:1.2 + 0.1*rank}); }
+      hitProps(cx, cy, 52, ang, 1.8); for(const m of G.M.monsters.slice()){ const d = Math.hypot(m.x - cx, m.y - cy); if(d < 52 + m.r && (Math.abs(angDiff(Math.atan2(m.y - cy, m.x - cx), ang)) < 0.9 || d < m.r + 8)) hitMonster(m, rollDamage(1.9*s*(P.d.powers.bulwark ? 1.5 : 1)), {kb:60, stun:1.2 + 0.1*rank + (P.d.powers.bulwark ? 1 : 0)}); }
       break; }
     case 'charge': {
       sfx('charge'); P.dash = {vx:dirx*520, vy:diry*520, t:0, dur:0.26, hit:new Set(), mult:2.0*s, kind:'charge'}; P.invuln = 0.3; break; }
     case 'whirl': { sfx('whirl'); P.spin = {t:0, dur:2.0, tick:0, every:0.25, r:48, mult:0.72*s, color:'#e8e4d8', speed:0.75}; break; }
     case 'cry': {
       sfx('cry'); G.shake = 4; addBuff('cry', 8, {dmg:0.3 + 0.06*rank, arm:25 + 8*rank});
+      if(P.d.powers.crusader){ const h = Math.round(P.d.maxhp*P.d.powers.crusader); P.hp = Math.min(P.d.maxhp, P.hp + h); ftext(P.x, P.y - 34, '+' + h, '#7bd36b', 1.2); }   // heroic: Crusader
       fxSpr('cry', P.x, P.y, 270, 0.7, {ground:true, follow:P, glow:true, alpha:0.72});   // the shockwave rises around his feet and moves with him; 270 wide, so at its widest the ring reaches the 130 the cry frightens
       for(const m of G.M.monsters) if(dist(m, P) < 130){ if(!m.boss) m.fear = 2; m.alert = true; }
       break; }
     case 'fireball': {
       sfx('fire'); P.swing = {t:0, dur:0.2, ang, arc:0.4, cast:true};
       G.projs.push({x:cx + dirx*10, y:cy + diry*10, vx:dirx*240, vy:diry*240, r:6, dmg:rollDamage(2.2*s), team:'p', life:1.4, kind:'fire', color:'#ef7d57', hit:new Set(), pierce:0, explode:{r:40, burn:P.d.avg*0.35*s}});
+      if(P.d.powers.pyre) for(const da of [-0.25, 0.25]){ const a = ang + da;   // heroic: Pyre, two smaller flames fan out beside it
+        G.projs.push({x:cx + Math.cos(a)*10, y:cy + Math.sin(a)*10, vx:Math.cos(a)*240, vy:Math.sin(a)*240, r:5, dmg:rollDamage(1.1*s), team:'p', life:1.4, kind:'fire', color:'#ef7d57', hit:new Set(), pierce:0, explode:{r:32, burn:P.d.avg*0.18*s}}); }
       break; }
     case 'nova': {
       sfx('ice'); ring(cx, cy, 84, '#7df9ff', 0.45); G.fx.push({kind:'frost', x:cx, y:cy, r:84, t:0, dur:0.6});
@@ -2966,11 +3000,12 @@ function useSkill(i){
         if(!blockedCircle(G.M, nx, ny, P.r)){ P.x = nx; P.y = ny; }
         P.aim = a + Math.PI; P.face = Math.cos(P.aim) >= 0 ? 1 : -1;
         hitMonster(t, rollDamage(2.2*s), {crit:true, stun:0.8});
+        if(P.d.powers.phantom && !t.dead) setTimeout(() => { if(!t.dead && G.state === 'play') hitMonster(t, rollDamage(2.2*s), {crit:true, stun:0.8, color:'#b98cff'}); }, 180);   // heroic: Phantom strikes again
         G.fx.push({kind:'slash', x:P.x, y:P.y - 6, ang:P.aim, arc:1.4, r:30, t:0, dur:0.18, color:'#b98cff'});
       } else { for(let d = 0; d < 80; d += 4){ const nx = P.x + dirx*4, ny = P.y + diry*4; if(blockedCircle(G.M, nx, ny, P.r)) break; P.x = nx; P.y = ny; } }
       burst(P.x, P.y - 8, 18, ['#8e4ba8', '#5d275d'], 50, 0, 0.6);
       P.invuln = 0.3; break; }
-    case 'venom': { sfx('venom'); addBuff('venom', 8); burst(P.x, P.y - 8, 24, ['#a7f070', '#38b764'], 60, -30, 0.8); break; }
+    case 'venom': { sfx('venom'); addBuff('venom', P.d.powers.venomlord ? 16 : 8); burst(P.x, P.y - 8, 24, ['#a7f070', '#38b764'], 60, -30, 0.8); break; }
     case 'blossom': { sfx('blossom'); P.spin = {t:0, dur:2.5, tick:0, every:0.14, r:58, mult:0.45*s, color:'#e43b44', speed:0.9, blades:true}; break; }
   }
   uiDirty();
@@ -3369,7 +3404,7 @@ function ascendItem(ref){
   const need = to.affix[0], have = it.affixes.filter(a => !a.implicit).length;
   const pool = AFFIXES.filter(af => !it.affixes.some(a => a.id === af.id));
   for(let i = have; i < need && pool.length; i++){ const af = pool.splice(Math.floor(R()*pool.length), 1)[0]; let v = af.roll(it.ilvl); v = Math.round(v*(c.to === 'heroic' ? 1.4 : 1.15)); it.affixes.push({id:af.id, v}); }
-  if(c.to === 'heroic') it.power = rpick(HEROIC_POWERS).id;
+  if(c.to === 'heroic') it.power = rollPower(it);
   it.name = c.to === 'heroic' ? rpick(LEGENDARY_NAMES[it.slot]) : `${rpick(RARE_A)}${rpick(RARE_B)} ${it.base}`;
   it.value = Math.round(it.value*to.val/from.val);
   it.rarity = c.to; if(it.maxDur) it.dur = it.maxDur;
@@ -3394,6 +3429,7 @@ function reforgeItem(ref, cls){
     it.armor = Math.max(1, Math.round(it.armor*nA.mult/oA.mult)); newBase = armorTierName(nA[it.slot], it.slot, it.ilvl);
   }
   if(it.base && it.name.includes(it.base)) it.name = it.name.replace(it.base, newBase);
+  if(it.power){ const od = powerDef(it.power); if(od && od.cls && od.cls !== cls){ const k = HEROIC_POWERS.filter(p => p.cls === od.cls).indexOf(od); it.power = HEROIC_POWERS.filter(p => p.cls === cls)[k].id; } }   // a class power follows the reforge
   it.base = newBase; it.cls = cls;
   sfx('repair'); toast(`${itemName(it)} is now made for a ${CLASSES[cls].name}.`, '#ffcd75');
   derive(P); saveGame(); uiDirty();
@@ -6618,8 +6654,10 @@ function itemCard(it, ctx){
   if(cmp) for(const id in tEq) if(!tIt[id]){ const af = AFFIXES.find(x => x.id === id); h += `<div class="bad">−${tEq[id]}${af.label.startsWith('%') ? af.label : ' ' + af.label} <span class="sub">(only on your equipped item)</span></div>`; }
   if(it.power){ const pw = powerDef(it.power), dup = place && P.d.dupPow && P.d.dupPow[it.id], other = !place && pw && eqSlots(P).find(s => s !== tgt && P.eq[s] && P.eq[s].power === it.power);
     const fix = P.imbueOpen ? ' Karmara can imbue it with a different one.' : '';
-    if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">Heroic power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
-      : `<div style="color:#ff4545">Heroic power: ${pw.name}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
+    const tag = pw && pw.cls ? ` <span class="sub">(${CLASSES[pw.cls].name} only)</span>` : '';
+    if(pw && pw.cls && pw.cls !== P.cls) h += `<div style="color:#7d7484">Heroic power: ${pw.name}${tag}</div><div class="sub">Only works for a ${CLASSES[pw.cls].name}.</div>`;
+    else if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">Heroic power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
+      : `<div style="color:#ff4545">Heroic power: ${pw.name}${tag}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +10</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
@@ -6849,6 +6887,8 @@ function renderChar(){
   ['str', 'dex', 'int', 'vit'].forEach(s => h += `<div class="stat"><div><b>${names[s]}</b> ${d.stats[s]}${d.stats[s] !== P.stats[s] ? ` <span class="sub">(${P.stats[s]} base)</span>` : ''}<div class="sub" style="font-size:15px">${help[s]}</div></div>${P.statPts > 0 ? `<button class="btn pl" onclick="addStat('${s}')">+</button>` : ''}</div>`);
   const pw = d.powers, pws = [];
   if(pw.allskills) pws.push(`+${pw.allskills} to all skills`); if(pw.lifesteal) pws.push(`${Math.round(pw.lifesteal*100)}% life steal`); if(pw.thorns) pws.push(`${Math.round(pw.thorns*100)}% thorns`); if(pw.shock) pws.push(`${Math.round(pw.shock*100)}% shockwave`); if(pw.secondwind) pws.push('Second Wind'); if(pw.greed) pws.push(`+${Math.round(pw.greed*100)}% gold & Carbon`); if(pw.wellspring) pws.push(`${Math.round(pw.wellspring*100)}% free casts`); if(pw.executioner) pws.push(`+${Math.round(pw.executioner*100)}% damage to the dying`); if(pw.ward) pws.push("Warden's Ward"); if(pw.rime) pws.push(`${Math.round(pw.rime*100)}% frost when hit`); if(pw.bloodrush) pws.push('Bloodrush');
+  if(pw.manasiphon) pws.push('Mana Siphon'); if(pw.giantsbane) pws.push(`+${Math.round(pw.giantsbane*100)}% damage to bosses & elites`); if(pw.ironskin) pws.push(`${Math.round(pw.ironskin*100)}% less damage taken`); if(pw.swiftness) pws.push(`+${Math.round(pw.swiftness*100)}% move speed`); if(pw.chainspark) pws.push('Chain Spark'); if(pw.corpseburst) pws.push('Corpse Burst');
+  if(pw.bulwark) pws.push('Bulwark'); if(pw.crusader) pws.push('Crusader'); if(pw.pyre) pws.push('Pyre'); if(pw.permafrost) pws.push('Permafrost'); if(pw.venomlord) pws.push('Venom Lord'); if(pw.phantom) pws.push('Phantom');
   h += `<div class="card"><div>Damage: ${Math.round(d.min*d.mult)}–${Math.round(d.max*d.mult)}</div><div>Life: ${d.maxhp} · Mana: ${d.maxmp}</div><div>Armor: ${d.armor} <span class="sub">(${Math.round(100*Math.min(0.75, d.armor/(d.armor + 50 + 10*P.lvl)))}% reduction)</span></div><div>Critical chance: ${(d.crit*100).toFixed(1)}% · Crit damage ×${d.critMult}</div><div>Attack speed: ${d.as.toFixed(2)} · Move speed: ${Math.round(d.ms)}</div><div>Life regen: ${d.hpReg.toFixed(1)}/s · Mana regen: ${d.mpReg.toFixed(1)}/s</div>${d.loh ? `<div>Life per hit: ${d.loh}</div>` : ''}${d.cdr ? `<div>Cooldown reduction: ${Math.round(d.cdr*100)}%</div>` : ''}${pws.length ? `<div style="color:#ff4545">Heroic: ${pws.join(' · ')}</div>` : ''}<div style="color:#c3cad8">Carbon: ${P.carbon}</div><div class="sub">Monsters slain: ${P.kills} · Deaths: ${P.deaths}</div></div>`;
   return panelShell('Character', h);
 }
@@ -7136,12 +7176,13 @@ function renderStash(){   // two windows (2026-11-17, Mathis): the chest on the 
 }
 // ---------- Karmara's imbuing (2026-11-17, Mathis): open once Nightmare is unlocked. A heroic piece goes in the slot on the left (from the
 // inventory on the right: tap it, or drag it over); the powers it could carry are listed with their price in Carbon; one press lays the new one in.
-const IMBUE_COST = {allskills:60, lifesteal:50, secondwind:45, shock:40, thorns:35, greed:30, wellspring:55, ward:50, executioner:45, rime:40, bloodrush:40};
+const IMBUE_COST = {allskills:60, lifesteal:50, secondwind:45, shock:40, thorns:35, greed:30, wellspring:55, ward:50, executioner:45, rime:40, bloodrush:40,
+  manasiphon:45, giantsbane:50, ironskin:50, swiftness:35, chainspark:45, corpseburst:40, bulwark:45, crusader:50, pyre:55, permafrost:50, venomlord:40, phantom:50};
 function openImbue(){ closeDialog(); UI.imb = null; UI.imbPow = null; UI.sel = null; UI.panel = 'imbue'; refreshPanel(); $('modal').classList.remove('hide'); }
 function imbPick(ref){ const it = refItem(ref); if(!it) return; UI.imb = ref; UI.imbPow = null; sfx('pickup'); refreshPanel(); }
 function imbItem(){ const it = refItem(UI.imb); return it && it.slot ? it : null; }
 function imbueApply(){
-  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || !(it.rarity === 'heroic' || it.rarity === 'godly') || !cost || it.power === id) return;
+  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || !(it.rarity === 'heroic' || it.rarity === 'godly') || !cost || it.power === id || !powerPool(P.cls).some(p => p.id === id)) return;
   if(P.carbon < cost){ toast(`You need ${cost} Carbon.`, '#e43b44'); sfx('error'); return; }
   P.carbon -= cost; it.power = id; derive(P); UI.imbPow = null;
   sfx('upsuccess'); sfx('legend'); toast(`${itemName(it)} now carries: ${powerDef(id).name}`, '#ff4545', 4); saveGame(); uiDirty(); refreshPanel();
@@ -7157,10 +7198,10 @@ function renderImbue(){
     // never pay to lay in a power that would not count
     const place = eqWhere(it, P), worn = eqSlots(P).filter(s => s !== place && P.eq[s] && P.eq[s].power).map(s => ({s, id:P.eq[s].power}));
     const wornBy = id => worn.filter(w => w.id === id).map(w => EQ_NAMES[w.s].toLowerCase());
-    h += `<div class="card" style="margin-top:8px"><div class="sub">Powers you already wear${place ? ' on your other gear' : ''}:</div>${worn.length ? worn.map(w => `<div style="color:#ff4545">${EQ_NAMES[w.s]}: <span style="color:#e8e0d0">${powerDef(w.id).name}</span></div>`).join('') : '<div class="sub">None. Any power will count.</div>'}</div>`;
+    h += `<div class="card" style="margin-top:8px"><div class="sub">Powers you already wear${place ? ' on your other gear' : ''}:</div>${worn.length ? worn.map(w => `<div style="color:#ff4545">${EQ_NAMES[w.s]}: <span style="color:#e8e0d0">${powerDef(w.id).name}</span>${powerDef(w.id).cls && powerDef(w.id).cls !== P.cls ? ` <span class="sub">(${CLASSES[powerDef(w.id).cls].name} only: not working)</span>` : ''}</div>`).join('') : '<div class="sub">None. Any power will count.</div>'}</div>`;
     h += '<div class="list" style="margin-top:8px">';
-    for(const pw of HEROIC_POWERS){ const c = IMBUE_COST[pw.id], cur = it.power === pw.id, on = UI.imbPow === pw.id, by = wornBy(pw.id);
-      h += `<button class="li${on ? ' on' : ''}" ${cur ? 'disabled' : ''} onclick="UI.imbPow='${pw.id}';refreshPanel()" style="${on ? 'border-color:var(--gold)' : ''}"><div style="flex:1;color:${cur ? '#7d7484' : by.length ? '#b08080' : '#ff4545'}">${pw.name}${cur ? ' <span class="sub">(it carries this now)</span>' : ''}${by.length ? `<div style="color:#ffcd75;font-size:15px">Already on your ${by.join(' and ')}: it would not count</div>` : ''}</div><div style="color:${P.carbon >= c ? '#c3cad8' : '#ff7a7a'}">${c} Carbon</div></button>`; }
+    for(const pw of powerPool(P.cls)){ const c = IMBUE_COST[pw.id], cur = it.power === pw.id, on = UI.imbPow === pw.id, by = wornBy(pw.id);
+      h += `<button class="li${on ? ' on' : ''}" ${cur ? 'disabled' : ''} onclick="UI.imbPow='${pw.id}';refreshPanel()" style="${on ? 'border-color:var(--gold)' : ''}"><div style="flex:1;color:${cur ? '#7d7484' : by.length ? '#b08080' : '#ff4545'}">${pw.name}${pw.cls ? ` <span style="color:#ffcd75;font-size:15px">(${CLASSES[pw.cls].name})</span>` : ''}${cur ? ' <span class="sub">(it carries this now)</span>' : ''}${by.length ? `<div style="color:#ffcd75;font-size:15px">Already on your ${by.join(' and ')}: it would not count</div>` : ''}</div><div style="color:${P.carbon >= c ? '#c3cad8' : '#ff7a7a'}">${c} Carbon</div></button>`; }
     h += '</div>';
   }
   const pw = UI.imbPow && powerDef(UI.imbPow), c = UI.imbPow && IMBUE_COST[UI.imbPow];
