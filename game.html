@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.30';
+const GAME_VER = '0.1.31';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -808,8 +808,19 @@ const RARITY = [
 const UNIQUES = {
   eye:{name:'The Eye of Malformity', slot:'amulet', rarity:'godly', icon:'u_eye_malformity', fallback:'j_amulet_h', power:'allskills',
     lore:'Ilvaroth\'s own eye, torn from him as he fell. It has not stopped looking.',
-    affixes:['dmg', 'crit', 'hp', 'mp', 'cdr']}   // for every class: damage, crits, life, mana and quicker skills, and +1 to all skills
+    affixes:['dmg', 'crit', 'hp', 'mp', 'cdr']},   // for every class: damage, crits, life, mana and quicker skills, and +2 to all skills (its Godly power)
+  // the second Godly piece (2026-11-19, Mathis): the Knight's only, and Karmara will not reforge it. Aldren drops it, 1 in 10, on Nightmare and Malformed
+  aldren:{name:'Captain Aldren\'s Breastplate', slot:'chest', rarity:'godly', cls:'knight', noReforge:true, icon:'u_aldren_breastplate', fallback:'a_heavy_chest_h', power:'giantsbane',
+    lore:'Karmara\'s steel. The god\'s flesh split it open from inside, and still it held.',
+    affixes:['str', 'arm', 'hp', 'rmal']}
 };
+// Godly items carry a stronger version of their power (2026-11-19, Mathis: "every Godly tier item has a slight increase")
+const GODLY_POWERS = {
+  allskills:{v:2, name:'+2 to all skill ranks'},
+  giantsbane:{v:0.4, name:'Godly Bane, 40% more damage to bosses and elites'}
+};
+function godlyPow(it){ return it && it.rarity === 'godly' && it.power ? GODLY_POWERS[it.power] || null : null; }
+function powerName(it, id){ id = id || it.power; const g = it && it.power === id ? godlyPow(it) : null; return g ? g.name : (powerDef(id) || {}).name || id; }
 const OLD_RARITY = {common:'typical', magic:'typical', rare:'grand', legendary:'heroic'};
 const HEROIC_POWERS = [
   {id:'allskills',  name:'+1 to all skill ranks'},
@@ -1349,7 +1360,7 @@ function getWalk(name, over, frame, mode){
 }
 const ICON_CACHE = {};
 // ChatGPT icons (batches 09/10, hd/icons.py): items, potions, oils, Carbon, gold, notes, skills, menu buttons, flasks
-const HD_ICONS = new Set(["u_eye_malformity", "a_cloth_boots_0", "a_cloth_boots_1", "a_cloth_boots_2", "a_cloth_boots_h", "a_cloth_chest_0", "a_cloth_chest_1", "a_cloth_chest_2", "a_cloth_chest_3", "a_cloth_chest_h", "a_cloth_gloves_0", "a_cloth_gloves_1", "a_cloth_gloves_2", "a_cloth_gloves_h", "a_cloth_helm_0", "a_cloth_helm_1", "a_cloth_helm_2", "a_cloth_helm_3", "a_cloth_helm_h", "a_heavy_boots_0", "a_heavy_boots_1", "a_heavy_boots_2", "a_heavy_boots_h", "a_heavy_chest_0", "a_heavy_chest_1", "a_heavy_chest_2", "a_heavy_chest_3", "a_heavy_chest_h", "a_heavy_gloves_0", "a_heavy_gloves_1", "a_heavy_gloves_2", "a_heavy_gloves_h", "a_heavy_helm_0", "a_heavy_helm_1", "a_heavy_helm_2", "a_heavy_helm_3", "a_heavy_helm_h", "a_leather_boots_0", "a_leather_boots_1", "a_leather_boots_2", "a_leather_boots_h", "a_leather_chest_0", "a_leather_chest_1", "a_leather_chest_2", "a_leather_chest_3", "a_leather_chest_h", "a_leather_gloves_0", "a_leather_gloves_1", "a_leather_gloves_2", "a_leather_gloves_h", "a_leather_helm_0", "a_leather_helm_1", "a_leather_helm_2", "a_leather_helm_3", "a_leather_helm_h", "btn_bag", "btn_char", "btn_journal", "btn_map", "btn_menu", "btn_portal", "btn_ritual", "btn_skill", "carbon", "flask_hp_empty", "flask_hp_full", "flask_mp_empty", "flask_mp_full", "gold_0", "gold_1", "gold_2", "hpot", "j_amulet_0", "j_amulet_1", "j_amulet_2", "j_amulet_3", "j_amulet_h", "j_ring_0", "j_ring_1", "j_ring_2", "j_ring_3", "j_ring_h", "mpot", "note", "oil_bleed", "oil_cold", "oil_fire", "oil_lightning", "oil_malformed", "oil_poison", "oil_slime", "skill_bash", "skill_blink", "skill_blossom", "skill_charge", "skill_cry", "skill_cuts", "skill_fan", "skill_fireball", "skill_meteor", "skill_nova", "skill_singularity", "skill_step", "skill_venom", "skill_whirl", "skill_wrath", "w_axe_0", "w_axe_1", "w_axe_2", "w_axe_3", "w_axe_4", "w_axe_h", "w_dagger_0", "w_dagger_1", "w_dagger_2", "w_dagger_3", "w_dagger_4", "w_dagger_h", "w_mace_0", "w_mace_1", "w_mace_2", "w_mace_3", "w_mace_4", "w_mace_h", "w_staff_0", "w_staff_1", "w_staff_2", "w_staff_3", "w_staff_4", "w_staff_h", "w_sword_0", "w_sword_1", "w_sword_2", "w_sword_3", "w_sword_4", "w_sword_h", "w_wand_0", "w_wand_1", "w_wand_2", "w_wand_3", "w_wand_4", "w_wand_h"]);
+const HD_ICONS = new Set(["u_eye_malformity", "u_aldren_breastplate", "a_cloth_boots_0", "a_cloth_boots_1", "a_cloth_boots_2", "a_cloth_boots_h", "a_cloth_chest_0", "a_cloth_chest_1", "a_cloth_chest_2", "a_cloth_chest_3", "a_cloth_chest_h", "a_cloth_gloves_0", "a_cloth_gloves_1", "a_cloth_gloves_2", "a_cloth_gloves_h", "a_cloth_helm_0", "a_cloth_helm_1", "a_cloth_helm_2", "a_cloth_helm_3", "a_cloth_helm_h", "a_heavy_boots_0", "a_heavy_boots_1", "a_heavy_boots_2", "a_heavy_boots_h", "a_heavy_chest_0", "a_heavy_chest_1", "a_heavy_chest_2", "a_heavy_chest_3", "a_heavy_chest_h", "a_heavy_gloves_0", "a_heavy_gloves_1", "a_heavy_gloves_2", "a_heavy_gloves_h", "a_heavy_helm_0", "a_heavy_helm_1", "a_heavy_helm_2", "a_heavy_helm_3", "a_heavy_helm_h", "a_leather_boots_0", "a_leather_boots_1", "a_leather_boots_2", "a_leather_boots_h", "a_leather_chest_0", "a_leather_chest_1", "a_leather_chest_2", "a_leather_chest_3", "a_leather_chest_h", "a_leather_gloves_0", "a_leather_gloves_1", "a_leather_gloves_2", "a_leather_gloves_h", "a_leather_helm_0", "a_leather_helm_1", "a_leather_helm_2", "a_leather_helm_3", "a_leather_helm_h", "btn_bag", "btn_char", "btn_journal", "btn_map", "btn_menu", "btn_portal", "btn_ritual", "btn_skill", "carbon", "flask_hp_empty", "flask_hp_full", "flask_mp_empty", "flask_mp_full", "gold_0", "gold_1", "gold_2", "hpot", "j_amulet_0", "j_amulet_1", "j_amulet_2", "j_amulet_3", "j_amulet_h", "j_ring_0", "j_ring_1", "j_ring_2", "j_ring_3", "j_ring_h", "mpot", "note", "oil_bleed", "oil_cold", "oil_fire", "oil_lightning", "oil_malformed", "oil_poison", "oil_slime", "skill_bash", "skill_blink", "skill_blossom", "skill_charge", "skill_cry", "skill_cuts", "skill_fan", "skill_fireball", "skill_meteor", "skill_nova", "skill_singularity", "skill_step", "skill_venom", "skill_whirl", "skill_wrath", "w_axe_0", "w_axe_1", "w_axe_2", "w_axe_3", "w_axe_4", "w_axe_h", "w_dagger_0", "w_dagger_1", "w_dagger_2", "w_dagger_3", "w_dagger_4", "w_dagger_h", "w_mace_0", "w_mace_1", "w_mace_2", "w_mace_3", "w_mace_4", "w_mace_h", "w_staff_0", "w_staff_1", "w_staff_2", "w_staff_3", "w_staff_4", "w_staff_h", "w_sword_0", "w_sword_1", "w_sword_2", "w_sword_3", "w_sword_4", "w_sword_h", "w_wand_0", "w_wand_1", "w_wand_2", "w_wand_3", "w_wand_4", "w_wand_h"]);
 const HDI = {};
 // how much empty space (fraction of the icon) lies under the picture in each item icon, so things on the ground sit on their shadow
 const HD_ICON_FOOT = {"a_cloth_boots_0":0.164,"a_cloth_boots_1":0.156,"a_cloth_boots_2":0.094,"a_cloth_boots_h":0.031,"a_cloth_gloves_0":0.086,"a_cloth_gloves_1":0.094,"a_cloth_gloves_2":0.094,"a_cloth_gloves_h":0.086,"a_cloth_helm_1":0.297,"a_cloth_helm_3":0.125,"a_heavy_boots_0":0.07,"a_heavy_boots_1":0.086,"a_heavy_boots_2":0.094,"a_heavy_boots_h":0.062,"a_heavy_gloves_0":0.109,"a_heavy_gloves_1":0.117,"a_heavy_gloves_2":0.117,"a_heavy_gloves_h":0.109,"a_heavy_helm_0":0.117,"a_leather_boots_0":0.133,"a_leather_boots_1":0.094,"a_leather_gloves_0":0.078,"a_leather_gloves_1":0.078,"a_leather_gloves_2":0.078,"a_leather_gloves_h":0.07,"btn_bag":0.039,"btn_map":0.102,"carbon":0.039,"gold_0":0.141,"gold_1":0.156,"gold_2":0.109,"note":0.141};
@@ -2394,8 +2405,9 @@ function makeGear(rarity, slot, cls){ const P = G.P, it = makeItem(gearLevel(), 
 // a Godly piece: its fixed bonuses rolled at the hero's level, x1.7 (Heroic is x1.4), and its heroic power
 function makeUnique(key, ilvl){
   const U = UNIQUES[key], P = G.P; ilvl = clamp(Math.round(ilvl || gearLevel()), 1, LEVEL_CAP);
-  const it = makeItem(ilvl, 'typical', U.slot, null);
-  it.rarity = U.rarity; it.uniq = key; it.name = U.name; it.cls = null; it.affixes = [];
+  const it = makeItem(ilvl, 'typical', U.slot, U.cls || null);
+  it.rarity = U.rarity; it.uniq = key; it.name = U.name; it.cls = U.cls || null; it.affixes = [];
+  if(it.armor) it.armor = Math.round(it.armor*rarityDef(U.rarity).mult);
   for(const id of U.affixes){ const af = AFFIXES.find(a => a.id === id); if(af) it.affixes.push({id, v:Math.max(1, Math.round(af.roll(ilvl)*1.7))}); }
   if(U.power) it.power = U.power;
   it.value = Math.round((8 + ilvl*4)*rarityDef(U.rarity).val); if(P) it.req = clamp(Math.min(P.lvl, ilvl), 1, LEVEL_CAP);
@@ -2517,16 +2529,18 @@ function derive(P){
     armor += itArmor(it);
     if(slot === 'weapon'){ wmin = itMin(it); wmax = itMax(it); wspd = it.speed; }
     for(const a of it.affixes){ const v = afVal(it, a); if(s[a.id] !== undefined) s[a.id] += v; else add[a.id] += v; }
-    if(it.power){ if(owner[it.power]) dupPow[it.id] = owner[it.power]; else { owner[it.power] = slot; const pd = powerDef(it.power); if(!pd || !pd.cls || pd.cls === P.cls) pw[it.power] = 1; } }   // dupPow[id] = the place whose piece holds it
+    if(it.power){ const g = godlyPow(it), lvl = g ? 2 : 1, o = owner[it.power];
+      if(o && !(g && !godlyPow(P.eq[o]))) dupPow[it.id] = o;   // the same power never stacks; a Godly piece outranks a plain one
+      else { if(o){ dupPow[P.eq[o].id] = slot; } owner[it.power] = slot; const pd = powerDef(it.power); if(!pd || !pd.cls || pd.cls === P.cls) pw[it.power] = lvl; } }   // dupPow[id] = the place whose piece holds it
   }
   if(off){ if(P.eq.weapon && itemActive(P.eq.weapon)){ wmin += itMin(off); wmax += itMax(off); wspd = (wspd + off.speed)/2; } else { wmin = itMin(off); wmax = itMax(off); wspd = off.speed; } }   // two daggers: both blades' damage
   let bDmg = 0, bArm = 0, bAs = 0, bMs = 0;
   for(const b of P.buffs){ if(b.id === 'cry'){ bDmg += b.dmg; bArm += b.arm; } if(b.id === 'venom') bAs += 0.25; if(b.id === 'power') bDmg += 0.25; if(b.id === 'speed'){ bMs += 0.3; bAs += 0.2; } if(b.id === 'rush'){ bMs += 0.2; bAs += 0.2; } }
   const d = P.d = {};
   d.stats = s; d.dupPow = dupPow;
-  d.powers = {allskills:pw.allskills, lifesteal:0.03*pw.lifesteal, thorns:0.35*pw.thorns, shock:Math.min(0.5, 0.12*pw.shock), secondwind:pw.secondwind > 0, greed:0.5*pw.greed,
+  d.powers = {allskills:pw.allskills === 2 ? GODLY_POWERS.allskills.v : pw.allskills, lifesteal:0.03*pw.lifesteal, thorns:0.35*pw.thorns, shock:Math.min(0.5, 0.12*pw.shock), secondwind:pw.secondwind > 0, greed:0.5*pw.greed,
     wellspring:pw.wellspring ? 0.2 : 0, executioner:pw.executioner ? 0.4 : 0, ward:pw.ward ? 0.15 : 0, rime:pw.rime ? 0.25 : 0, bloodrush:pw.bloodrush > 0,
-    manasiphon:pw.manasiphon ? 0.01 : 0, giantsbane:pw.giantsbane ? 0.3 : 0, ironskin:pw.ironskin ? 0.12 : 0, swiftness:pw.swiftness ? 0.15 : 0, chainspark:pw.chainspark > 0, corpseburst:pw.corpseburst ? 0.25 : 0,
+    manasiphon:pw.manasiphon ? 0.01 : 0, giantsbane:pw.giantsbane === 2 ? GODLY_POWERS.giantsbane.v : pw.giantsbane ? 0.3 : 0, ironskin:pw.ironskin ? 0.12 : 0, swiftness:pw.swiftness ? 0.15 : 0, chainspark:pw.chainspark > 0, corpseburst:pw.corpseburst ? 0.25 : 0,
     bulwark:pw.bulwark > 0, crusader:pw.crusader ? 0.2 : 0, pyre:pw.pyre > 0, permafrost:pw.permafrost ? 0.3 : 0, venomlord:pw.venomlord > 0, phantom:pw.phantom > 0};
   d.maxhp = Math.round((C.hp + s.vit*5 + (P.lvl - 1)*4)*0.85 + add.hp);   // souls-like: heroes 15% frailer
   d.maxmp = Math.round(C.mp + s.int*3 + (P.lvl - 1)*3 + add.mp);
@@ -2790,7 +2804,8 @@ function killMonster(m){
   else if(elite){ if(R() < 0.3) cn = RRI(1, 2); }
   else if(R() < 0.02) cn = 1;
   if(cn) dropLoot({carbon:Math.max(1, Math.round(cn*carbonMult()))}, m.x, m.y);
-  if(m.type === 'ilvaroth') dropItem(makeUnique('eye'), m.x, m.y);   // Godly: The Eye of Malformity, every time he falls (2026-11-18, Mathis)
+  if(m.type === 'ilvaroth') dropItem(makeUnique('eye'), m.x, m.y);
+  if(m.type === 'aldren' && curDiff() !== 'breeze' && R() < 0.1) dropItem(makeUnique('aldren'), m.x + 14, m.y);   // Godly: his breastplate, 1 in 10 on Nightmare and Malformed   // Godly: The Eye of Malformity, every time he falls (2026-11-18, Mathis)
   if(m.isBoss) bossDefeated(m);
   if(m.isQuest) questBossDefeated(m);
 }
@@ -3338,7 +3353,7 @@ function pickupNearest(){ const l = lootNear(32); return l ? takeLoot(l) : false
 // ---------------- inventory ops ----------------
 function equipBlock(it){
   const P = G.P;
-  if(it.cls && it.cls !== P.cls) return `Only a ${CLASSES[it.cls].name} can use this. Karmara can reforge it for your class.`;
+  if(it.cls && it.cls !== P.cls) return `Only a ${CLASSES[it.cls].name} can use this.${it.uniq && UNIQUES[it.uniq] && UNIQUES[it.uniq].noReforge ? ' It can never be reforged.' : ' Karmara can reforge it for your class.'}`;
   if((it.req || 1) > P.lvl) return `You need to be level ${it.req} to use this.`;
   return null;
 }
@@ -3425,6 +3440,7 @@ function ascendItem(ref){
 function reforgeCost(it){ return {carbon:REFORGE_CARBON[it.rarity], gold:Math.round((30 + it.ilvl*8)*TIER_MULT[it.rarity])}; }
 function reforgeItem(ref, cls){
   const P = G.P, it = refItem(ref); if(!it || !it.cls || it.cls === cls) return;
+  if(it.uniq && UNIQUES[it.uniq] && UNIQUES[it.uniq].noReforge){ toast('"This was his. It stays a Knight\'s."', '#ffcd75', 4); sfx('error'); return; }
   const c = reforgeCost(it);
   if(P.carbon < c.carbon){ toast(`You need ${c.carbon} Carbon.`, '#e43b44'); sfx('error'); return; }
   if(P.gold < c.gold){ toast(`You need ${c.gold} gold.`, '#e43b44'); sfx('error'); return; }
@@ -6681,12 +6697,12 @@ function itemCard(it, ctx){
     h += `<div class="af">${affixLabel(a, it)}${diff}</div>`;
   });
   if(cmp) for(const id in tEq) if(!tIt[id]){ const af = AFFIXES.find(x => x.id === id); h += `<div class="bad">−${tEq[id]}${af.label.startsWith('%') ? af.label : ' ' + af.label} <span class="sub">(only on your equipped item)</span></div>`; }
-  if(it.power){ const pw = powerDef(it.power), dup = place && P.d.dupPow && P.d.dupPow[it.id], other = !place && pw && eqSlots(P).find(s => s !== tgt && P.eq[s] && P.eq[s].power === it.power);
+  if(it.power){ const pw = powerDef(it.power) && {...powerDef(it.power), name:powerName(it)}, dup = place && P.d.dupPow && P.d.dupPow[it.id], other = !place && pw && eqSlots(P).find(s => s !== tgt && P.eq[s] && P.eq[s].power === it.power);
     const fix = P.imbueOpen ? ' Karmara can imbue it with a different one.' : '';
     const tag = pw && pw.cls ? ` <span class="sub">(${CLASSES[pw.cls].name} only)</span>` : '';
-    if(pw && pw.cls && pw.cls !== P.cls) h += `<div style="color:#7d7484">Heroic power: ${pw.name}${tag}</div><div class="sub">Only works for a ${CLASSES[pw.cls].name}.</div>`;
-    else if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">Heroic power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
-      : `<div style="color:#ff4545">Heroic power: ${pw.name}${tag}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
+    if(pw && pw.cls && pw.cls !== P.cls) h += `<div style="color:#7d7484">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}${tag}</div><div class="sub">Only works for a ${CLASSES[pw.cls].name}.</div>`;
+    else if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
+      : `<div style="color:#ff4545">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}${tag}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +10</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
@@ -7195,7 +7211,7 @@ function renderShop(){
     }
   } else if(tab === 'reforge'){
     h += `<div class="sub" style="margin-bottom:6px">"Found something made for another kind of fighter? Give me Carbon and gold and I'll beat it into a new shape. Stats and upgrades stay."</div>`;
-    h += gearPicker(false, it => !!it.cls);
+    h += gearPicker(false, it => !!it.cls && !(it.uniq && UNIQUES[it.uniq] && UNIQUES[it.uniq].noReforge));   // Godly class pieces stay with their class
     if(sel && UI.sel.inv !== undefined){
       const c = reforgeCost(sel);
       foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Cost: <span style="color:${P.carbon >= c.carbon ? '#c3cad8' : '#ff7a7a'}">${c.carbon} Carbon</span> + <span style="color:${P.gold >= c.gold ? 'var(--gold)' : '#ff7a7a'}">${c.gold} gold</span></div><div class="row" style="margin-top:8px">`;
@@ -7236,20 +7252,20 @@ function imbueApply(){
   const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || !(it.rarity === 'heroic' || it.rarity === 'godly') || !cost || it.power === id || !powerPool(P.cls).some(p => p.id === id)) return;
   if(P.carbon < cost){ toast(`You need ${cost} Carbon.`, '#e43b44'); sfx('error'); return; }
   P.carbon -= cost; it.power = id; derive(P); UI.imbPow = null;
-  sfx('upsuccess'); sfx('legend'); toast(`${itemName(it)} now carries: ${powerDef(id).name}`, '#ff4545', 4); saveGame(); uiDirty(); refreshPanel();
+  sfx('upsuccess'); sfx('legend'); toast(`${itemName(it)} now carries: ${powerName(it)}`, '#ff4545', 4); saveGame(); uiDirty(); refreshPanel();
 }
 function renderImbue(){
   const P = G.P, it = imbItem();
   let h = karmaraTabs('imbue') + `<div class="sub" style="margin:8px 0">"Power sits on heroic steel like heat on a blade. I can draw it off and lay another in its place. It eats Carbon, though. A lot of it."</div>`;
   h += `<div class="imbrow"><div class="imbslot" data-drop="imb">${it ? `<button class="cell" style="border-color:${rarColor(it)}aa" onclick="UI.imb=null;UI.imbPow=null;refreshPanel()"><img src="${itemIcon(it)}" draggable="false"></button>` : '<div class="sub">Heroic gear</div>'}</div>`;
-  h += `<div style="flex:1;min-width:0">${it ? `<div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub">${it.power ? 'Carries: ' + powerDef(it.power).name : 'No heroic power'}</div>` : '<div class="sub">Choose a heroic piece from your inventory: tap it, or drag it here.</div>'}<div style="color:#c3cad8;margin-top:4px">${P.carbon} Carbon on you</div></div></div>`;
+  h += `<div style="flex:1;min-width:0">${it ? `<div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub">${it.power ? 'Carries: ' + powerName(it) : 'No heroic power'}</div>` : '<div class="sub">Choose a heroic piece from your inventory: tap it, or drag it here.</div>'}<div style="color:#c3cad8;margin-top:4px">${P.carbon} Carbon on you</div></div></div>`;
   if(it && it.rarity !== 'heroic' && it.rarity !== 'godly') h += `<div class="card bad" style="color:#ff7a7a">"That's ${rarityDef(it.rarity).name} steel. There's no power in it to move. Bring me something Heroic."</div>`;
   else if(it){
     // what the hero already wears (2026-11-18, Mathis): every power on their other worn pieces is named before they choose, so they
     // never pay to lay in a power that would not count
     const place = eqWhere(it, P), worn = eqSlots(P).filter(s => s !== place && P.eq[s] && P.eq[s].power).map(s => ({s, id:P.eq[s].power}));
     const wornBy = id => worn.filter(w => w.id === id).map(w => EQ_NAMES[w.s].toLowerCase());
-    h += `<div class="card" style="margin-top:8px"><div class="sub">Powers you already wear${place ? ' on your other gear' : ''}:</div>${worn.length ? worn.map(w => `<div style="color:#ff4545">${EQ_NAMES[w.s]}: <span style="color:#e8e0d0">${powerDef(w.id).name}</span>${powerDef(w.id).cls && powerDef(w.id).cls !== P.cls ? ` <span class="sub">(${CLASSES[powerDef(w.id).cls].name} only: not working)</span>` : ''}</div>`).join('') : '<div class="sub">None. Any power will count.</div>'}</div>`;
+    h += `<div class="card" style="margin-top:8px"><div class="sub">Powers you already wear${place ? ' on your other gear' : ''}:</div>${worn.length ? worn.map(w => `<div style="color:#ff4545">${EQ_NAMES[w.s]}: <span style="color:#e8e0d0">${powerName(P.eq[w.s])}</span>${powerDef(w.id).cls && powerDef(w.id).cls !== P.cls ? ` <span class="sub">(${CLASSES[powerDef(w.id).cls].name} only: not working)</span>` : ''}</div>`).join('') : '<div class="sub">None. Any power will count.</div>'}</div>`;
     h += '<div class="list" style="margin-top:8px">';
     for(const pw of powerPool(P.cls)){ const c = IMBUE_COST[pw.id], cur = it.power === pw.id, on = UI.imbPow === pw.id, by = wornBy(pw.id);
       h += `<button class="li${on ? ' on' : ''}" ${cur ? 'disabled' : ''} onclick="UI.imbPow='${pw.id}';refreshPanel()" style="${on ? 'border-color:var(--gold)' : ''}"><div style="flex:1;color:${cur ? '#7d7484' : by.length ? '#b08080' : '#ff4545'}">${pw.name}${pw.cls ? ` <span style="color:#ffcd75;font-size:15px">(${CLASSES[pw.cls].name})</span>` : ''}${cur ? ' <span class="sub">(it carries this now)</span>' : ''}${by.length ? `<div style="color:#ffcd75;font-size:15px">Already on your ${by.join(' and ')}: it would not count</div>` : ''}</div><div style="color:${P.carbon >= c ? '#c3cad8' : '#ff7a7a'}">${c} Carbon</div></button>`; }
