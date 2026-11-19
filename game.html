@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.27';
+const GAME_VER = '0.1.28';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -4266,8 +4266,10 @@ function shadeWater(M){
   const gl = SHADE.gl; Wt.map = M;
   Wt.ii = null; if(!M.isTown){ Wt.tex = SHADE.tWater0; return Wt.tex; }
   const c = mkCanvas(Math.ceil(M.w*TS/2), Math.ceil(M.h*TS/2)), x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#fff';
-  for(let j = 0; j < M.h; j++) for(let i = 0; i < M.w; i++) if(tAt(M, i, j) === T_WATER) x.fillRect(i*TS/2 + 1, j*TS/2, TS/2 - 2, TS/2);
+  // whole tiles, edge to edge (a 1 px inset on each side left gaps between the tiles, and the lamps' streaks showed up as long bars: report 2026-11-18)
+  for(let j = 0; j < M.h; j++) for(let i = 0; i < M.w; i++) if(tAt(M, i, j) === T_WATER) x.fillRect(i*TS/2, j*TS/2, TS/2, TS/2);
   try{ if(typeof TOWN_MAN !== 'undefined' && TOWN_MAN.puddles && townOK()) for(const p of TOWN_MAN.puddles){ x.beginPath(); x.ellipse(p[0]/2, p[1]/2, p[2]/2, p[3]/2, 0, 0, 7); x.fill(); } }catch(e){}
+  try{ const c2 = mkCanvas(c.width, c.height), x2 = c2.getContext('2d'); x2.filter = 'blur(3px)'; x2.drawImage(c, 0, 0); x.filter = 'none'; x.clearRect(0, 0, c.width, c.height); x.drawImage(c2, 0, 0); }catch(e){}   // soft shores, no square tile edges
   if(!Wt.own) Wt.own = shadeTex(gl, gl.LINEAR);
   gl.bindTexture(gl.TEXTURE_2D, Wt.own); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, gl.RED, gl.UNSIGNED_BYTE, c);
   try{ const d = x.getImageData(0, 0, c.width, c.height).data, W = c.width + 1, ii = new Int32Array(W*(c.height + 1));   // a running sum, for shadeWaterNear
@@ -6921,10 +6923,12 @@ function selStash(j){ UI.sel = G.stash.items[j] ? {stash:j} : null; refreshPanel
 function renderChar(){
   const P = G.P, d = P.d, C = CLASSES[P.cls];
   const names = {str:'Strength', dex:'Dexterity', int:'Intelligence', vit:'Vitality'};
-  const help = {str:'Armor' + (C.primary === 'str' ? ' & damage' : ''), dex:'Crit & attack speed' + (C.primary === 'dex' ? ' & damage' : ''), int:'Mana & mana regen' + (C.primary === 'int' ? ' & damage' : ''), vit:'Life & life regen'};
+  // each hero's damage grows with one stat; say which, plainly, so a Rogue knows Strength is armor only for them (report 2026-11-18)
+  const base = {str:'Armor', dex:'Crit & attack speed', int:'Mana & mana regen', vit:'Life & life regen'};
+  const help = {}; for(const k in base) help[k] = k === C.primary ? `<span style="color:var(--gold)">Damage</span> · ${base[k]}` : base[k] + (k !== 'vit' ? ` <span style="opacity:.75">(no damage for a ${C.name})</span>` : '');
   let h = `<div class="row" style="gap:12px;margin-bottom:6px"><img src="${heroFace(P.cls, 3, playerOver(P))}" style="height:72px;border:2px solid var(--edge);border-radius:4px;background:#17121e;image-rendering:auto"><div><div style="font-size:24px;color:var(--gold)">${esc(P.name)}</div><div>Level ${P.lvl} ${C.name}${P.lvl >= LEVEL_CAP ? ' (max)' : ''}</div><div class="sub">${P.lvl >= LEVEL_CAP ? 'Maximum level reached' : `XP ${P.xp}/${xpNeed(P.lvl)}`}</div></div></div>`;
-  h += `<div style="color:var(--gold);margin:6px 0">${P.statPts > 0 ? `${P.statPts} stat points to spend` : 'No unspent stat points'}</div>`;
-  ['str', 'dex', 'int', 'vit'].forEach(s => h += `<div class="stat"><div><b>${names[s]}</b> ${d.stats[s]}${d.stats[s] !== P.stats[s] ? ` <span class="sub">(${P.stats[s]} base)</span>` : ''}<div class="sub" style="font-size:15px">${help[s]}</div></div>${P.statPts > 0 ? `<button class="btn pl" onclick="addStat('${s}')">+</button>` : ''}</div>`);
+  h += `<div style="color:var(--gold);margin:6px 0">${P.statPts > 0 ? `${P.statPts} stat points to spend` : 'No unspent stat points'}</div><div class="sub" style="font-size:15px;margin:-2px 0 6px">A ${C.name}'s damage grows with ${names[C.primary]}: each point adds 1.5%.</div>`;
+  ['str', 'dex', 'int', 'vit'].forEach(s => h += `<div class="stat"><div><b${s === C.primary ? ' style="color:var(--gold)"' : ''}>${names[s]}</b> ${d.stats[s]}${d.stats[s] !== P.stats[s] ? ` <span class="sub">(${P.stats[s]} base)</span>` : ''}<div class="sub" style="font-size:15px">${help[s]}</div></div>${P.statPts > 0 ? `<button class="btn pl" onclick="addStat('${s}')">+</button>` : ''}</div>`);
   const pw = d.powers, pws = [];
   if(pw.allskills) pws.push(`+${pw.allskills} to all skills`); if(pw.lifesteal) pws.push(`${Math.round(pw.lifesteal*100)}% life steal`); if(pw.thorns) pws.push(`${Math.round(pw.thorns*100)}% thorns`); if(pw.shock) pws.push(`${Math.round(pw.shock*100)}% shockwave`); if(pw.secondwind) pws.push('Second Wind'); if(pw.greed) pws.push(`+${Math.round(pw.greed*100)}% gold & Carbon`); if(pw.wellspring) pws.push(`${Math.round(pw.wellspring*100)}% free casts`); if(pw.executioner) pws.push(`+${Math.round(pw.executioner*100)}% damage to the dying`); if(pw.ward) pws.push("Warden's Ward"); if(pw.rime) pws.push(`${Math.round(pw.rime*100)}% frost when hit`); if(pw.bloodrush) pws.push('Bloodrush');
   if(pw.manasiphon) pws.push('Mana Siphon'); if(pw.giantsbane) pws.push(`+${Math.round(pw.giantsbane*100)}% damage to bosses & elites`); if(pw.ironskin) pws.push(`${Math.round(pw.ironskin*100)}% less damage taken`); if(pw.swiftness) pws.push(`+${Math.round(pw.swiftness*100)}% move speed`); if(pw.chainspark) pws.push('Chain Spark'); if(pw.corpseburst) pws.push('Corpse Burst');
@@ -8310,6 +8314,7 @@ const joy = {id:null, x:0, y:0, cx:0, cy:0};
 addEventListener('keydown', e => {
   auInit();
   if(typingIn(e.target)) return;   // typing in a text box (the report, a hero name) is never a game key
+  if(typeof e.key !== 'string') return;   // autofill and some extensions send key events with no key (report errors, 2026-11-18)
   const k = e.key.toLowerCase(); KEYS[k] = true;
   if(CUT.on && G.state !== 'play'){ if(k === 'escape'){ e.preventDefault(); cutEnd(true); } else if(k === 'enter' || k === ' '){ e.preventDefault(); cutNext(); } return; }
   if(G.state !== 'play') return;
@@ -8329,11 +8334,11 @@ addEventListener('keydown', e => {
   if(a === 'interact'){ e.preventDefault(); const o = nearestInteract(); if(o) interact(o); else pickupNearest(); }
   if(a === 'dodge'){ e.preventDefault(); if(!e.repeat) dodge(); }   // the dodge: roll, shadow dash or arcane slide
 });
-addEventListener('keyup', e => { KEYS[e.key.toLowerCase()] = false; });
+addEventListener('keyup', e => { if(typeof e.key === 'string') KEYS[e.key.toLowerCase()] = false; });
 function typingIn(t){ return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable); }
 addEventListener('focusin', e => { if(typingIn(e.target)) for(const k in KEYS) KEYS[k] = false; });   // a key held when the box was tapped stops walking the hero
 // Settings > Controls: the next key pressed becomes the binding (before anything else sees it)
-addEventListener('keydown', e => { if(!UI.rebind) return; e.preventDefault(); e.stopImmediatePropagation(); bindSet(e.key.toLowerCase()); }, true);
+addEventListener('keydown', e => { if(!UI.rebind) return; if(typeof e.key !== 'string') return; e.preventDefault(); e.stopImmediatePropagation(); bindSet(e.key.toLowerCase()); }, true);
 addEventListener('blur', () => { for(const k in KEYS) KEYS[k] = false; INPUT.attack = false; });
 function keyMove(){
   let x = 0, y = 0;
