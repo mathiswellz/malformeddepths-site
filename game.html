@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.25';
+const GAME_VER = '0.1.26';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -6782,6 +6782,8 @@ const DND = {p:null};
 function dndOK(src, dst){
   const P = G.P; if(!src || !dst || src === dst) return false;
   const [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
+  if(sk === 'st') return !!G.stash.items[+sv] && (dk === 'inv' || dk === 'bag' || dk === 'st');   // out of the shared chest
+  if(sk === 'inv' && (dk === 'st' || dk === 'stg')) return !!P.inv[+sv];   // into it
   if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'imb') return true; if(dk === 'inv') return true; if(dk === 'eq') return eqPlaces(it, P).includes(dv); return dk === 'eqall'; }
   if(sk === 'eq'){ if(!P.eq[sv]) return false; return dk === 'inv' || dk === 'bag' || dk === 'imb'; }
   if(sk === 'sk') return dk === 'sl';
@@ -6798,6 +6800,15 @@ function dndHot(src, dst){
 }
 function dndDrop(src, dst){
   const P = G.P, [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
+  // the shared chest: drag between its cells and the bag (onto a full cell, the two trade places)
+  if(sk === 'st' || (sk === 'inv' && (dk === 'st' || dk === 'stg'))){
+    const S = G.stash.items, full = msg => { toast(msg, '#e43b44'); sfx('error'); UI.dndMsg = msg; uiDirty(); };
+    if(sk === 'st'){ const j = +sv, it = S[j]; if(!it) return;
+      if(dk === 'st'){ const k = +dv; [S[j], S[k]] = [S[k], S[j]]; UI.sel = {stash:k}; }
+      else { let i = dk === 'inv' ? +dv : P.inv.indexOf(null); if(i < 0) return full('Your inventory is full.'); S[j] = P.inv[i] || null; P.inv[i] = it; UI.sel = {inv:i}; }
+    } else { const i = +sv, it = P.inv[i]; let k = dk === 'st' ? +dv : S.indexOf(null); if(k < 0) return full('The chest is full.'); P.inv[i] = S[k] || null; S[k] = it; UI.sel = {stash:k}; }
+    saveStash(); saveGame(); sfx('pickup'); refreshPanel(); return;
+  }
   if(sk === 'inv'){
     const i = +sv, it = P.inv[i]; if(!it) return;
     if(dk === 'imb'){ imbPick({inv:i}); return; }
@@ -6890,8 +6901,10 @@ function dndDrop(src, dst){
   m.addEventListener('pointerdown', e => {
     if(e.pointerType !== 'mouse' || e.button !== 2 || DND.p) return;
     const el = e.target.closest && e.target.closest('[data-drag]'); if(!el || !m.contains(el)) return;
-    const [kind, key] = el.dataset.drag.split(':'); if(kind !== 'inv' && kind !== 'eq') return;
+    const [kind, key] = el.dataset.drag.split(':'); if(kind !== 'inv' && kind !== 'eq' && kind !== 'st') return;
     e.preventDefault(); e.stopPropagation();
+    if(kind === 'st'){ stashTake(+key); UI.sel = null; refreshPanel(); return; }   // chest: a right click takes the item into the bag
+    if(UI.panel === 'stash' && kind === 'inv'){ stashPut(+key); UI.sel = null; refreshPanel(); return; }   // and puts a bag item into the chest
     if(UI.panel === 'imbue'){ imbPick(kind === 'eq' ? {eq:key} : {inv:+key}); return; }   // at Karmara's imbue table a right click lays the piece in the imbue slot
     quickEquip(kind, key);
   });
@@ -7183,15 +7196,15 @@ function renderStash(){   // two windows (2026-11-17, Mathis): the chest on the 
   const btns = (kind, dir, amts) => amts.map(a => `<button class="btn sm" onclick="stashMoney('${kind}','${dir}',${a === 'all' ? "'all'" : a})">${a === 'all' ? 'All' : a}</button>`).join('');
   const mrow = (kind, name, color, amts) => `<div style="color:${color};margin-top:2px">${name}: ${S[kind]} in chest · ${P[kind]} on you</div><div class="row" style="gap:4px;margin:2px 0 4px"><span class="sub">Store</span>${btns(kind, 'in', amts)}<span class="sub" style="margin-left:8px">Take</span>${btns(kind, 'out', amts)}</div>`;
   h += `<div class="card">${mrow('gold', 'Gold', 'var(--gold)', [100, 1000, 'all'])}${mrow('carbon', 'Carbon', '#c3cad8', [1, 10, 'all'])}<div class="sub" style="font-size:15px">Gold and Carbon never take up a backpack slot.</div></div>`;
-  h += `<div class="sub" style="margin:8px 0 4px">Shared chest (${S.items.filter(Boolean).length}/${STASH_SIZE})</div><div class="grid">`;
-  S.items.forEach((it, j) => h += cellHTML(it, UI.sel && UI.sel.stash === j, `selStash(${j})`));
+  h += `<div class="sub" style="margin:8px 0 4px">Shared chest (${S.items.filter(Boolean).length}/${STASH_SIZE}) <span style="font-size:15px">${isTouch ? '· hold and drag items between the chest and your bag' : '· drag, or right click, to move items between the chest and your bag'}</span></div><div class="grid" data-drop="stg">`;
+  S.items.forEach((it, j) => h += cellHTML(it, UI.sel && UI.sel.stash === j, `selStash(${j})`, {drag:'st:' + j, drop:'st:' + j}));
   h += '</div>';
   let foot = '';
   if(UI.sel && UI.sel.stash !== undefined && S.items[UI.sel.stash]) foot = itemCard(S.items[UI.sel.stash], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashTake(${UI.sel.stash})">Take</button></div>`;
   else if(UI.sel && UI.sel.inv !== undefined && P.inv[UI.sel.inv]) foot = itemCard(P.inv[UI.sel.inv], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashPut(${UI.sel.inv})">Store in chest</button></div>`;
   else if(UI.sel && UI.sel.eq && P.eq[UI.sel.eq]) foot = itemCard(P.eq[UI.sel.eq], 'nosell') + '<div class="sub" style="margin-top:6px">Take it off first to store it.</div>';
   const left = panelShell('Shared Chest', h, foot || null).replace('<div class="panel">', '<div class="panel chestwin">');
-  const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {nodrag:true})}`).replace('<div class="panel">', '<div class="panel inv">');
+  const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {})}`).replace('<div class="panel">', '<div class="panel inv">');
   return `<div class="pair">${left}${right}</div>`;
 }
 // ---------- Karmara's imbuing (2026-11-17, Mathis): open once Nightmare is unlocked. A heroic piece goes in the slot on the left (from the
