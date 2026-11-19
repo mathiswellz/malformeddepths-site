@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.31';
+const GAME_VER = '0.1.32';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -814,6 +814,7 @@ const UNIQUES = {
     lore:'Karmara\'s steel. The god\'s flesh split it open from inside, and still it held.',
     affixes:['str', 'arm', 'hp', 'rmal']}
 };
+const KARMARA_ALDREN = '"This was his! I don\'t wanna keep it. This belongs to a Knight worthy of the rift. Take it... thank you."';   // Karmara, when asked to reforge Aldren's Breastplate (Mathis)
 // Godly items carry a stronger version of their power (2026-11-19, Mathis: "every Godly tier item has a slight increase")
 const GODLY_POWERS = {
   allskills:{v:2, name:'+2 to all skill ranks'},
@@ -2402,6 +2403,15 @@ function armorTierName(names, slot, ilvl){ return names[clamp(Math.floor(ilvl/(s
 // never below (the depth's monster level used to set it), and always something they can wear now
 function gearLevel(){ const P = G.P; return clamp((P ? P.lvl : 1) + (R() < 0.5 ? 1 : 0), 1, LEVEL_CAP); }
 function makeGear(rarity, slot, cls){ const P = G.P, it = makeItem(gearLevel(), rarity, slot, cls); if(P) it.req = clamp(Math.min(P.lvl, it.ilvl), 1, LEVEL_CAP); return it; }
+// a Godly piece grows with its hero: when the hero is above its level, its bonuses and armor rise to match (2026-11-19, Mathis)
+function godlyGrow(it, lvl){
+  if(!it || it.rarity !== 'godly' || !it.uniq || !UNIQUES[it.uniq]) return; lvl = clamp(lvl, 1, LEVEL_CAP); const from = it.ilvl || 1; if(lvl <= from) return;
+  const mid = (af, l) => { const r = Math.random; Math.random = () => 0.5; const v = af.roll(l); Math.random = r; return Math.max(1, v); };   // the roll's middle, to scale by
+  for(const a of it.affixes){ const af = AFFIXES.find(x => x.id === a.id); if(af) a.v = Math.max(a.v, Math.round(a.v*mid(af, lvl)/mid(af, from))); }
+  if(it.armor){ const k = (3 + lvl*1.3)/(3 + from*1.3); it.armor = Math.round(it.armor*k); }
+  it.value = Math.round(it.value*(8 + lvl*4)/(8 + from*4)); it.ilvl = lvl; it.req = Math.min(it.req || lvl, lvl);
+}
+function godlyGrowAll(P){ for(const s in P.eq) godlyGrow(P.eq[s], P.lvl); for(const it of P.inv) godlyGrow(it, P.lvl); }
 // a Godly piece: its fixed bonuses rolled at the hero's level, x1.7 (Heroic is x1.4), and its heroic power
 function makeUnique(key, ilvl){
   const U = UNIQUES[key], P = G.P; ilvl = clamp(Math.round(ilvl || gearLevel()), 1, LEVEL_CAP);
@@ -2520,6 +2530,7 @@ function eqTarget(it, P = G.P){
   return pl.reduce((a, b) => score(P.eq[b]) < score(P.eq[a]) ? b : a);
 }
 function derive(P){
+  for(const s in P.eq) godlyGrow(P.eq[s], P.lvl);   // Godly pieces keep up with the hero
   const C = CLASSES[P.cls], s = {...P.stats}, add = {hp:0, mp:0, crit:0, as:0, ms:0, dmg:0, loh:0, arm:0, cdr:0, rpoi:0, rmal:0};
   const pw = {allskills:0, lifesteal:0, thorns:0, shock:0, secondwind:0, greed:0, wellspring:0, executioner:0, ward:0, rime:0, bloodrush:0, manasiphon:0, giantsbane:0, ironskin:0, swiftness:0, chainspark:0, corpseburst:0, bulwark:0, crusader:0, pyre:0, permafrost:0, venomlord:0, phantom:0};
   let armor = 0, wmin = 2, wmax = 4, wspd = 1; const off = DUAL_WIELD[P.cls] && itemActive(P.eq.offhand) ? P.eq.offhand : null;
@@ -2566,7 +2577,7 @@ function gainXP(n){
     P.xp -= xpNeed(P.lvl); P.lvl++;
     const sp = P.lvl > 40 ? 6 : 4, kp = P.lvl <= 40 ? 1 : 0;
     P.statPts += sp; P.skillPts += kp;
-    derive(P); P.hp = P.d.maxhp; P.mp = P.d.maxmp;
+    godlyGrowAll(P); derive(P); P.hp = P.d.maxhp; P.mp = P.d.maxmp;
     ftext(P.x, P.y - 26, P.lvl === LEVEL_CAP ? 'MAX LEVEL' : 'LEVEL UP', '#ffcd75', 1.4);
     for(let i = 0; i < 36; i++){ const a = i/36*Math.PI*2; G.parts.push({x:P.x, y:P.y - 6, vx:Math.cos(a)*90, vy:Math.sin(a)*90, life:0.8, max:0.8, c: i % 2 ? '#ffcd75' : '#fff6c2', g:0, s:1}); }
     fxSpr('lvlup', P.x, P.y, 28, 0.9, {follow:P}); sfx('levelup'); toast(`Level ${P.lvl}! +${sp} stat points${kp ? ', +1 skill point' : ''}`, '#ffcd75');
@@ -3389,14 +3400,15 @@ function genShop(){
 }
 // --- Karmara: upgrades & reforging with Carbon
 function refItem(ref){ const P = G.P; if(!ref) return null; return ref.eq ? P.eq[ref.eq] : ref.inv !== undefined ? P.inv[ref.inv] : null; }
+function maxPlus(it){ return it && it.rarity === 'godly' ? 5 : 10; }   // Godly pieces grow with the hero instead, so Carbon takes them only to +5 (2026-11-19, Mathis)
 function upgradeCost(it){
-  const n = (it.plus || 0) + 1; if(n > 10) return null;
+  const n = (it.plus || 0) + 1; if(n > maxPlus(it)) return null;
   return {n, carbon:CARBON_UP[n - 1], gold:Math.round((15 + it.ilvl*4)*n*TIER_MULT[it.rarity]), chance:UP_CHANCE[n - 1]};
 }
 function upgradeItem(ref){
   const P = G.P, it = refItem(ref); if(!it) return;
   const c = upgradeCost(it);
-  if(!c){ toast('This item is already +10.', '#94b0c2'); return; }
+  if(!c){ toast(`This item is already +${maxPlus(it)}, the most it can take.`, '#94b0c2'); return; }
   if(P.carbon < c.carbon){ toast(`You need ${c.carbon} Carbon.`, '#e43b44'); sfx('error'); return; }
   if(P.gold < c.gold){ toast(`You need ${c.gold} gold.`, '#e43b44'); sfx('error'); return; }
   P.carbon -= c.carbon; P.gold -= c.gold;
@@ -3440,7 +3452,7 @@ function ascendItem(ref){
 function reforgeCost(it){ return {carbon:REFORGE_CARBON[it.rarity], gold:Math.round((30 + it.ilvl*8)*TIER_MULT[it.rarity])}; }
 function reforgeItem(ref, cls){
   const P = G.P, it = refItem(ref); if(!it || !it.cls || it.cls === cls) return;
-  if(it.uniq && UNIQUES[it.uniq] && UNIQUES[it.uniq].noReforge){ toast('"This was his. It stays a Knight\'s."', '#ffcd75', 4); sfx('error'); return; }
+  if(it.uniq && UNIQUES[it.uniq] && UNIQUES[it.uniq].noReforge){ toast(KARMARA_ALDREN, '#ffcd75', 6); sfx('error'); return; }
   const c = reforgeCost(it);
   if(P.carbon < c.carbon){ toast(`You need ${c.carbon} Carbon.`, '#e43b44'); sfx('error'); return; }
   if(P.gold < c.gold){ toast(`You need ${c.gold} gold.`, '#e43b44'); sfx('error'); return; }
@@ -6703,7 +6715,7 @@ function itemCard(it, ctx){
     if(pw && pw.cls && pw.cls !== P.cls) h += `<div style="color:#7d7484">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}${tag}</div><div class="sub">Only works for a ${CLASSES[pw.cls].name}.</div>`;
     else if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
       : `<div style="color:#ff4545">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}${tag}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
-  if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +10</div>`;
+  if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +${maxPlus(it)}</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
   else if(ctx !== 'nosell') h += `<div class="sub">Sells for ${Math.round(itemValue(it)*0.4)} gold</div>`;
@@ -7198,7 +7210,7 @@ function renderShop(){
     if(sel){
       const c = upgradeCost(sel);
       foot += itemCard(sel, 'nosell');
-      if(!c) foot += '<div class="card" style="color:var(--gold)">This item is at +10, the most Carbon can do.</div>';
+      if(!c) foot += `<div class="card" style="color:var(--gold)">This item is at +${maxPlus(sel)}, the most Carbon can do${sel.rarity === 'godly' ? ' for Godly steel' : ''}.</div>`;
       else {
         const pct = Math.round(c.chance*100);
         foot += `<div class="card" style="margin-top:6px"><div>Upgrade to <b style="color:var(--gold)">+${c.n}</b>: ${sel.slot === 'weapon' ? `damage ${itMin(sel)}–${itMax(sel)} → ${Math.round(sel.min*(1 + 0.08*c.n))}–${Math.round(sel.max*(1 + 0.08*c.n))}` : sel.armor ? `armor ${itArmor(sel)} → ${Math.round(sel.armor*(1 + 0.08*c.n))}` : 'bonus stats +3%'}</div><div>Cost: <span style="color:${P.carbon >= c.carbon ? '#c3cad8' : '#ff7a7a'}">${c.carbon} Carbon</span> + <span style="color:${P.gold >= c.gold ? 'var(--gold)' : '#ff7a7a'}">${c.gold} gold</span></div><div style="color:${pct === 100 ? '#a7f070' : pct >= 50 ? '#ffcd75' : '#ff7a7a'}">Success chance: ${pct}%${pct < 100 ? ' (a failed attempt keeps the item at +' + (sel.plus || 0) + ')' : ''}</div>${G.lastUp === 'ok' || G.lastUp === 'fail' ? `<div style="color:${G.lastUp === 'ok' ? '#a7f070' : '#ff7a7a'};font-size:22px">${G.lastUp === 'ok' ? 'Success!' : 'Failed.'}</div>` : ''}</div>
@@ -7211,8 +7223,9 @@ function renderShop(){
     }
   } else if(tab === 'reforge'){
     h += `<div class="sub" style="margin-bottom:6px">"Found something made for another kind of fighter? Give me Carbon and gold and I'll beat it into a new shape. Stats and upgrades stay."</div>`;
-    h += gearPicker(false, it => !!it.cls && !(it.uniq && UNIQUES[it.uniq] && UNIQUES[it.uniq].noReforge));   // Godly class pieces stay with their class
-    if(sel && UI.sel.inv !== undefined){
+    h += gearPicker(false, it => !!it.cls);
+    if(sel && UI.sel.inv !== undefined && sel.uniq && UNIQUES[sel.uniq] && UNIQUES[sel.uniq].noReforge) foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px;color:#ffcd75">${KARMARA_ALDREN}</div>`;   // she will not reforge Aldren's steel
+    else if(sel && UI.sel.inv !== undefined){
       const c = reforgeCost(sel);
       foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Cost: <span style="color:${P.carbon >= c.carbon ? '#c3cad8' : '#ff7a7a'}">${c.carbon} Carbon</span> + <span style="color:${P.gold >= c.gold ? 'var(--gold)' : '#ff7a7a'}">${c.gold} gold</span></div><div class="row" style="margin-top:8px">`;
       Object.keys(CLASSES).filter(k => k !== sel.cls).forEach(k => foot += `<button class="btn gold" onclick="reforgeItem(UI.sel,'${k}')" ${P.carbon < c.carbon || P.gold < c.gold ? 'disabled' : ''}>Make it for a ${CLASSES[k].name}</button>`);
@@ -7249,7 +7262,7 @@ function openImbue(){ closeDialog(); UI.imb = null; UI.imbPow = null; UI.sel = n
 function imbPick(ref){ const it = refItem(ref); if(!it) return; UI.imb = ref; UI.imbPow = null; sfx('pickup'); refreshPanel(); }
 function imbItem(){ const it = refItem(UI.imb); return it && it.slot ? it : null; }
 function imbueApply(){
-  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || !(it.rarity === 'heroic' || it.rarity === 'godly') || !cost || it.power === id || !powerPool(P.cls).some(p => p.id === id)) return;
+  const P = G.P, it = imbItem(), id = UI.imbPow, cost = IMBUE_COST[id]; if(!it || it.rarity !== 'heroic' || !cost || it.power === id || !powerPool(P.cls).some(p => p.id === id)) return;
   if(P.carbon < cost){ toast(`You need ${cost} Carbon.`, '#e43b44'); sfx('error'); return; }
   P.carbon -= cost; it.power = id; derive(P); UI.imbPow = null;
   sfx('upsuccess'); sfx('legend'); toast(`${itemName(it)} now carries: ${powerName(it)}`, '#ff4545', 4); saveGame(); uiDirty(); refreshPanel();
@@ -7259,7 +7272,8 @@ function renderImbue(){
   let h = karmaraTabs('imbue') + `<div class="sub" style="margin:8px 0">"Power sits on heroic steel like heat on a blade. I can draw it off and lay another in its place. It eats Carbon, though. A lot of it."</div>`;
   h += `<div class="imbrow"><div class="imbslot" data-drop="imb">${it ? `<button class="cell" style="border-color:${rarColor(it)}aa" onclick="UI.imb=null;UI.imbPow=null;refreshPanel()"><img src="${itemIcon(it)}" draggable="false"></button>` : '<div class="sub">Heroic gear</div>'}</div>`;
   h += `<div style="flex:1;min-width:0">${it ? `<div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub">${it.power ? 'Carries: ' + powerName(it) : 'No heroic power'}</div>` : '<div class="sub">Choose a heroic piece from your inventory: tap it, or drag it here.</div>'}<div style="color:#c3cad8;margin-top:4px">${P.carbon} Carbon on you</div></div></div>`;
-  if(it && it.rarity !== 'heroic' && it.rarity !== 'godly') h += `<div class="card bad" style="color:#ff7a7a">"That's ${rarityDef(it.rarity).name} steel. There's no power in it to move. Bring me something Heroic."</div>`;
+  if(it && it.rarity === 'godly') h += `<div class="card bad" style="color:#ff7a7a">"No. That's a god's own power in it, and it's bound for good. I won't touch it."</div>`;   // Godly: never imbued (2026-11-19, Mathis)
+  else if(it && it.rarity !== 'heroic') h += `<div class="card bad" style="color:#ff7a7a">"That's ${rarityDef(it.rarity).name} steel. There's no power in it to move. Bring me something Heroic."</div>`;
   else if(it){
     // what the hero already wears (2026-11-18, Mathis): every power on their other worn pieces is named before they choose, so they
     // never pay to lay in a power that would not count
