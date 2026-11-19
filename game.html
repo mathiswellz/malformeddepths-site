@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.29';
+const GAME_VER = '0.1.30';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -892,11 +892,11 @@ const AFFIXES = [
   {id:'loh',  label:'Life per Hit',      roll:l => 1 + Math.round(l*0.35)},
   {id:'arm',  label:'Armor',             roll:l => 3 + Math.round(l*1.4)},
   {id:'cdr',  label:'% Cooldown Reduction', roll:l => 2 + Math.round(Math.random()*4)},
-  // resistances (2026-11-19, Mathis): only Grand gear and better can roll them. Each cuts that element's damage; 75% at most
+  // resistances (2026-11-19, Mathis): only Grand gear and better can roll them. Each cuts that element's damage; 60% at most
   {id:'rpoi', label:'% Poison Resistance',    roll:l => 5 + Math.round(Math.random()*6 + l*0.25), res:true},
   {id:'rmal', label:'% Malformed Resistance', roll:l => 5 + Math.round(Math.random()*6 + l*0.25), res:true}
 ];
-const RES_CAP = 75;
+const RES_CAP = 60;   // was 75 (2026-11-19 rebalance: elemental hits now skip armor, so resistance is their only defense)
 const ELEMENTS = {poison:{name:'Poison', af:'rpoi', color:'#a7f070'}, malformed:{name:'Malformed', af:'rmal', color:'#b98cff'}};
 const LEGENDARY_NAMES = {
   weapon:['Ganesh\'s Lament','Riverborn','Oathkeeper of the Seven','Unshaper\'s Bane','The Last Warden','Sarai\'s Edge','Hourbreaker','Hundred-Hand Ender','Clayheart'],
@@ -2722,8 +2722,10 @@ function hurtPlayer(amt, src, melee, elem){
   if(CHEAT && CHEAT.god) return;   // cheat: god mode
   if(src && src.weak > 0) amt *= 0.75;   // Poison Oil weakens enemy attacks
   const lvl = src && src.lvl ? src.lvl : P.lvl;
-  const dr = Math.min(0.75, P.d.armor/(P.d.armor + 50 + 10*lvl));
-  const res = elem && P.d.res ? (P.d.res[elem] || 0)/100 : 0;   // elemental hits: armor, then that element's resistance
+  // Poison and Malformed hits pass through armor (resistance is their defense) and hit a little softer to make up for it; bosses' a little softer still
+  const dr = elem ? 0 : Math.min(0.75, P.d.armor/(P.d.armor + 50 + 10*lvl));
+  if(elem) amt *= src && src.boss ? 0.75 : 0.8;
+  const res = elem && P.d.res ? (P.d.res[elem] || 0)/100 : 0;   // elemental hits: that element's resistance only
   amt = Math.max(1, Math.round(amt*(1 - dr)*(1 - res)*(1 - P.d.powers.ironskin)*(0.9 + R()*0.2)));   // heroic: Ironskin
   // heroic: Rime, frost bursts off the hero when struck
   if(P.d.powers.rime && !(P.rimeCd > 0) && R() < P.d.powers.rime){ P.rimeCd = 3; sfx('ice'); ring(P.x, P.y - 6, 70, '#9fe8ff', 0.4);
