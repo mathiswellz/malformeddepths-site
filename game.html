@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.32';
+const GAME_VER = '0.1.33';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -815,6 +815,9 @@ const UNIQUES = {
     affixes:['str', 'arm', 'hp', 'rmal']}
 };
 const KARMARA_ALDREN = '"This was his! I don\'t wanna keep it. This belongs to a Knight worthy of the rift. Take it... thank you."';   // Karmara, when asked to reforge Aldren's Breastplate (Mathis)
+// each boss's own Godly piece (more to come) and the chance it drops; Breeze never drops one. Ilvaroth's Eye drops every time, on its own
+const BOSS_GODLY = {aldren:'aldren'};
+const GODLY_DROP = {nightmare:0.1, malformed:0.2};
 // Godly items carry a stronger version of their power (2026-11-19, Mathis: "every Godly tier item has a slight increase")
 const GODLY_POWERS = {
   allskills:{v:2, name:'+2 to all skill ranks'},
@@ -2816,7 +2819,7 @@ function killMonster(m){
   else if(R() < 0.02) cn = 1;
   if(cn) dropLoot({carbon:Math.max(1, Math.round(cn*carbonMult()))}, m.x, m.y);
   if(m.type === 'ilvaroth') dropItem(makeUnique('eye'), m.x, m.y);
-  if(m.type === 'aldren' && curDiff() !== 'breeze' && R() < 0.1) dropItem(makeUnique('aldren'), m.x + 14, m.y);   // Godly: his breastplate, 1 in 10 on Nightmare and Malformed   // Godly: The Eye of Malformity, every time he falls (2026-11-18, Mathis)
+  { const gk = BOSS_GODLY[m.type], ch = GODLY_DROP[curDiff()] || 0; if(gk && ch && R() < ch) dropItem(makeUnique(gk), m.x + 14, m.y); }   // a boss's own Godly piece, Nightmare and Malformed only   // Godly: The Eye of Malformity, every time he falls (2026-11-18, Mathis)
   if(m.isBoss) bossDefeated(m);
   if(m.isQuest) questBossDefeated(m);
 }
@@ -7312,6 +7315,7 @@ function renderRift(){
   const P = G.P, d = UI.riftDiff, D = DIFFS[d], max = Math.min(DEMO ? DEMO_LAST : 10, P.prog[d] + 1);
   let h = `<div class="tabs">${DIFF_ORDER.map(k => `<button class="btn${d === k ? ' on' : ''}" style="color:${P.unlocked[k] ? DIFFS[k].color : '#6a6080'};font-size:18px;padding:6px 2px" onclick="UI.riftDiff='${k}';refreshPanel()">${P.unlocked[k] ? '' : '🔒 '}${DIFFS[k].name}</button>`).join('')}</div>`;
   h += `<div class="sub" style="margin-bottom:8px">${D.desc}</div>`;
+  if(d !== 'breeze') h += `<div class="godly" style="font-size:17px;margin:-4px 0 8px;color:${GODLY_COL}">Bosses here may drop Godly gear.${d === 'malformed' ? ' More often than in Nightmare.' : ''}</div>`;   // no odds shown (2026-11-19, Mathis)
   if(!P.unlocked[d]){   // a locked difficulty: tapping its tab shows what opens it, in place of the depths (2026-11-15, Mathis: not under every list)
     h += `<div class="card" style="font-size:17px;margin-top:8px"><b style="color:${D.color}">🔒 ${D.name} is locked.</b><br>Defeat ${unlockReqHTML(d)}.${DEMO ? '<br><span class="sub">Not in the free demo.</span>' : ''}</div>`;
     return panelShell('Enter the Rift', h);
