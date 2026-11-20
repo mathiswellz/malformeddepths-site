@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.35';
+const GAME_VER = '0.1.36';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -812,16 +812,39 @@ const UNIQUES = {
   // the second Godly piece (2026-11-19, Mathis): the Knight's only, and Karmara will not reforge it. Aldren drops it, 1 in 10, on Nightmare and Malformed
   aldren:{name:'Captain Aldren\'s Breastplate', slot:'chest', rarity:'godly', cls:'knight', noReforge:true, icon:'u_aldren_breastplate', fallback:'a_heavy_chest_h', power:'giantsbane',
     lore:'Karmara\'s steel. The god\'s flesh split it open from inside, and still it held.',
-    affixes:['str', 'arm', 'hp', 'rmal']}
+    affixes:['str', 'arm', 'hp', 'rmal']},
+  // four more (2026-11-19, Mathis: a Godly piece for every boss). Class pieces, like Aldren's, are never reforged
+  lasthour:{name:'The Last Hour', slot:'ring', rarity:'godly', icon:'u_last_hour', fallback:'j_ring_h', power:'bloodrush', set:'binding',
+    lore:'He counted three thousand years. This is the hour he never reached.',
+    affixes:['cdr', 'as', 'hp']},
+  hundred:{name:'Hands of the Hundred', slot:'gloves', rarity:'godly', cls:'rogue', noReforge:true, icon:'u_hands_hundred', fallback:'a_leather_gloves_h', power:'phantom',
+    lore:'His father made him a hundred hands. These two still remember the rest.',
+    affixes:['dex', 'crit', 'as']},
+  lullaby:{name:'The Healer\'s Lullaby', slot:'ring', rarity:'godly', icon:'u_healers_lullaby', fallback:'j_ring_h', power:'secondwind', set:'binding',
+    lore:'She was Vaidya\'s apprentice once. She was still humming at the end.',
+    affixes:['hp', 'vit', 'rpoi']},
+  shaper:{name:'The Shaper\'s Rod', slot:'weapon', wtype:'staff', rarity:'godly', cls:'mage', noReforge:true, icon:'u_shapers_rod', fallback:'w_staff_h', power:'pyre',
+    lore:'She shaped flesh for her Lord. Now it burns for you.',
+    affixes:['int', 'dmg', 'mp', 'rmal']}
+};
+// Godly sets: the two Godly rings, and the Eye with them (2026-11-19, Mathis)
+const GODLY_SETS = {
+  binding:{name:'Relics of the Binding', pieces:['lasthour', 'lullaby', 'eye'],
+    tiers:[{need:['lasthour', 'lullaby'], text:'Both rings: +10% to all resistances', res:10},
+           {need:['lasthour', 'lullaby', 'eye'], text:'Both rings and the Eye: +15% to all resistances and +5 to all stats', res:15, stats:5}]}
 };
 const KARMARA_ALDREN = '"This was his! I don\'t wanna keep it. This belongs to a Knight worthy of the rift. Take it... thank you."';   // Karmara, when asked to reforge Aldren's Breastplate (Mathis)
 // each boss's own Godly piece (more to come) and the chance it drops; Breeze never drops one. Ilvaroth's Eye drops every time, on its own
-const BOSS_GODLY = {aldren:'aldren'};
+const BOSS_GODLY = {aldren:'aldren', khala:'lasthour', asura:'hundred', broodmother:'lullaby', vessa:'shaper'};
 const GODLY_DROP = {nightmare:0.1, malformed:1/7};   // Malformed 1 in 7 (2026-11-19, Mathis; was 1 in 5)
 // Godly items carry a stronger version of their power (2026-11-19, Mathis: "every Godly tier item has a slight increase")
 const GODLY_POWERS = {
   allskills:{v:2, name:'+2 to all skill ranks'},
-  giantsbane:{v:0.4, name:'Godly Bane, 40% more damage to bosses and elites'}
+  giantsbane:{v:0.4, name:'Godly Bane, 40% more damage to bosses and elites'},
+  bloodrush:{name:'Borrowed Time: each kill gives +30% attack and movement speed for 6 seconds'},
+  phantom:{name:'Hundredfold Phantom: Shadow Step strikes three times'},
+  secondwind:{name:'Mother\'s Mercy: below 30% life, instantly heal 50% (every 45 seconds)'},
+  pyre:{name:'Pyre of the Shaper: Fireball splits into five'}
 };
 function godlyPow(it){ return it && it.rarity === 'godly' && it.power ? GODLY_POWERS[it.power] || null : null; }
 function powerName(it, id){ id = id || it.power; const g = it && it.power === id ? godlyPow(it) : null; return g ? g.name : (powerDef(id) || {}).name || id; }
@@ -1528,6 +1551,7 @@ function sfx(name, src){
     case 'coin': tone(2093, 0.08, 'triangle', 0.08); break;
     case 'error': tone(150, 0.15, 'square', 0.08); break;
     case 'upsuccess': for(let i = 0; i < 2; i++){ tone(1800, 0.12, 'square', 0.05, 900, AU.rev, 0.002, i*0.14); noiseHit(0.05, 0.2, 'highpass', 4000, null, null, i*0.14); } [0, 4, 7, 12].forEach((n, i) => tone(midi(72 + n), 0.5, 'triangle', 0.1, null, AU.rev, 0.005, 0.3 + i*0.07)); break;
+    case 'set_complete': [0, 4, 7, 11, 14, 19, 23].forEach((n, i) => tone(midi(76 + n), 1.1, 'sine', 0.06, null, AU.rev, 0.01, i*0.06)); for(let i = 0; i < 10; i++) tone(midi(88 + (i*5) % 12), 0.4, 'triangle', 0.025, null, AU.rev, 0.005, 0.3 + i*0.05); break;   // a Godly set completes: a rising shimmer
     case 'salvage_break': tone(2400*r(), 0.25, 'square', 0.06, 1100, AU.rev); noiseHit(0.35, 0.35, 'bandpass', 3200, 900, null, 0, 3); tone(160, 0.3, 'sawtooth', 0.12, 70, null, 0.005, 0.02); for(let i = 0; i < 4; i++) tone(1400 + Math.random()*1600, 0.08, 'triangle', 0.05, null, null, 0.003, 0.12 + i*0.07); break;   // metal snaps, bits fall
     case 'salvage_rip': for(let i = 0; i < 6; i++) noiseHit(0.07, 0.3, 'bandpass', 1800 + Math.random()*1500, 700, null, i*0.06, 1.5); break;   // leather and cloth tear
     case 'upfail': tone(1800, 0.12, 'square', 0.05, 900, AU.rev); noiseHit(0.4, 0.3, 'bandpass', 2500, 600, null, 0.12, 3); tone(140, 0.5, 'sawtooth', 0.12, 60, null, 0.005, 0.15); break;
@@ -1543,9 +1567,9 @@ function sfx(name, src){
 // suits the place. Each place's ambience loops underneath (md_amb_<place>.mp3: two takes, each a seamless loop).
 // Until a sheet has loaded, or where files can't be read (the PC build opened without its launcher), sfx() plays the
 // synthesized sound instead.
-const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara', 'arrows'];   // arrows (2026-11-19): the Bone Archer's bow, three takes, high end softened (report: it whistled)
+const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara', 'arrows', 'salvage', 'shimmer'];   // salvage (2026-11-19): metal breaking x2, leather tearing x2   // arrows (2026-11-19): the Bone Archer's bow, three takes, high end softened (report: it whistled)
 // SND_MAN:BEGIN (made by sfx/gen_snd.py from the sheets' manifests; times in ms)
-const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[9,100,600],[9,1000,600],[9,1900,600]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]]};
+const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[9,100,600],[9,1000,600],[9,1900,600]],"salvage_metal":[[10,100,1230],[10,1600,690]],"salvage_leather":[[10,3100,1340],[10,4600,500]],"set_shimmer":[[11,100,2030]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]]};
 const SND_AMB = {"crypt":[[500,18500],[20000,18500]],"flesh":[[500,18500],[20000,18500]],"palli":[[500,18500],[20000,18500]],"throne":[[500,18500],[20000,18500]],"void":[[500,18500],[20000,18500]]};
 // SND_MAN:END
 // Karmara's anvil (2026-11-17, ElevenLabs v2 on flow vT2BRiBb4wz9rul1fSwX: 3 heavy + 3 ringing blows, one each; packed in the sandbox, -16 LUFS)
@@ -1727,6 +1751,7 @@ function sndRoute(name, src){
     case 'upsuccess': return S('forge_upgrade', {vol:0.7, room:0.3});
     case 'upfail': return S('forge_fail', {vol:0.7, room:0.3});
     case 'salvage_break': return S('salvage_metal', {vol:0.75, room:0.25});
+    case 'set_complete': return S('set_shimmer', {vol:0.7, room:0.5});
     case 'salvage_rip': return S('salvage_leather', {vol:0.75, room:0.2});
     case 'click': return S('ui_click', {vol:0.35, room:0, pv:0.03});
     case 'error': return S('ui_error', {vol:0.45, room:0});
@@ -2416,6 +2441,7 @@ function godlyGrow(it, lvl){
   const mid = (af, l) => { const r = Math.random; Math.random = () => 0.5; const v = af.roll(l); Math.random = r; return Math.max(1, v); };   // the roll's middle, to scale by
   for(const a of it.affixes){ const af = AFFIXES.find(x => x.id === a.id); if(af) a.v = Math.max(a.v, Math.round(a.v*mid(af, lvl)/mid(af, from))); }
   if(it.armor){ const k = (3 + lvl*1.3)/(3 + from*1.3); it.armor = Math.round(it.armor*k); }
+  if(it.slot === 'weapon' && it.min){ const k = (5 + lvl*2.2)/(5 + from*2.2); it.min = Math.round(it.min*k); it.max = Math.round(it.max*k); }
   it.value = Math.round(it.value*(8 + lvl*4)/(8 + from*4)); it.ilvl = lvl; it.req = Math.min(it.req || lvl, lvl);
 }
 function godlyGrowAll(P){ for(const s in P.eq) godlyGrow(P.eq[s], P.lvl); for(const it of P.inv) godlyGrow(it, P.lvl); }
@@ -2424,6 +2450,8 @@ function makeUnique(key, ilvl){
   const U = UNIQUES[key], P = G.P; ilvl = clamp(Math.round(ilvl || gearLevel()), 1, LEVEL_CAP);
   const it = makeItem(ilvl, 'typical', U.slot, U.cls || null);
   it.rarity = U.rarity; it.uniq = key; it.name = U.name; it.cls = U.cls || null; it.affixes = [];
+  if(U.slot === 'weapon'){ const B = WEAPON_BASES[U.wtype || it.wtype]; it.wtype = U.wtype || it.wtype; it.speed = B.speed; it.base = weaponTierName(B, ilvl);
+    it.min = Math.round((5 + ilvl*2.2)*B.mult*rarityDef(U.rarity).mult); it.max = Math.round(it.min*1.6); }
   if(it.armor) it.armor = Math.round(it.armor*rarityDef(U.rarity).mult);
   for(const id of U.affixes){ const af = AFFIXES.find(a => a.id === id); if(af) it.affixes.push({id, v:Math.max(1, Math.round(af.roll(ilvl)*1.7))}); }
   if(U.power) it.power = U.power;
@@ -2552,10 +2580,17 @@ function derive(P){
       else { if(o){ dupPow[P.eq[o].id] = slot; } owner[it.power] = slot; const pd = powerDef(it.power); if(!pd || !pd.cls || pd.cls === P.cls) pw[it.power] = lvl; } }   // dupPow[id] = the place whose piece holds it
   }
   if(off){ if(P.eq.weapon && itemActive(P.eq.weapon)){ wmin += itMin(off); wmax += itMax(off); wspd = (wspd + off.speed)/2; } else { wmin = itMin(off); wmax = itMax(off); wspd = off.speed; } }   // two daggers: both blades' damage
+  // Godly sets: count the pieces worn; the bonus is the highest tier whose pieces are all on (2026-11-19, Mathis)
+  const wornU = new Set(eqSlots(P).map(sl => P.eq[sl]).filter(x => itemActive(x) && x.uniq).map(x => x.uniq)); let setTier = 0, setKey = null;
+  for(const k in GODLY_SETS){ const S = GODLY_SETS[k]; S.tiers.forEach((t, i) => { if(t.need.every(u => wornU.has(u))){ setTier = i + 1; setKey = k; } }); }
+  if(setKey){ const t = GODLY_SETS[setKey].tiers[setTier - 1]; if(t.res){ add.rpoi += t.res; add.rmal += t.res; } if(t.stats) for(const st of ['str', 'dex', 'int', 'vit']) s[st] += t.stats; }
+  if(P._setTier !== undefined && setTier > P._setTier && G.state === 'play' && typeof sfx === 'function'){ sfx('set_complete'); toast(`${GODLY_SETS[setKey].name}: ${GODLY_SETS[setKey].tiers[setTier - 1].text}`, GODLY_COL, 5); }
+  P._setTier = setTier;
   let bDmg = 0, bArm = 0, bAs = 0, bMs = 0;
-  for(const b of P.buffs){ if(b.id === 'cry'){ bDmg += b.dmg; bArm += b.arm; } if(b.id === 'venom') bAs += 0.25; if(b.id === 'power') bDmg += 0.25; if(b.id === 'speed'){ bMs += 0.3; bAs += 0.2; } if(b.id === 'rush'){ bMs += 0.2; bAs += 0.2; } }
+  for(const b of P.buffs){ if(b.id === 'cry'){ bDmg += b.dmg; bArm += b.arm; } if(b.id === 'venom') bAs += 0.25; if(b.id === 'power') bDmg += 0.25; if(b.id === 'speed'){ bMs += 0.3; bAs += 0.2; } if(b.id === 'rush'){ bMs += b.k || 0.2; bAs += b.k || 0.2; } }
   const d = P.d = {};
-  d.stats = s; d.dupPow = dupPow;
+  d.stats = s; d.dupPow = dupPow; d.setTier = setTier; d.setKey = setKey;
+  d.gp = {}; for(const k in pw) if(pw[k] === 2) d.gp[k] = true;   // which powers are worn at Godly strength
   d.powers = {allskills:pw.allskills === 2 ? GODLY_POWERS.allskills.v : pw.allskills, lifesteal:0.03*pw.lifesteal, thorns:0.35*pw.thorns, shock:Math.min(0.5, 0.12*pw.shock), secondwind:pw.secondwind > 0, greed:0.5*pw.greed,
     wellspring:pw.wellspring ? 0.2 : 0, executioner:pw.executioner ? 0.4 : 0, ward:pw.ward ? 0.15 : 0, rime:pw.rime ? 0.25 : 0, bloodrush:pw.bloodrush > 0,
     manasiphon:pw.manasiphon ? 0.01 : 0, giantsbane:pw.giantsbane === 2 ? GODLY_POWERS.giantsbane.v : pw.giantsbane ? 0.3 : 0, ironskin:pw.ironskin ? 0.12 : 0, swiftness:pw.swiftness ? 0.15 : 0, chainspark:pw.chainspark > 0, corpseburst:pw.corpseburst ? 0.25 : 0,
@@ -2774,7 +2809,7 @@ function hurtPlayer(amt, src, melee, elem){
   const armorSlots = ['helm', 'chest', 'gloves', 'boots'].filter(s => P.eq[s] && P.eq[s].dur > 0);
   if(armorSlots.length && R() < 0.45){ const it = P.eq[rpick(armorSlots)]; it.dur = Math.max(0, it.dur - 1); if(it.dur === 0){ toast(`${itemName(it)} has broken! Visit Karmara.`, '#e43b44'); derive(P); } }
   if(P.hp > 0 && P.d.powers.secondwind && P.hp < P.d.maxhp*0.3 && P.swCd <= 0){
-    P.swCd = 60; const h = Math.round(P.d.maxhp*0.35); P.hp += h; ftext(P.x, P.y - 34, '+' + h, '#ff4545', 1.2); ring(P.x, P.y - 6, 40, '#ff4545', 0.5); toast('Second Wind!', '#ff4545');
+    const gw = P.d.gp.secondwind; P.swCd = gw ? 45 : 60; const h = Math.round(P.d.maxhp*(gw ? 0.5 : 0.35));  /* Godly: Mother's Mercy */ P.hp += h; ftext(P.x, P.y - 34, '+' + h, '#ff4545', 1.2); ring(P.x, P.y - 6, 40, '#ff4545', 0.5); toast('Second Wind!', '#ff4545');
   }
   if(P.hp <= 0) playerDie();
 }
@@ -2782,7 +2817,7 @@ function carbonMult(){ return DIFFS[curDiff()].carbon*(1 + G.P.d.powers.greed); 
 function killMonster(m){
   if(m.dead) return; m.dead = true;
   const M = G.M, P = G.P, D = DIFFS[curDiff()];
-  if(P.d.powers.bloodrush) addBuff('rush', 4);   // heroic: Bloodrush
+  if(P.d.powers.bloodrush) P.d.gp.bloodrush ? addBuff('rush', 6, {k:0.3}) : addBuff('rush', 4);   // heroic: Bloodrush (Godly: Borrowed Time)
   if(P.d.powers.corpseburst && !m.boss && R() < P.d.powers.corpseburst){   // heroic: Corpse Burst
     G.fx.push({kind:'boom', x:m.x, y:m.y - 6, r:56, t:0, dur:0.35, color:'#e43b44', fxn:'boom_fire', tint:'hue:#e43b44'}); burst(m.x, m.y - 6, 22, ['#e43b44', '#b13e53', '#8f3b55'], 140, 160, 0.6); sfx('meteor', m); G.shake = Math.max(G.shake, 3);
     for(const o2 of G.M.monsters.slice()) if(o2 !== m && !o2.dead && Math.hypot(o2.x - m.x, o2.y - m.y) < 56 + o2.r) hitMonster(o2, rollDamage(1.5), {noProc:true, silent:true, kb:40, fx:m.x, fy:m.y, color:'#ff8080'});
@@ -3007,7 +3042,7 @@ function useSkill(i){
     case 'fireball': {
       sfx('fire'); P.swing = {t:0, dur:0.2, ang, arc:0.4, cast:true};
       G.projs.push({x:cx + dirx*10, y:cy + diry*10, vx:dirx*240, vy:diry*240, r:6, dmg:rollDamage(2.2*s), team:'p', life:1.4, kind:'fire', color:'#ef7d57', hit:new Set(), pierce:0, explode:{r:40, burn:P.d.avg*0.35*s}});
-      if(P.d.powers.pyre) for(const da of [-0.25, 0.25]){ const a = ang + da;   // heroic: Pyre, two smaller flames fan out beside it
+      if(P.d.powers.pyre) for(const da of P.d.gp.pyre ? [-0.5, -0.25, 0.25, 0.5] : [-0.25, 0.25]){ const a = ang + da;   // heroic: Pyre (Godly: five flames), two smaller flames fan out beside it
         G.projs.push({x:cx + Math.cos(a)*10, y:cy + Math.sin(a)*10, vx:Math.cos(a)*240, vy:Math.sin(a)*240, r:5, dmg:rollDamage(1.1*s), team:'p', life:1.4, kind:'fire', color:'#ef7d57', hit:new Set(), pierce:0, explode:{r:32, burn:P.d.avg*0.18*s}}); }
       break; }
     case 'nova': {
@@ -3044,7 +3079,7 @@ function useSkill(i){
         if(!blockedCircle(G.M, nx, ny, P.r)){ P.x = nx; P.y = ny; }
         P.aim = a + Math.PI; P.face = Math.cos(P.aim) >= 0 ? 1 : -1;
         hitMonster(t, rollDamage(2.2*s), {crit:true, stun:0.8});
-        if(P.d.powers.phantom && !t.dead) setTimeout(() => { if(!t.dead && G.state === 'play') hitMonster(t, rollDamage(2.2*s), {crit:true, stun:0.8, color:'#b98cff'}); }, 180);   // heroic: Phantom strikes again
+        if(P.d.powers.phantom && !t.dead) for(let k = 1; k <= (P.d.gp.phantom ? 2 : 1); k++) setTimeout(() => { if(!t.dead && G.state === 'play') hitMonster(t, rollDamage(2.2*s), {crit:true, stun:0.8, color:'#b98cff'}); }, 180*k);   // Godly: three strikes   // heroic: Phantom strikes again
         G.fx.push({kind:'slash', x:P.x, y:P.y - 6, ang:P.aim, arc:1.4, r:30, t:0, dur:0.18, color:'#b98cff'});
       } else { for(let d = 0; d < 80; d += 4){ const nx = P.x + dirx*4, ny = P.y + diry*4; if(blockedCircle(G.M, nx, ny, P.r)) break; P.x = nx; P.y = ny; } }
       burst(P.x, P.y - 8, 18, ['#8e4ba8', '#5d275d'], 50, 0, 0.6);
@@ -6722,6 +6757,10 @@ function itemCard(it, ctx){
     if(pw && pw.cls && pw.cls !== P.cls) h += `<div style="color:#7d7484">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}${tag}</div><div class="sub">Only works for a ${CLASSES[pw.cls].name}.</div>`;
     else if(pw) h += dup ? `<div style="color:#7d7484;text-decoration:line-through">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}</div><div class="sub">Not counting: your ${EQ_NAMES[dup].toLowerCase()} already has this power, and the same power never stacks.${fix}</div>`
       : `<div style="color:#ff4545">${godlyPow(it) ? 'Godly' : 'Heroic'} power: ${pw.name}${tag}</div>${other ? `<div class="bad">Your ${EQ_NAMES[other].toLowerCase()} already has this power. Worn together, only one counts.${fix}</div>` : ''}`; }
+  { const U = it.uniq && UNIQUES[it.uniq], S = U && U.set && GODLY_SETS[U.set] || (it.uniq && Object.values(GODLY_SETS).find(x => x.pieces.includes(it.uniq)));   // its Godly set: pieces worn, and the bonuses
+    if(S){ const worn = new Set(eqSlots(P).map(sl => P.eq[sl]).filter(x => x && x.uniq).map(x => x.uniq)), tier = P.d.setKey && GODLY_SETS[P.d.setKey] === S ? P.d.setTier : 0;
+      h += `<div style="margin-top:4px;color:${GODLY_COL}">${S.name}</div>` + S.pieces.map(u => `<div style="font-size:15px;color:${worn.has(u) ? '#e8e0d0' : '#6a6080'}">${worn.has(u) ? '◆' : '◇'} ${esc(UNIQUES[u].name)}</div>`).join('')
+        + S.tiers.map((t, i) => `<div style="font-size:15px;color:${tier > i ? '#a7f070' : '#6a6080'}">${t.text}</div>`).join(''); } }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +${maxPlus(it)}</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
