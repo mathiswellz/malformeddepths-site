@@ -122,7 +122,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
 #touch{position:absolute;inset:0}
 body:has(#modal:not(.hide)) #touch{pointer-events:none}   /* a menu is open: the game's buttons underneath can't be pressed */
 #atk{position:absolute;right:calc(14px + var(--sr));bottom:calc(150px + var(--sb));width:86px;height:86px;border-radius:50%;border:3px solid rgba(255,205,117,.6);background:radial-gradient(circle at 40% 35%,rgba(120,40,50,.75),rgba(30,8,14,.85));pointer-events:auto;display:flex;align-items:center;justify-content:center}
-#atk img{width:52px;height:52px;image-rendering:pixelated}
+#atk img{width:52px;height:52px;image-rendering:pixelated}#atk img.hd{image-rendering:auto;width:64px;height:64px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}
 #dodgeb{position:absolute;right:calc(110px + var(--sr));bottom:calc(112px + var(--sb));width:62px;height:62px;border-radius:50%;border:2px solid rgba(125,249,255,.55);background:radial-gradient(circle at 40% 35%,rgba(36,52,84,.8),rgba(10,10,22,.9));pointer-events:auto;color:#d8f4ff;font-size:19px;padding:0;overflow:hidden}
 #dodgeb::after{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(0,0,0,.6) calc(var(--cd,0)*360deg),transparent 0);pointer-events:none}
 #dodgeb.cd{color:#8aa0b0}
@@ -178,7 +178,7 @@ body:has(#modal:not(.hide)) #touch{pointer-events:none}   /* a menu is open: the
 #joyhint{position:absolute;left:calc(26px + var(--sl));bottom:calc(150px + var(--sb));font-size:16px;color:rgba(255,255,255,.35);pointer-events:none}
 /* phone controls: skills in an arc around a bigger attack button (layoutTouch() places them) */
 body.touchui #atk{right:calc(14px + var(--sr));bottom:calc(18px + var(--sb));width:96px;height:96px}
-body.touchui #atk img{width:58px;height:58px}
+body.touchui #atk img{width:58px;height:58px}body.touchui #atk img.hd{width:72px;height:72px}
 body.touchui #skills{position:fixed;inset:0;display:block;padding:0;margin:0;border:0;background:none;box-shadow:none;pointer-events:none}
 body.touchui #skills .sk{position:absolute;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,205,117,.5);box-shadow:0 2px 0 #000,inset 0 0 0 1px #4a3e5a;pointer-events:auto;touch-action:none}
 body.touchui #skills .sk.empty{border:2px dashed #6a5880;background:rgba(20,18,28,.6);box-shadow:none}
@@ -190,7 +190,7 @@ body.touchui #skills .sk .plus{font-size:24px}
 body.intown #atk,body.intown #skills .sk:not(.empty){filter:grayscale(.8) brightness(.62)}
 /* Interface size (Settings) on phones: every control and the HUD at --uis times its size (layoutTouch spaces them to match) */
 body.touchui #atk{width:calc(96px*var(--uis,1));height:calc(96px*var(--uis,1))}
-body.touchui #atk img{width:calc(58px*var(--uis,1));height:calc(58px*var(--uis,1))}
+body.touchui #atk img{width:calc(58px*var(--uis,1));height:calc(58px*var(--uis,1))}body.touchui #atk img.hd{width:calc(72px*var(--uis,1));height:calc(72px*var(--uis,1))}
 body.touchui #skills .sk{width:calc(52px*var(--uis,1));height:calc(52px*var(--uis,1))}
 body.touchui #skills .sk .mn{font-size:calc(12px*var(--uis,1))}
 body.touchui #skills .sk .ct{font-size:calc(22px*var(--uis,1))}
@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.38';
+const GAME_VER = '0.1.39';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -6358,7 +6358,8 @@ function buildSkillBar(){
     box.appendChild(el);
   }
   const w = P.eq.weapon;
-  $('atk').innerHTML = `<img src="${iconURL(w ? w.wtype : C.weapons[0], w ? (MATS[w.rarity] || MATS.typical) : null)}">`;
+  // the attack button shows the weapon in hand, in its own item art (was the old pixel icon; 2026-11-19)
+  { const off = DUAL_WIELD[P.cls] && P.eq.offhand, src = w ? itemIcon(w) : off ? itemIcon(off) : iconURL(C.weapons[0]); if($('atk').dataset.src !== src){ $('atk').dataset.src = src; $('atk').innerHTML = `<img src="${src}" class="${w || off ? 'hd' : ''}" draggable="false">`; } }
   TOUCH.placed = false; layoutTouch();
   // the bar is rebuilt often: keep the tooltip on the slot still under the mouse
   if(UI.tipSlot != null){ const e = box.children[UI.tipSlot], id = P.slots[UI.tipSlot], sk = id && slotSkill(P, id);
