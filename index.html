@@ -3,346 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Malformed Depths: a dark action RPG by Wellz Digitalez</title>
-<meta name="description" content="Malformed Depths: a dark action RPG. Wake by the river, find Palli, and descend into the Rift. Play the free demo in your browser.">
-<meta property="og:title" content="Malformed Depths">
-<meta property="og:description" content="A dark action RPG. Play the free demo in your browser.">
-<meta property="og:image" content="shot_womb.jpg">
+<title>Malformed Depths: down for maintenance</title>
+<meta name="description" content="Malformed Depths is down for maintenance while Palli is rebuilt. The free demo will be back soon.">
+<meta name="robots" content="noindex">
 <meta name="theme-color" content="#07050b">
 <style>
 @font-face{font-family:Pirata;src:url(assets/fonts/pirata-one-latin-400-normal.woff2) format('woff2');font-display:swap}
 @font-face{font-family:VT;src:url(assets/fonts/vt323-latin-400-normal.woff2) format('woff2');font-display:swap}
-:root{--bg:#07050b;--ink:#e8dccb;--dim:#9a8fa6;--gold:#ffd890;--blood:#c2343f;--line:rgba(255,216,144,.18)}
+:root{--bg:#07050b;--ink:#e8dccb;--dim:#9a8fa6;--gold:#ffd890}
 *{box-sizing:border-box;margin:0}
-html{background:var(--bg)}
-body{color:var(--ink);font:20px/1.45 VT,ui-monospace,monospace;background:var(--bg);overflow-x:hidden}
-a{color:var(--gold)}
+html,body{background:var(--bg);height:100%}
+body{color:var(--ink);font:20px/1.45 VT,ui-monospace,monospace}
 .hero{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;padding:48px 20px;isolation:isolate;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:-4%;background:url(assets/menu_bg3.webp) center/cover;z-index:-2;filter:brightness(.55) saturate(.9);animation:drift 40s ease-in-out infinite alternate}
-.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 45%,transparent 30%,rgba(7,5,11,.75) 75%,var(--bg) 100%)}
+.hero::before{content:"";position:absolute;inset:-4%;background:url(assets/menu_bg3.webp) center/cover;z-index:-2;filter:brightness(.4) saturate(.85);animation:drift 40s ease-in-out infinite alternate}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 45%,transparent 30%,rgba(7,5,11,.78) 75%,var(--bg) 100%)}
 @keyframes drift{from{transform:scale(1.04) translateY(-1%)}to{transform:scale(1.1) translateY(1.5%)}}
-.logo{width:min(720px,92vw);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,.8))}
-.tag{font-size:clamp(20px,3vw,26px);color:var(--dim);margin:10px auto 28px;max-width:34ch}
-.play{display:inline-block;font:400 clamp(26px,4vw,34px)/1 Pirata,serif;letter-spacing:.04em;color:#1a0d06;background:linear-gradient(#ffe2a6,#d9a24e);padding:16px 34px 14px;border-radius:6px;text-decoration:none;box-shadow:0 0 0 2px #3a2410,0 0 30px rgba(255,190,90,.35);transition:transform .15s,box-shadow .15s}
-.play:hover,.play:focus-visible{transform:translateY(-2px);box-shadow:0 0 0 2px #3a2410,0 0 46px rgba(255,190,90,.6);outline:none}
-.small{display:block;margin-top:12px;color:var(--dim);font-size:18px}
-.scroll{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:var(--dim);font-size:18px;opacity:.7}
-section{max-width:1080px;margin:0 auto;padding:72px 20px}
-h2{font:400 clamp(34px,5vw,46px)/1.1 Pirata,serif;color:var(--gold);margin-bottom:18px;text-align:center}
-.lead{max-width:62ch;margin:0 auto;text-align:center;color:var(--ink)}
-.video{margin:32px auto 0;max-width:960px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.6);background:#000}
-.video video{display:block;width:100%;height:auto}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:32px}
-.grid figure{border:1px solid var(--line);background:#000;overflow:hidden}
-.grid img{display:block;width:100%;height:auto;transition:transform .5s}
-.grid figure:hover img{transform:scale(1.03)}
-.grid figcaption{padding:8px 12px;color:var(--dim);font-size:18px}
-.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}
-.feat div{border-top:1px solid var(--blood);padding-top:12px}
-.feat b{display:block;font:400 26px/1.1 Pirata,serif;color:var(--ink);margin-bottom:6px;letter-spacing:.02em}
-.feat p{color:var(--dim);font-size:19px}
-.cta{text-align:center;padding-bottom:96px}
-.note{color:var(--dim);margin-top:14px;font-size:18px}
-footer{border-top:1px solid var(--line);text-align:center;color:var(--dim);font-size:17px;padding:28px 20px 40px}
-.notes{max-width:760px;margin:32px auto 0}
-.patch{border:1px solid var(--line);background:rgba(255,255,255,.02);padding:18px 22px;margin-bottom:16px}
-.patch h3{font:400 28px/1.1 Pirata,serif;color:var(--ink);letter-spacing:.02em}
-.patch .when{color:var(--dim);font-size:17px;margin:2px 0 10px}
-.patch ul{padding-left:22px}
-.patch li{margin:6px 0}
-.patch .why{display:block;color:var(--dim);font-size:17px}
-.nav{position:absolute;top:14px;right:18px;z-index:2}
-.nav a{color:var(--dim);text-decoration:none;font-size:19px;border-bottom:1px solid transparent}
-.nav a:hover{color:var(--gold);border-color:var(--gold)}
-@media (max-width:700px){.grid,.feat{grid-template-columns:1fr}section{padding:56px 18px}}
 @media (prefers-reduced-motion:reduce){.hero::before{animation:none}}
+.logo{width:min(640px,90vw);height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,.8))}
+h1{font:400 clamp(34px,5.5vw,52px)/1.1 Pirata,serif;color:var(--gold);margin:18px 0 10px;letter-spacing:.02em}
+p{max-width:40ch;margin:0 auto;color:var(--ink);font-size:clamp(20px,2.6vw,24px)}
+.dim{color:var(--dim);margin-top:14px;font-size:18px}
 </style>
 </head>
 <body>
-<header class="hero">
-  <nav class="nav"><a href="#patch-notes">Patch notes</a></nav>
+<main class="hero">
   <div>
     <img class="logo" src="assets/menu_logo.webp" alt="Malformed Depths">
-    <p class="tag">You wake by the river with no memory. Beneath the town of Palli, the Rift is waiting.</p>
-    <a class="play" href="game.html">Play the Free Demo</a>
-    <span class="small">Free in your browser · PC or phone · no download</span>
+    <h1>Down for maintenance</h1>
+    <p>Palli is being rebuilt. The free demo will be back soon.</p>
+    <p class="dim">Wellz Digitalez</p>
   </div>
-  <span class="scroll">▼</span>
-</header>
-
-<section>
-  <h2>The Trailer</h2>
-  <div class="video"><video src="assets/trailer2.mp4" controls playsinline preload="metadata" poster="shot_womb.jpg"></video></div>
-</section>
-
-<section>
-  <h2>Descend</h2>
-  <p class="lead">A dark action RPG drawn in rich pixel art. Choose the Knight, the Mage or the Rogue, gather what the dead left behind, and go down level by level into a place that should not exist.</p>
-  <div class="grid">
-    <figure><img src="shot_womb.jpg" alt="The mage in the Womb of Rot, torches and burning ground" loading="lazy"><figcaption>The Womb of Rot</figcaption></figure>
-    <figure><img src="shot_crypt.jpg" alt="Skeletons in a torch-lit crypt" loading="lazy"><figcaption>The Ossuary of Aranya</figcaption></figure>
-    <figure><img src="shot_palli_night.jpg" alt="Palli at night in the rain" loading="lazy"><figcaption>Palli by night</figcaption></figure>
-    <figure><img src="shot_palli_snow.jpg" alt="Palli under snow, Karmara the blacksmith at his anvil" loading="lazy"><figcaption>Palli in winter</figcaption></figure>
-  </div>
-  <div class="feat">
-    <div><b>Three heroes</b><p>Knight, Mage and Rogue, each with their own skills, ultimate and way of dying.</p></div>
-    <div><b>A living town</b><p>Ganesh, Karmara and Vaidya. Day and night, rain and snow, and a clock that tells you what is coming.</p></div>
-    <div><b>A buried story</b><p>Read the papyrus, search the dead. Every depth tells a little more of what opened the Rift, and of what waits at its bottom.</p></div>
-  </div>
-</section>
-
-<section class="cta">
-  <h2>The Demo</h2>
-  <p class="lead">Wake by the river, meet the people of Palli, learn what happened, and survive the first depth of the Rift.</p>
-  <p style="margin-top:28px"><a class="play" href="game.html">Play Now</a></p>
-  <p class="note">Nine more depths wait below. The full game is coming.</p>
-</section>
-
-<section id="patch-notes">
-  <h2>Patch Notes</h2>
-  <p class="lead">What has changed in the demo, newest first. Thank you to everyone sending feedback: it shapes every update.</p>
-  <div class="notes">
-<!-- PATCHES: newest first. Plain language; say what changed and, when it came from feedback, that it did. -->
-    <article class="patch">
-      <h3>Update 0.1.39</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>The attack button now shows the weapon you're actually holding, in the same new art as your inventory, for every hero. It changes when you equip a different weapon.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.38</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>Salvaging an upgraded item now also gives back a quarter of the Carbon you spent upgrading it, failed upgrades included.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.34</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>Karmara can now salvage gear you don't need. Break it down for Carbon: 1 for a plain Typical piece, 2 if it has a bonus stat, 5 for Grand and 8 for Heroic.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.30</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>Resistances matter more now. Poison and Malformed damage pass straight through armor, so resistance is your only defense against them. To balance this, those attacks hit a little softer, and the most resistance you can have is now 60%.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.29</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>The Bone Archer's bow has a new sound: a real bowstring twang and release instead of a whistle, with three versions so it doesn't repeat. From your feedback.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.28</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>Fixed the river in Palli reflecting lights as long squares. The reflections now shimmer smoothly across the water. Thanks for the report!</li>
-        <li>The Character page now says plainly which stat raises your hero's damage: Strength for the Knight, Dexterity for the Rogue, Intelligence for the Mage. The other stats say they add no damage for your class. From your feedback.</li>
-        <li>Fixed a hidden error some browsers caused when filling in text automatically.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.27</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>Resistances are here. Grand and Heroic gear can now roll Poison Resistance or Malformed Resistance, each cutting that kind of damage (up to 75%).</li>
-        <li>Poison comes from Spitters, the Brood Mother's spit and acid pools, and being poisoned. Malformed damage comes from Wraiths, the Children of the Unshaped, High Shaper Vessa and Ilvaroth's magic.</li>
-        <li>Your resistances are shown on the Character page.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.26</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>The shared chest is easier to use: drag items between the chest and your backpack, or right click an item to move it across. Dropping onto a filled slot swaps the two items.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.25</h3>
-      <p class="when">November 19, 2026</p>
-      <ul>
-        <li>Hovering the mouse over a skill on your skill bar now shows what it does, its rank, damage, cooldown and mana cost.</li>
-        <li>Gear that gives +1 to all skills now shows in your skill ranks: a skill at 10 with that bonus reads 11, in the skill tree and on the skill bar.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.23</h3>
-      <p class="when">November 18, 2026</p>
-      <ul>
-        <li>Twelve new heroic powers can now drop on heroic gear. Six work for any hero: Mana Siphon (hits restore mana), Giantsbane (more damage to bosses and elites), Ironskin (take less damage), Swiftness (faster movement), Chain Spark (critical hits arc lightning to nearby enemies) and Corpse Burst (slain enemies can explode).</li>
-        <li>Six are hero powers, two for each class, and only roll on that hero's gear. Knight: Bulwark (a stronger Shield Bash with a longer stun) and Crusader (War Cry heals you). Mage: Pyre (Fireball splits into three) and Permafrost (frozen enemies take more damage). Rogue: Venom Lord (Venom Coat lasts twice as long) and Phantom (Shadow Step strikes twice).</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.19</h3>
-      <p class="when">November 18, 2026</p>
-      <ul>
-        <li>The figure behind your gear in the inventory is now a proper body outline, a man's for the Knight and the Rogue and a woman's for the Mage, with each slot lined up on it: helm on the head, chest on the body, boots at the feet.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.18</h3>
-      <p class="when">November 18, 2026</p>
-      <ul>
-        <li>The bridge in Palli now reaches all the way to the far bank of the river, in every season.</li>
-        <li>The inventory fits phones better. Held upright, your gear shows above a full-size backpack; held sideways, the gear figure shrinks to fit. Empty gear slots show as boxes, and the figure behind your gear fits its space. The shared chest also stacks its two windows on an upright phone.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.17</h3>
-      <p class="when">November 18, 2026</p>
-      <ul>
-        <li>Five new heroic powers can appear on Heroic gear:
-          <ul>
-            <li>Wellspring: skills have a 20% chance to cost no mana.</li>
-            <li>Executioner: you deal 40% more damage to enemies below 30% life.</li>
-            <li>Warden's Ward: a ward soaks up damage equal to 15% of your life, and comes back after 8 seconds without being hit.</li>
-            <li>Rime: when you're hit, there's a 25% chance to freeze the enemies around you for 1.5 seconds.</li>
-            <li>Bloodrush: every kill gives you 20% more attack and movement speed for 4 seconds.</li>
-          </ul>
-        </li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.16</h3>
-      <p class="when">November 18, 2026</p>
-      <ul>
-        <li>Karmara has a voice. She greets you when you walk up to her forge, and your first talk with her is fully voiced, with a new script. Her gift of potions now comes on its own page.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.15</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>Skills cost more mana: about two and a half times as much, and a little more as a skill ranks up. Mana potions matter now. Every hero starts with a bit more mana and gains a bit more each level, while Intelligence brings mana back a little more slowly.</li>
-        <li>The Rogue fights with a dagger in each hand, and both blades add their damage. Each dagger hits a bit softer than before, so a good pair hits harder than one dagger used to.</li>
-        <li>Every hero can wear two rings.</li>
-        <li>New heroes start with a full set of plain gear (weapon, helm, chest, gloves and boots) and step out of Ganesh's door already on their feet.</li>
-        <li>When you fall in the depths, you wake up back in Palli and climb to your feet.</li>
-        <li>The same heroic power no longer stacks. If two pieces you wear share one, only one counts and the other is grayed out.</li>
-        <li>The inventory shows the gear you wear on a figure of your hero, with your backpack beside it. The how-to line that sat underneath moved to Help &amp; FAQ.</li>
-        <li>The shared chest opens in its own window on the left, with your inventory in a second window on the right.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.14</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>New: hide the HUD for clean screenshots and videos. On a PC, press H to hide the bars, buttons, map and the names on the ground, and press H again to bring them back (you can change the key in Settings → Controls). On a phone, use Settings → HUD; your controls stay, faint, and the HUD button in the corner brings everything back.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.13</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>The lamplight shimmering in Palli's puddles and river no longer shines over your hero, or anyone else standing in front of the water. (From a player report. Thank you!)</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.12</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>New art for the Mage when she faces down-right or down-left: standing, walking, attacking and her Arcane Slide. (From a player report. Thank you!)</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.11</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>New: camera zoom. On a PC, roll the mouse wheel or press Z to move the camera in closer to your hero (up to twice as close), and roll back out the same way. On a phone, use Settings → Camera zoom. (A player's idea. Thank you!)</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.10</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>Fixed the breathing animation. When heroes, monsters and bosses stood still, the inside of their bodies moved up and down while their outline stayed frozen. Now the whole upper body rises and falls together, so they breathe naturally. (From a player report. Thank you!)</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.9</h3>
-      <p class="when">November 17, 2026</p>
-      <ul>
-        <li>Choosing your hero is smoother. Switching between the Knight, the Mage and the Rogue used to make the screen blink and shift a little. Now it switches instantly and everything stays in place.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.8</h3>
-      <p class="when">November 16, 2026</p>
-      <ul>
-        <li>Fixed typing in the Report a Bug / Share an Idea box. Some keys were being read as game controls, so the space bar made your hero roll and some letters opened other menus. Everything you type now goes into the box, and the game's buttons can't be pressed while a menu is open. (Found while testing the report page.)</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.7</h3>
-      <p class="when">November 16, 2026</p>
-      <ul>
-        <li>New: Report a Bug / Share an Idea. Open the pause menu (or reach the end of the demo) to tell us what went wrong or what you'd like to see. Every report is read, and the changes it leads to will show up here.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.6</h3>
-      <p class="when">November 16, 2026</p>
-      <ul>
-        <li>The heroes walk properly on diagonals. Walking at an angle used to look more like skipping. Now the Knight, the Mage and the Rogue take real steps in every direction.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.5</h3>
-      <p class="when">November 16, 2026</p>
-      <ul>
-        <li>Monsters now turn to face where they're going. Skeletons, archers, bats and ghouls used to be drawn only from the side, even when walking straight at you. Now you see them from the front, the back and every angle in between.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.4</h3>
-      <p class="when">November 16, 2026</p>
-      <ul>
-        <li>Fixed things sitting on top of each other in the dungeon. A chest could land in the same spot as a shrine, a note or the stairs. Now every chest, shrine and note gets its own space.</li>
-        <li>Monsters no longer start inside walls, on the stairs or stuck in objects.</li>
-        <li>Tidied the floors: bones and rubble no longer stick out from under the stairs or pile on top of each other, and wall torches no longer hang right next to each other.</li>
-        <li>Dropped loot no longer lands inside objects where it's hard to grab.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.3</h3>
-      <p class="when">November 15, 2026</p>
-      <ul>
-        <li>Fixed missing buttons on some phones. The Roll button, your skills and the Talk button could fail to appear, so you couldn't talk to Ganesh or anyone else. The game now puts them back in place whenever your screen settles or changes size.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.2</h3>
-      <p class="when">November 15, 2026</p>
-      <ul>
-        <li>The shared chest is easier to use. The chest is now on the left and your backpack on the right, so you can see both at once and move items across without scrolling. Your gold and Carbon sit side by side above them.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Update 0.1.1</h3>
-      <p class="when">November 15, 2026</p>
-      <ul>
-        <li>The Rift menu is cleaner. The harder difficulties no longer fill the screen with their lock messages. Tap a locked difficulty to see what you need to beat to open it.</li>
-        <li>Footsteps are softer. Your hero's steps were too sharp and clicky, so they are now quieter and gentler on the ears.</li>
-      </ul>
-    </article>
-    <article class="patch">
-      <h3>Demo 0.1</h3>
-      <p class="when">November 15, 2026</p>
-      <ul>
-        <li>The free demo is out: wake by the river, explore Palli, hear the story so far, and fight through the first depth of the Rift.</li>
-        <li>Play it in your browser on a PC or phone. Nothing to download.</li>
-      </ul>
-    </article>
-  </div>
-</section>
-
-<footer><a href="#patch-notes">Patch notes</a> · Malformed Depths © 2026 Wellz Digitalez · by Mathis Wellz</footer>
+</main>
 </body>
 </html>
