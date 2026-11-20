@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.37';
+const GAME_VER = '0.1.38';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -3442,6 +3442,9 @@ function genShop(){
 }
 // --- Karmara: upgrades & reforging with Carbon
 function refItem(ref){ const P = G.P; if(!ref) return null; return ref.eq ? P.eq[ref.eq] : ref.inv !== undefined ? P.inv[ref.inv] : null; }
+// Carbon put into an item's upgrades: what each try cost, failures included (it.spent); older items, from before it was counted, assume each +level took one try
+function upgradeSpentBase(it){ let t = 0; for(let k = 0; k < (it.plus || 0); k++) t += CARBON_UP[k] || 0; return t; }
+function upgradeSpent(it){ return it.spent != null ? it.spent : upgradeSpentBase(it); }
 function maxPlus(it){ return it && it.rarity === 'godly' ? 5 : 10; }   // Godly pieces grow with the hero instead, so Carbon takes them only to +5 (2026-11-19, Mathis)
 function upgradeCost(it){
   const n = (it.plus || 0) + 1; if(n > maxPlus(it)) return null;
@@ -3453,7 +3456,7 @@ function upgradeItem(ref){
   if(!c){ toast(`This item is already +${maxPlus(it)}, the most it can take.`, '#94b0c2'); return; }
   if(P.carbon < c.carbon){ toast(`You need ${c.carbon} Carbon.`, '#e43b44'); sfx('error'); return; }
   if(P.gold < c.gold){ toast(`You need ${c.gold} gold.`, '#e43b44'); sfx('error'); return; }
-  P.carbon -= c.carbon; P.gold -= c.gold;
+  P.carbon -= c.carbon; P.gold -= c.gold; it.spent = (it.spent != null ? it.spent : upgradeSpentBase(it)) + c.carbon;   // every try counts, failed ones too (salvage pays a quarter back)
   if(R() < c.chance){ it.plus = c.n; sfx('upsuccess'); toast(`Success! ${itemName(it)}`, '#ffcd75'); G.lastUp = 'ok'; }
   else { sfx('upfail'); toast(`The upgrade failed. ${it.name} stays at +${it.plus}.`, '#e43b44'); G.lastUp = 'fail'; }
   derive(P); saveGame(); uiDirty();
@@ -7235,7 +7238,9 @@ function karmaraTabs(cur){
   return `<div class="tabs">${[['buy', 'Buy'], ['sell', 'Sell'], ['repair', 'Repair'], ['upgrade', 'Upgrade'], ['reforge', 'Reforge'], ['salvage', 'Salvage']].concat(P.imbueOpen ? [['imbue', 'Imbue']] : []).map(([t, l]) => `<button class="btn${cur === t ? ' on' : ''}" style="font-size:17px;padding:6px 2px" onclick="${t === 'imbue' ? 'openImbue()' : `genShopIfNeeded();UI.shopOpen=true;UI.panel='shop';UI.tab='${t}';UI.sel=null;UI.sellAsk=null;G.lastUp=null;refreshPanel()`}">${l}</button>`).join('')}</div>`;
 }
 // ---- salvage: Typical 1 Carbon (2 with a bonus stat), Grand 5, Heroic 8, Godly 18; metal snaps, leather and cloth tear
-function salvageValue(it){ if(!it) return 0; if(it.rarity === 'godly') return 18; if(it.rarity === 'heroic') return 8; if(it.rarity === 'grand') return 5; return it.affixes.some(a => !a.implicit) ? 2 : 1; }
+function salvageBase(it){ if(!it) return 0; if(it.rarity === 'godly') return 18; if(it.rarity === 'heroic') return 8; if(it.rarity === 'grand') return 5; return it.affixes.some(a => !a.implicit) ? 2 : 1; }
+function salvageBack(it){ return Math.round(upgradeSpent(it)/4); }   // a quarter of the Carbon spent upgrading it (2026-11-19, Mathis)
+function salvageValue(it){ return it ? salvageBase(it) + salvageBack(it) : 0; }
 function salvageSoft(it){ return ['helm', 'chest', 'gloves', 'boots'].includes(it.slot) && it.cls && CLASSES[it.cls].armor !== 'heavy'; }
 function salvageItem(i){
   const P = G.P, it = P.inv[i]; if(!it || !it.slot) return;
@@ -7281,7 +7286,7 @@ function renderShop(){
     h += `<div class="sub" style="margin-bottom:6px">"Something you'll never wear? Hand it here. I'll break it down to the Carbon in it."</div>`;
     h += gearPicker(false, it => !!it.slot);
     if(sel && UI.sel.inv !== undefined){ const n = salvageValue(sel), big = sel.rarity === 'heroic' || sel.rarity === 'godly', ask = UI.salvAsk === sel.id;
-      foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Salvage for <b style="color:#c3cad8">${n} Carbon</b>. The item is destroyed.</div><div class="row" style="margin-top:8px"><button class="btn gold" onclick="salvageItem(${UI.sel.inv})">${big && !ask ? `Salvage this ${rarityDef(sel.rarity).name} piece` : big ? 'Yes, break it down' : 'Salvage'}</button></div>${big && ask ? '<div class="sub" style="margin-top:4px;color:#ff7a7a">Tap again to confirm. This cannot be undone.</div>' : ''}`; }
+      foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Salvage for <b style="color:#c3cad8">${n} Carbon</b>. The item is destroyed.${salvageBack(sel) ? `<div class="sub" style="font-size:15px">${salvageBase(sel)} for the piece + ${salvageBack(sel)} back from the ${upgradeSpent(sel)} Carbon spent upgrading it</div>` : ''}</div><div class="row" style="margin-top:8px"><button class="btn gold" onclick="salvageItem(${UI.sel.inv})">${big && !ask ? `Salvage this ${rarityDef(sel.rarity).name} piece` : big ? 'Yes, break it down' : 'Salvage'}</button></div>${big && ask ? '<div class="sub" style="margin-top:4px;color:#ff7a7a">Tap again to confirm. This cannot be undone.</div>' : ''}`; }
   } else if(tab === 'reforge'){
     h += `<div class="sub" style="margin-bottom:6px">"Found something made for another kind of fighter? Give me Carbon and gold and I'll beat it into a new shape. Stats and upgrades stay."</div>`;
     h += gearPicker(false, it => !!it.cls);
