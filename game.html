@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.34';
+const GAME_VER = '0.1.35';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -817,7 +817,7 @@ const UNIQUES = {
 const KARMARA_ALDREN = '"This was his! I don\'t wanna keep it. This belongs to a Knight worthy of the rift. Take it... thank you."';   // Karmara, when asked to reforge Aldren's Breastplate (Mathis)
 // each boss's own Godly piece (more to come) and the chance it drops; Breeze never drops one. Ilvaroth's Eye drops every time, on its own
 const BOSS_GODLY = {aldren:'aldren'};
-const GODLY_DROP = {nightmare:0.1, malformed:0.2};
+const GODLY_DROP = {nightmare:0.1, malformed:1/7};   // Malformed 1 in 7 (2026-11-19, Mathis; was 1 in 5)
 // Godly items carry a stronger version of their power (2026-11-19, Mathis: "every Godly tier item has a slight increase")
 const GODLY_POWERS = {
   allskills:{v:2, name:'+2 to all skill ranks'},
