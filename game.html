@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.50';
+const GAME_VER = '0.1.51';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -2058,12 +2058,15 @@ function genOut(){
   // the Camp of Fortitude's people (batch 31): General Hash before his tent, the archer under the lookout, the healer by the fire, and the
   // three knights: knight 2 already on guard at the north gate, knight 1 soon off to the west gap, knight 3 drilling (sim.js campTick)
   const CA = D.camp;
-  M.objects.push({type:'npc', id:'hash', x:CA.hash[0], y:CA.hash[1], name:'General Hash', role:'The Fortitude', face:1, work:true, talks:true});
-  for(const k in CA.folk){ const f = CA.folk[k]; M.objects.push({type:'camp', id:k, x:f[0], y:f[1], face:f[2], work:true, seed:R()*9}); }
-  M.camp = {left:{n:-1e9, w:-1e9}, knights:CA.homes.map((h, i) => ({type:'camp', id:'knight' + (i + 1), i, x:h[0], y:h[1], dir:h[2], home:h[2], st:'home', t:[6 + R()*8, 0, 30 + R()*25][i], work:true, seed:R()*9, stride:0}))};
+  // (each a body as big as the hero's, solid to him, 2026-11-21: Mathis could run right through the knights)
+  const hash = {type:'npc', id:'hash', x:CA.hash[0], y:CA.hash[1], name:'General Hash', role:'The Fortitude', face:1, work:true, talks:true, labelUp:39};
+  const folk = Object.keys(CA.folk).map(k => { const f = CA.folk[k]; return {type:'camp', id:k, x:f[0], y:f[1], face:f[2], work:true, seed:R()*9}; });
+  M.camp = {left:{n:-1e9, w:-1e9}, knights:CA.homes.map((h, i) => ({type:'camp', id:'knight' + (i + 1), i, x:h[0], y:h[1], dir:h[2], home:h[2], st:'home', t:[6 + R()*8, 0, 30 + R()*25][i], work:true, seed:R()*9, stride:0, stuck:0}))};
   { const k = M.camp.knights[1], p = CA.posts.n; Object.assign(k, {st:'guard', post:'n', x:p[0], y:p[1], dir:p[2], work:false, t:14 + R()*20}); }
-  M.objects.push(...M.camp.knights);
-  M.props = []; M.items = []; M.monsters = []; M.solids = [];
+  M.camp.all = [hash, ...folk, ...M.camp.knights];
+  for(const b of M.camp.all){ b.rx = 6; b.ry = 3.3; b.camp = true; }
+  M.objects.push(...M.camp.all);
+  M.props = []; M.items = []; M.monsters = []; M.solids = [...M.camp.all];   // (the camp's people are the Outskirts' only solids besides the ground grid)
   // what blocks: the ground each piece stands on (OUTSK.ty[key].col, at world scale 1 from its anchor, mirrored when flipped),
   // laid into a grid of 2 world px cells, and the barrier behind the gate
   const C = 2, gw = Math.ceil(M.w*TS/C), gh = Math.ceil(M.h*TS/C), g = new Uint8Array(gw*gh);
@@ -2809,11 +2812,12 @@ function spawnQuestBoss(M){
 
 // ---------------- collision ----------------
 function solidAt(M, px, py){ const tx = Math.floor(px/TS), ty = Math.floor(py/TS); return !walkable(M, tx, ty) && !(py - ty*TS < LIP && lipTile(M, tx, ty)); }   // a bottom wall's lip is open (world.js)
-function blockedCircle(M, x, y, r){
+function blockedCircle(M, x, y, r, skipCamp){
   if(!M.fine && (solidAt(M, x - r, y - r*0.5) || solidAt(M, x + r, y - r*0.5) || solidAt(M, x - r, y + r*0.6) || solidAt(M, x + r, y + r*0.6))) return true;   // (Palli: its fine grid instead)
   if(M.bgrid){ const B = M.bgrid, C = B.c, ry = r*0.55; if(x - r < 0 || y - ry < 0 || x + r > B.w*C || y + ry > B.h*C) return true; const i0 = Math.max(0, Math.floor((x - r)/C)), i1 = Math.min(B.w - 1, Math.floor((x + r)/C)), j0 = Math.max(0, Math.floor((y - ry)/C)), j1 = Math.min(B.h - 1, Math.floor((y + ry)/C));   // the Outskirts: the ground under the body's ellipse
     for(let j = j0; j <= j1; j++){ const dy = (Math.max(j*C, Math.min(y, j*C + C)) - y)/ry; for(let i = i0; i <= i1; i++){ if(!B.g[j*B.w + i]) continue; const dx = (Math.max(i*C, Math.min(x, i*C + C)) - x)/r; if(dx*dx + dy*dy < 1) return true; } } }
   if(M.solids) for(const s of M.solids){
+    if(s.camp && (skipCamp || s.ghost)) continue;   // the Camp of Fortitude's people (world.js genOut): solid, not to themselves walking (sim.js campTick), nor to a hero who stands in one
     if(s.w){ if(x + r > s.x && x - r < s.x + s.w && y + r*0.55 > s.y && y - r*0.55 < s.y + s.h) return true; continue; }   // a wall (the remade Palli's buildings)
     const dx = (x - s.x)/(s.rx + r), dy = (y - s.y)/(s.ry + r*0.55); if(dx*dx + dy*dy < 1) return true; }   // town props
   return false;
@@ -3790,25 +3794,54 @@ function update(dt){
 // to the camp and guard for a bit and then back inside"). They take turns: a rested knight walks out to whichever opening has gone
 // unguarded longest (none goes where another already stands or is walking), stands guard 25-45 s facing out, walks home and rests
 // 20-50 s at his own work. Their ways (OUTSK.camp.ways, tools_out_world.py) go round the tents and the people standing still.
+// They are solid (Mathis could run right through them): a knight never walks into anyone. Someone in his way (within 14 px ahead,
+// 12 to either side, measured with y stretched by 1/0.55 so the bodies' ellipses are circles of 6) he walks round, on the side away
+// from them; the hero he waits for a moment first, as if to let him by. Where there's no room round, he stands and waits for him;
+// two knights stuck on each other 6 s walk on through each other. (Nobody is solid to a hero who stands inside them, so no one is trapped.)
+const CAMP_YS = 1/0.55;
+function campTouch(x, y, b, r){ const rb = b.camp ? 6 : (b.r || 6), dx = (x - b.x)/(rb + r), dy = (y - b.y)/((rb + r)*0.55); return dx*dx + dy*dy < 1; }
+function campCanStand(M, k, x, y, P){
+  if(blockedCircle(M, x, y, 6, true)) return false;
+  if(P && campTouch(x, y, P, 6) && !campTouch(k.x, k.y, P, 6)) return false;
+  if(k.stuck < 6) for(const b of M.camp.all) if(b !== k && campTouch(x, y, b, 6) && !campTouch(k.x, k.y, b, 6)) return false;
+  return true;
+}
 function campTick(M, dt){
-  const C = M.camp, W = OUTSK.camp.ways, PO = OUTSK.camp.posts, SP = 22;   // walking pace, world px a second
+  const C = M.camp, W = OUTSK.camp.ways, PO = OUTSK.camp.posts, SP = 22, P = G.P, YS = CAMP_YS;   // walking pace, world px a second
+  for(const b of C.all) b.ghost = !!P && campTouch(P.x, P.y, b, P.r || 6);   // (a hero who arrives standing in one of them walks out freely)
   for(const k of C.knights){
     if(k.st === 'home' || k.st === 'guard') k.t -= dt;
     if(k.st === 'home' && k.t <= 0){
       const open = Object.keys(PO).filter(p => !C.knights.some(o => o !== k && o.post === p && o.st !== 'back')).sort((a, c) => C.left[a] - C.left[c]);
-      if(open.length){ k.post = open[0]; k.way = W[k.i + k.post]; k.wi = 1; k.st = 'out'; k.walk = true; k.work = false; }
+      if(open.length){ k.post = open[0]; k.way = W[k.i + k.post]; k.wi = 1; k.st = 'out'; k.walk = true; k.work = false; k.stuck = 0; }
       else k.t = 5 + R()*8;
-    } else if(k.st === 'guard' && k.t <= 0){ C.left[k.post] = G.time; k.way = W[k.i + k.post].slice().reverse(); k.wi = 1; k.st = 'back'; k.walk = true; k.work = false; }
+    } else if(k.st === 'guard' && k.t <= 0){ C.left[k.post] = G.time; k.way = W[k.i + k.post].slice().reverse(); k.wi = 1; k.st = 'back'; k.walk = true; k.work = false; k.stuck = 0; }
     if(!k.walk) continue;
-    let step = SP*dt;
-    while(step > 0 && k.wi < k.way.length){
-      const [tx, ty] = k.way[k.wi], dx = tx - k.x, dy = ty - k.y, d = Math.hypot(dx, dy);
-      if(d > 0.5) k.dir = HDIR_SEC[((Math.round(Math.atan2(dy, dx)/(Math.PI/4)) % 8) + 8) % 8];
-      if(d <= step){ k.x = tx; k.y = ty; k.wi++; step -= d; k.stride += d; }
-      else { k.x += dx/d*step; k.y += dy/d*step; k.stride += step; step = 0; }
+    k.halt = false; let step = SP*dt;
+    while(step > 0.01 && k.wi < k.way.length){
+      const [tx, ty] = k.way[k.wi]; let fx = tx - k.x, fy = (ty - k.y)*YS; const d = Math.hypot(fx, fy);
+      if(d < 0.6){ k.wi++; k.stuck = 0; continue; }
+      fx /= d; fy /= d;
+      let blk = null, bl = 0, ba = 1e9;   // the nearest body in his way
+      for(const b of P ? [P, ...C.all] : C.all){ if(b === k || (k.stuck >= 6 && b !== P)) continue; const rx = b.x - k.x, ry = (b.y - k.y)*YS, al = rx*fx + ry*fy, la = -rx*fy + ry*fx;
+        if(al > -2 && al < 26 && Math.abs(la) < 12 && al < ba){ blk = b; bl = la; ba = al; } }
+      if(blk === P && (k.wait = (k.wait || 0) + dt) < 0.7){ k.halt = true; break; }
+      if(!blk) k.wait = 0;
+      const tries = blk ? [bl > 0 ? -1 : 1, bl > 0 ? 1 : -1] : [0];
+      let moved = false;
+      for(const s of tries){
+        let mx = fx, my = fy; if(s){ mx = fx*0.35 - fy*s; my = fy*0.35 + fx*s; const n = Math.hypot(mx, my); mx /= n; my /= n; }
+        const st = s ? step : Math.min(step, d), nx = k.x + mx*st, ny = k.y + my*st/YS;
+        if(campCanStand(M, k, nx, ny, P)){
+          k.x = nx; k.y = ny; k.stride += st; step -= st; moved = true;
+          k.dir = HDIR_SEC[((Math.round(Math.atan2(my/YS, mx)/(Math.PI/4)) % 8) + 8) % 8]; break;
+        }
+      }
+      if(!moved){ k.halt = true; k.stuck += dt; break; }
+      if(blk) break;   // (one step round at a time)
     }
     if(k.wi >= k.way.length){
-      k.walk = false;
+      k.walk = false; k.halt = false; k.stuck = 0;
       if(k.st === 'out'){ k.st = 'guard'; k.t = 25 + R()*20; k.dir = PO[k.post][2]; k.work = k.id === 'knight1' && k.dir === 'w'; }   // knight 1 looks about (his work) at the west gap
       else { k.st = 'home'; k.t = 20 + R()*30; k.dir = k.home; k.post = null; k.work = true; }
     }
@@ -4879,7 +4912,7 @@ function campDraw(o, t){
   if(typeof CAMP_MAN === 'undefined') return false;
   const F = CAMP_MAN.f[o.id]; if(!F) return false;
   let key, face = o.face || 1, breath = 0;
-  if(o.walk){ const [d, mir] = HDIR_SRC[o.dir] || HDIR_SRC.e; key = 'wk_' + d + '_' + (1 + Math.floor((o.stride || 0)/2.6) % 8); face = mir ? -1 : 1; }
+  if(o.walk && !o.halt){ const [d, mir] = HDIR_SRC[o.dir] || HDIR_SRC.e; key = 'wk_' + d + '_' + (1 + Math.floor((o.stride || 0)/2.6) % 8); face = mir ? -1 : 1; }
   else if(o.talks && campNear(o)){ key = 'tlk_' + (1 + Math.floor(t/0.15) % 8); face = G.P.x > o.x ? 1 : -1; }
   else if(o.work && F.wrk_1){ key = 'wrk_' + campWorkFrame(o.id, t + (o.seed || 0)); if(o.dir) face = HDIR_SRC[o.dir][1] ? -1 : 1; }
   else { const [d, mir] = HDIR_SRC[o.dir || (face < 0 ? 'w' : 'e')]; key = d === 'e' ? 'idl' : 'idl_' + d; face = mir ? -1 : 1; breath = 1 - Math.cos((t + (o.seed || 0))*Math.PI*2/3.4); }   // 0..2 px, one breath every 3.4 s
@@ -5866,7 +5899,7 @@ function drawBreath(cx, cy){
   const t = G.time, z = zoom, M = G.M, P = G.P, src = [];
   for(const h of party()) if(!(h.down > 0) && !(h.lying > 0) && G.state !== 'dead') src.push([h, h.x + (h.face < 0 ? -2.4 : 2.4), h.y - 18.4, h.face < 0 ? -1 : 1]);
   for(const o of M.objects){ if(o.type !== 'npc') continue; const near = P && Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26, f = near ? (P.x > o.x ? 1 : -1) : (o.face || (o.id === 'ganesh' ? 1 : -1));
-    src.push([o, o.x + f*2.4, o.y - (o.id === 'karmara' && !near ? 16.5 : o.id === 'hash' ? (near ? 21 : 15) : 19), f]); }
+    src.push([o, o.x + f*2.4, o.y - (o.id === 'karmara' && !near ? 16.5 : o.id === 'hash' ? (near ? 23.5 : 17) : 19), f]); }
   for(const [e, x, y, f] of src){ let n = BREATH.next.get(e); if(n === undefined || n > t + 5){ n = t + Math.random()*2.5; BREATH.next.set(e, n); }
     if(t >= n){ BREATH.list.push({x, y, f, t0:t}); BREATH.next.set(e, t + 2.3 + Math.random()*1.6); } }
   if(BREATH.list.length > 40) BREATH.list.splice(0, BREATH.list.length - 40);
@@ -6186,7 +6219,7 @@ function drawObject(o){
   switch(o.type){
     case 'camp': { drawShadow(o.x, o.y, o.id === 'archer' || o.id === 'healer' ? 10 : 12, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
     case 'npc': {
-      if(o.id === 'hash'){ drawShadow(o.x, o.y, 13, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
+      if(o.id === 'hash'){ drawShadow(o.x, o.y, 14, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
       drawShadow(x, y, 12, 1 - (o.silK || 0));
       const bob = Math.floor(t*1.5 + x) % 2 ? -1 : 0;
       SIL.ent = o; const npcHD = RES > 1 && hdNPC(o, x, y, t); SIL.ent = null;
@@ -6360,7 +6393,7 @@ function drawHiRes(cx, cy){
     if(L.l === tgt){ ctx.lineWidth = Math.max(1, Z*0.45); ctx.strokeStyle = '#ffcd75'; ctx.strokeRect(x0, y0, L.tw, lh); } }
   // NPC & elite names
   ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`;
-  if(!UI.noHud) for(const o of M.objects){ if(o.type !== 'npc' && o.type !== 'rift' && o.type !== 'tp') continue; const [sx, sy] = ws(o.x, o.y - (o.type === 'npc' ? 34 : 30));
+  if(!UI.noHud) for(const o of M.objects){ if(o.type !== 'npc' && o.type !== 'rift' && o.type !== 'tp') continue; const [sx, sy] = ws(o.x, o.y - (o.type === 'npc' ? (o.labelUp || 34) : 30));
     ctx.lineWidth = Z*0.9; ctx.strokeStyle = '#05040a'; const lab = o.type === 'npc' ? o.name : o.type === 'rift' ? 'The Rift' : (o.label || 'Town Portal'); ctx.strokeText(lab, sx, sy); ctx.fillStyle = o.type === 'npc' ? '#ffcd75' : '#b98cff'; ctx.fillText(lab, sx, sy);
     if(o.type === 'npc'){ ctx.font = `${Math.round(fs*0.85)}px VT323, monospace`; ctx.strokeText(o.role, sx, sy + fs); ctx.fillStyle = '#a8a0b8'; ctx.fillText(o.role, sx, sy + fs); ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`;
       if(npcHasNews(o.id)){ const bob = Math.sin(G.time*4)*Z*1.5; ctx.font = `bold ${fs*2}px VT323, monospace`; ctx.strokeText('!', sx, sy - fs*1.4 + bob); ctx.fillStyle = '#ffcd75'; ctx.fillText('!', sx, sy - fs*1.4 + bob); ctx.font = `${Math.round(fs*1.05)}px VT323, monospace`; } } }
