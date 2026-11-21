@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.46';
+const GAME_VER = '0.1.47';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -5516,7 +5516,7 @@ function render(){
   const drawList = [];
   for(const o of M.objects){ if(!M.isTown && !M.explored[Math.floor(o.y/TS)*M.w + Math.floor(o.x/TS)]) continue; drawList.push({y:o.y, o}); }
   if(DA){ for(const u of M.hd.ups) if(u[1] > cx - 40 && u[1] < cx + BW + 40 && u[2] > cy - 4 && u[2] < cy + BH + 70) drawList.push({y:u[2], dk:u}); }
-  if(M.out){ const x0 = cx - 180, x1 = cx + BW + 180, y1 = cy + BH + 230;   // the Outskirts: every piece in strips, each sorted at its own ground line
+  if(M.out){ const x0 = cx - 180, x1 = cx + BW + 180, y1 = cy + BH + 270;   // (the city wall's stretches are 256 tall)   // the Outskirts: every piece in strips, each sorted at its own ground line
     for(const p of M.place){ if(p[1] < x0 || p[1] > x1 || p[2] < cy - 4 || p[2] > y1) continue; const T = OUTSK.ty[p[0]], ws = p[5], L = p[1] - T.ww*ws/2, R = p[1] + T.ww*ws/2, n = T.sb.length;
       T.sb.forEach(([a0, a1, dy], i) => { let xa = p[3] ? R - a1*ws : L + a0*ws, xb = p[3] ? R - a0*ws : L + a1*ws; if(i === (p[3] ? n - 1 : 0)) xa -= 2; if(i === (p[3] ? 0 : n - 1)) xb += 2;
         if(xb > cx - 2 && xa < cx + BW + 2) drawList.push({y:p[2] + dy*ws, t:p, sx:[xa, xb]}); }); } }
