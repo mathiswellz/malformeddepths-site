@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.45';
+const GAME_VER = '0.1.46';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -2048,8 +2048,16 @@ function genOut(){
     {type:'ogate', x:S.gate[0], y:S.gate[1], name:'The great gate'},
     {type:'oscar', x:S.scar[0], y:S.scar[1], name:'The Rift scar'}
   ];
-  M.props = []; M.items = []; M.monsters = [];
-  M.solids = D.solids.map(([x, y, rx, ry]) => ({x, y, rx, ry})).concat(D.rects.map(([x, y, w, h]) => ({x, y, w, h})));
+  M.props = []; M.items = []; M.monsters = []; M.solids = [];
+  // what blocks: the ground each piece stands on (OUTSK.ty[key].col, at world scale 1 from its anchor, mirrored when flipped),
+  // laid into a grid of 2 world px cells, and the barrier behind the gate
+  const C = 2, gw = Math.ceil(M.w*TS/C), gh = Math.ceil(M.h*TS/C), g = new Uint8Array(gw*gh);
+  const fill = (x0, y0, x1, y1) => { const i0 = Math.max(0, Math.floor(x0/C)), i1 = Math.min(gw - 1, Math.ceil(x1/C) - 1), j0 = Math.max(0, Math.floor(y0/C)), j1 = Math.min(gh - 1, Math.ceil(y1/C) - 1);
+    for(let j = j0; j <= j1; j++) g.fill(1, j*gw + i0, j*gw + i1 + 1); };
+  for(const [k, x, y, fl, , ws] of D.place){ const T = D.ty[k]; if(!T) continue;
+    for(const [rx, ry, rw, rh] of T.col){ const a = fl ? x - (rx + rw)*ws : x + rx*ws; fill(a, y + ry*ws, a + rw*ws, y + (ry + rh)*ws); } }
+  for(const [x, y, w, h] of D.barrier) fill(x, y, x + w, y + h);
+  M.bgrid = {g, w:gw, h:gh, c:C};
   return M;
 }
 function genTown(){
@@ -2788,6 +2796,8 @@ function spawnQuestBoss(M){
 function solidAt(M, px, py){ const tx = Math.floor(px/TS), ty = Math.floor(py/TS); return !walkable(M, tx, ty) && !(py - ty*TS < LIP && lipTile(M, tx, ty)); }   // a bottom wall's lip is open (world.js)
 function blockedCircle(M, x, y, r){
   if(solidAt(M, x - r, y - r*0.5) || solidAt(M, x + r, y - r*0.5) || solidAt(M, x - r, y + r*0.6) || solidAt(M, x + r, y + r*0.6)) return true;
+  if(M.bgrid){ const B = M.bgrid, C = B.c, ry = r*0.55, i0 = Math.max(0, Math.floor((x - r)/C)), i1 = Math.min(B.w - 1, Math.floor((x + r)/C)), j0 = Math.max(0, Math.floor((y - ry)/C)), j1 = Math.min(B.h - 1, Math.floor((y + ry)/C));   // the Outskirts: the ground under the body's ellipse
+    for(let j = j0; j <= j1; j++){ const dy = (Math.max(j*C, Math.min(y, j*C + C)) - y)/ry; for(let i = i0; i <= i1; i++){ if(!B.g[j*B.w + i]) continue; const dx = (Math.max(i*C, Math.min(x, i*C + C)) - x)/r; if(dx*dx + dy*dy < 1) return true; } } }
   if(M.solids) for(const s of M.solids){
     if(s.w){ if(x + r > s.x && x - r < s.x + s.w && y + r*0.55 > s.y && y - r*0.55 < s.y + s.h) return true; continue; }   // a wall (the remade Palli's buildings)
     const dx = (x - s.x)/(s.rx + r), dy = (y - s.y)/(s.ry + r*0.55); if(dx*dx + dy*dy < 1) return true; }   // town props
@@ -4957,14 +4967,22 @@ function townSpr(k, sc, win){ if(TOWNR.res !== RES){ TOWNR.res = RES; TOWNR.c = 
   const src = win ? TOWNSNOW.img : TOWN_MAN.im && TOWN_MAN.im[k] || TOWNIMG; if(!src.complete || !src.naturalWidth) return null;   // a remade piece still loading
   const r = (win ? TOWN_MAN_SNOW : TOWN_MAN).s[k], f = RES/6*sc; c = mkCanvas(Math.ceil(r[2]*f) + 2, Math.ceil(r[3]*f) + 2); const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(src, r[0], r[1], r[2], r[3], 1, 1, r[2]*f, r[3]*f); return TOWNR.c[key] = c; }
-function drawTownKey(k, x, y, flip, sc = 1, alpha = 1){
+function drawTownKey(k, x, y, flip, sc = 1, alpha = 1, sx){
+  if(sx) return drawTownOne(k, x, y, flip, sc, alpha, false, sx);
   const cov = townCover(), win = cov > 0 && TOWN_MAN_SNOW.s[k] && townSnowImgs();
   if(!win || cov < 1) drawTownOne(k, x, y, flip, sc, alpha, false);
   if(win) drawTownOne(k, x, y, flip, sc, alpha*cov, true);
 }
-function drawTownOne(k, x, y, flip, sc, alpha, win){
+function drawTownOne(k, x, y, flip, sc, alpha, win, sx){
   const r = (win ? TOWN_MAN_SNOW : TOWN_MAN).s[k]; if(!r) return; const s = sc/6, c = townSpr(k, Math.round(sc*100)/100, win); if(!c) return; const q = 1/RES, w = c.width*q, h = c.height*q, snap = v => Math.round(v*RES)/RES;   // drawn one to one on the picture's pixel grid
   if(alpha < 1) b.globalAlpha = alpha;
+  if(sx){   // one strip of it (the Outskirts' pieces: world x sx[0]..sx[1]), cut on whole pixels so strips meet without a seam
+    const cl = j => Math.max(0, Math.min(c.width, j));
+    if(flip){ const X = snap(x), L = snap(-r[4]*s) - q, ja = cl(Math.round((X - L - sx[1])*RES)), jb = cl(Math.round((X - L - sx[0])*RES));
+      if(jb > ja){ b.save(); b.translate(X, snap(y)); b.scale(-1, 1); b.drawImage(c, ja, 0, jb - ja, c.height, L + ja*q, snap(-r[5]*s) - q, (jb - ja)*q, h); b.restore(); } }
+    else { const DX = snap(x - r[4]*s) - q, ja = cl(Math.round((sx[0] - DX)*RES)), jb = cl(Math.round((sx[1] - DX)*RES));
+      if(jb > ja) b.drawImage(c, ja, 0, jb - ja, c.height, DX + ja*q, snap(y - r[5]*s) - q, (jb - ja)*q, h); }
+    if(alpha < 1) b.globalAlpha = 1; return; }
   if(flip){ b.save(); b.translate(snap(x), snap(y)); b.scale(-1, 1); b.drawImage(c, snap(-r[4]*s) - q, snap(-r[5]*s) - q, w, h); b.restore(); }
   else b.drawImage(c, snap(x - r[4]*s) - q, snap(y - r[5]*s) - q, w, h);
   if(alpha < 1) b.globalAlpha = 1;
@@ -5106,7 +5124,15 @@ if(TOWN_V2) for(const k in TOWN2.spr) if(TOWN2.spr[k][6]) TOWN_FADE[k] = 1;
 function drawRail(p){ const im = TOWN_MAN.im && TOWN_MAN.im.frail; if(!im || !im.naturalWidth) return; const F = TOWN2.fence, [x0, y0, x1, y1] = p.slice(5), r = TOWN_MAN.s.frail, W = r[2];
   const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0)/F.span)), dx = (x1 - x0)/n, dy = (y1 - y0)/n;
   for(let s = 0; s < n; s++){ b.save(); b.transform(dx/W, dy/W, 0, F.k, x0 + dx*s, y0 + dy*s - F.top); b.drawImage(im, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); b.restore(); } }
-function drawTownPlaced(p){
+// the Outskirts: a piece's ground line at world x (its strips' lines), and whether the hero stands behind it (it fades then)
+function outLine(p, x){ const T = OUTSK.ty[p[0]], ws = p[5], L = p[1] - T.ww*ws/2; let a = (x - L)/ws; if(p[3]) a = T.ww - a; if(a < 0 || a > T.ww) return null;
+  for(const r of T.sb) if(a <= r[1]) return p[2] + r[2]*ws; return null; }
+function outFade(p){ if(p._ft === G.time) return p._fa; p._ft = G.time; const P = G.P, r = TOWN_MAN.s[p[0]]; let a = 1;
+  if(P && TOWN_FADE[p[0]] && r){ const s = p[4]/6, w = r[2]*s, x0 = p[1] - r[4]*s, y0 = p[2] - r[5]*s, gl = outLine(p, P.x);
+    if(gl != null && P.y < gl - 1 && P.y > y0 + 6 && P.x > x0 + 3 && P.x < x0 + w - 3) a = 0.55; }
+  return p._fa = a; }
+function drawTownPlaced(p, sx){
+  if(sx) return drawTownKey(p[0], p[1], p[2], p[3], p[4], outFade(p), sx);
   if(p[0] === 'frail') return drawRail(p);
   let a = 1;
   if(TOWN_FADE[p[0]]){ const P = G.P, r = TOWN_MAN.s[p[0]], s = (p[4] || 1)/6, w = r[2]*s, x0 = p[1] - (p[3] ? r[2] - r[4] : r[4])*s, y0 = p[2] - r[5]*s;
@@ -5490,7 +5516,11 @@ function render(){
   const drawList = [];
   for(const o of M.objects){ if(!M.isTown && !M.explored[Math.floor(o.y/TS)*M.w + Math.floor(o.x/TS)]) continue; drawList.push({y:o.y, o}); }
   if(DA){ for(const u of M.hd.ups) if(u[1] > cx - 40 && u[1] < cx + BW + 40 && u[2] > cy - 4 && u[2] < cy + BH + 70) drawList.push({y:u[2], dk:u}); }
-  if(M.isTown && townOK()){ const x0 = cx - 70, x1 = cx + BW + 70, y1 = cy + BH + 110; for(const p of M.place || TOWN_MAN.place) if(p[1] > x0 - (M.out ? 110 : 0) && p[1] < x1 + (M.out ? 110 : 0) && p[2] > cy - 4 && p[2] < y1 + (M.out ? 120 : 0)) drawList.push({y:p[2], t:p}); }   // the Outskirts' ruins are wider and taller
+  if(M.out){ const x0 = cx - 180, x1 = cx + BW + 180, y1 = cy + BH + 230;   // the Outskirts: every piece in strips, each sorted at its own ground line
+    for(const p of M.place){ if(p[1] < x0 || p[1] > x1 || p[2] < cy - 4 || p[2] > y1) continue; const T = OUTSK.ty[p[0]], ws = p[5], L = p[1] - T.ww*ws/2, R = p[1] + T.ww*ws/2, n = T.sb.length;
+      T.sb.forEach(([a0, a1, dy], i) => { let xa = p[3] ? R - a1*ws : L + a0*ws, xb = p[3] ? R - a0*ws : L + a1*ws; if(i === (p[3] ? n - 1 : 0)) xa -= 2; if(i === (p[3] ? 0 : n - 1)) xb += 2;
+        if(xb > cx - 2 && xa < cx + BW + 2) drawList.push({y:p[2] + dy*ws, t:p, sx:[xa, xb]}); }); } }
+  else if(M.isTown && townOK()){ const x0 = cx - 70, x1 = cx + BW + 70, y1 = cy + BH + 110; for(const p of TOWN_MAN.place) if(p[1] > x0 && p[1] < x1 && p[2] > cy - 4 && p[2] < y1) drawList.push({y:p[2], t:p}); }
   for(const l of G.loot){ if(l.map !== M) continue; drawLoot(l); }
   for(const m of M.monsters){ if(m.dummy) continue; if(M.vis[Math.floor(m.y/TS)*M.w + Math.floor(m.x/TS)] || m.boss && G.bossSeen) drawList.push({y:m.y, m}); }   // a training dummy is drawn as its town piece
   for(const h of party()) if(G.state !== 'dead' || (RES > 1 && HDP_MAN[h.cls + '_dth1'])) drawList.push({y:h.y, p:h});   // HD heroes play their death
@@ -5500,7 +5530,7 @@ function render(){
       if(on && s0 < 0) s0 = x; else if(!on && s0 >= 0){ drawList.push({y:y*TS + LIP, lip:[s0, y, x - s0]}); s0 = lipTile(M, x, y) && x <= x1 ? x : -1; } }
       if(s0 >= 0) drawList.push({y:y*TS + LIP, lip:[s0, y, x1 + 1 - s0]}); } }   // bottom walls go in front of whoever stands in their lip (sorted at the lip's edge: someone beside it in a corridor, further down, stays in front)
   drawList.sort((a, c) => a.y - c.y); frontBegin(M);
-  for(const e of drawList){ const fo = FRONT.on && !e.lip && frontNear(M, e); if(fo) frontOn(); try{ if(e.lip){ drawLip(e.lip[0], e.lip[1], e.lip[2]); continue; } if(e.t) drawTownPlaced(e.t); else if(e.dk){ const pr = e.dk[4], S = DEPTH_MAN[M.theme].s;   // a broken urn leaves its shards (once ChatGPT's picture is in), an opened coffin shows its open picture
+  for(const e of drawList){ const fo = FRONT.on && !e.lip && frontNear(M, e); if(fo) frontOn(); try{ if(e.lip){ drawLip(e.lip[0], e.lip[1], e.lip[2]); continue; } if(e.t) drawTownPlaced(e.t, e.sx); else if(e.dk){ const pr = e.dk[4], S = DEPTH_MAN[M.theme].s;   // a broken urn leaves its shards (once ChatGPT's picture is in), an opened coffin shows its open picture
     if(pr && pr.broken){ if(S[e.dk[0] + '_broken']) depthKey(DA.img, S[e.dk[0] + '_broken'], e.dk[1], e.dk[2], e.dk[3]); }
     else { const ok = pr && pr.opened && S[e.dk[0] + '_open'] ? e.dk[0] + '_open' : e.dk[0]; depthKey(DA.img, S[ok], e.dk[1], e.dk[2], e.dk[3]); if(pr && ok === e.dk[0]) drawPropState(pr); } } else if(e.o) drawObject(e.o); else if(e.m) drawMonster(e.m); else if(e.c) drawCorpse(e.c); else drawPlayer(e.p); } finally{ if(fo) frontOff(); } }
   // projectiles
