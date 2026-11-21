@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.44';
+const GAME_VER = '0.1.45';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -1572,7 +1572,7 @@ function sfx(name, src){
 const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara', 'arrows', 'salvage', 'shimmer'];   // salvage (2026-11-19): metal breaking x2, leather tearing x2   // arrows (2026-11-19): the Bone Archer's bow, three takes, high end softened (report: it whistled)
 // SND_MAN:BEGIN (made by sfx/gen_snd.py from the sheets' manifests; times in ms)
 const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[9,100,600],[9,1000,600],[9,1900,600]],"salvage_metal":[[10,100,1230],[10,1600,690]],"salvage_leather":[[10,3100,1340],[10,4600,500]],"set_shimmer":[[11,100,2030]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]]};
-const SND_AMB = {"crypt":[[500,18500],[20000,18500]],"flesh":[[500,18500],[20000,18500]],"palli":[[500,18500],[20000,18500]],"throne":[[500,18500],[20000,18500]],"void":[[500,18500],[20000,18500]]};
+const SND_AMB = {"out":[[500,18500],[20000,18500]],"crypt":[[500,18500],[20000,18500]],"flesh":[[500,18500],[20000,18500]],"palli":[[500,18500],[20000,18500]],"throne":[[500,18500],[20000,18500]],"void":[[500,18500],[20000,18500]]};
 // SND_MAN:END
 // Karmara's anvil (2026-11-17, ElevenLabs v2 on flow vT2BRiBb4wz9rul1fSwX: 3 heavy + 3 ringing blows, one each; packed in the sandbox, -16 LUFS)
 SND_MAN.anvil = [[6, 0, 673], [6, 923, 522], [6, 1696, 772], [6, 2718, 702], [6, 3670, 824], [6, 4745, 743]];
@@ -1588,7 +1588,8 @@ SND_MAN.vessa_laugh = [[7, 0, 2728], [7, 2978, 2798], [7, 6026, 2554]];   // sof
 SND_MAN.karmara_greet = [[8,0,710],[8,910,730],[8,1840,810],[8,2850,710],[8,3760,750],[8,4710,1070],[8,5980,810],[8,6990,970]];
 SND_MAN.karmara_intro1 = [[8,8160,18420]]; SND_MAN.karmara_intro2 = [[8,26780,3440]];
 const SND = {buf:{}, st:{}, last:{}, prev:{}, vo:{}, nvo:0, dec:undefined, roomIn:null, amb:null, ambArea:undefined, ambBuf:{}, ambSt:{}, ambKeep:[], ambVol:0.3, booted:false, map:null};
-const SND_ROOM = {palli:0.05, crypt:0.3, flesh:0.16, void:0.42, throne:0.45};   // how much echo each place gives
+const SND_ROOM = {palli:0.05, crypt:0.3, flesh:0.16, void:0.42, throne:0.45, out:0.06};
+const SND_AMB_FILE = {out:'void'};   // the Outskirts borrow the void's hollow drone for now (open air: hardly any echo)   // how much echo each place gives
 const SND_V = {karmara:3};   // remade sheets: bump to make browsers fetch the new file
 function sndGet(url, ok, fail){            // XHR, not fetch: with the PC launcher's flag it can read the game's own files
   try{
@@ -1655,7 +1656,7 @@ function snd(name, o = {}){
 // each place's ambience and echo; a map with a boss on it brings in the bosses' sheets
 function sndTick(){
   if(!AU.ctx || !SND.booted || SND.off) return;
-  const M = G.M, area = M && G.P && G.state !== 'menu' && G.state !== 'ending' ? (M.isTown ? 'palli' : M.theme) : null;
+  const M = G.M, area = M && G.P && G.state !== 'menu' && G.state !== 'ending' ? (M.out ? 'out' : M.isTown ? 'palli' : M.theme) : null;
   if(area !== SND.ambArea){
     SND.ambArea = area; const t = AU.ctx.currentTime;
     if(SND.roomIn) SND.roomIn.gain.setTargetAtTime(SND_ROOM[area] ?? 0.2, t, 0.5);
@@ -1672,7 +1673,7 @@ function sndAmbGain(area){ if(area !== 'palli') return SND.ambVol; const r = typ
 function sndAmbLoad(area){
   if(SND.ambBuf[area]) return sndAmbStart(area);
   if(SND.ambSt[area]) return; SND.ambSt[area] = 1;
-  sndGet('assets/sfx/md_amb_' + area + '.mp3', ab => sndDecode(ab, b => {
+  sndGet('assets/sfx/md_amb_' + (SND_AMB_FILE[area] || area) + '.mp3', ab => sndDecode(ab, b => {
     SND.ambBuf[area] = b; SND.ambKeep = SND.ambKeep.filter(a => a !== area).concat(area);
     while(SND.ambKeep.length > 2){ const old = SND.ambKeep.shift(); delete SND.ambBuf[old]; SND.ambSt[old] = 0; }   // two places kept in memory
     if(SND.ambArea === area && !SND.amb) sndAmbStart(area);
@@ -2000,11 +2001,12 @@ function bodyTY(M, px, py){ const ty = Math.floor(py/TS); return py - ty*TS < LI
 // lamps, puddles, the anvil, the dome and where everyone stands.
 // Vaidya's house is the one north-west of the crossroads, Karmara's north-east (her anvil out front, no stall), Ganesh's inside the south-west loop.
 const TOWN2 = {"w":96,"h":64,"tiles":["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwwxxxxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwwxxxxxxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwwxxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxxxxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwxwgwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwggwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwggwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxwwwwwwgwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwgwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxwwwwwwgwwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwgwwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwwgwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwwgwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwwwwwwwwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwwwwwwgwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwwwwwwgwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwgwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwgwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxbbbbbbbgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxbbbbbbbgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxbbbbbbbgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxbbbbbbbgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxwwwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwxwxwwwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwwwwwwgwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwwwwwwgwwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwxwwwwgwwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxwwwwwwwwwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwwgwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwwgwwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxwwwwwwgwwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxwwwwwwwwwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxwwwwwwgwwgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwgwgwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwwgwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwwgwwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwwwgwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwxwwwwwgwggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwxwwwwxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxwwwwwxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwwxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwxxxxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwxxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwwxxxxxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxwwwwwwxxxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxwwwwwxxxxxxxxxxgggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxwwwwwxxxxxxxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"],"solids":[[1146.0,826.0,21.0,6.0],[742.0,808.0,2.5,1.8],[1212.0,179.0,3.0,2.0],[1256.0,176.0,3.0,2.0],[1297.0,172.0,3.0,2.0],[1095.0,226.0,3.0,2.0],[1152.0,162.0,2.0,1.2],[1426.0,211.0,2.0,1.2],[912.0,533.0,10.0,4.0],[1172.0,557.0,8.0,3.5],[958.0,750.5,4.5,2.6],[951.2,748.7,4.5,2.6],[944.5,746.8,4.5,2.6],[937.7,745.0,4.5,2.6],[931.0,743.1,4.5,2.6],[925.0,741.5,4.5,2.6],[918.4,739.2,4.5,2.6],[911.8,736.9,4.5,2.6],[905.2,734.6,4.5,2.6],[898.6,732.3,4.5,2.6],[892.0,729.9,4.5,2.6],[885.4,727.6,4.5,2.6],[885.0,727.5,4.5,2.6],[878.0,726.7,4.5,2.6],[871.1,726.0,4.5,2.6],[864.1,725.2,4.5,2.6],[862.5,725.0,4.5,2.6],[855.5,724.2,4.5,2.6],[848.6,723.5,4.5,2.6],[841.6,722.7,4.5,2.6],[840.0,722.5,4.5,2.6],[833.1,721.5,4.5,2.6],[826.2,720.4,4.5,2.6],[819.2,719.4,4.5,2.6],[812.3,718.3,4.5,2.6],[805.4,717.3,4.5,2.6],[800.0,716.5,4.5,2.6],[793.1,715.5,4.5,2.6],[786.2,714.4,4.5,2.6],[779.2,713.4,4.5,2.6],[772.3,712.3,4.5,2.6],[765.4,711.3,4.5,2.6],[760.0,710.5,4.5,2.6],[753.0,709.9,4.5,2.6],[746.1,709.2,4.5,2.6],[739.1,708.6,4.5,2.6],[732.1,707.9,4.5,2.6],[725.2,707.3,4.5,2.6],[718.2,706.6,4.5,2.6],[717.0,706.5,4.5,2.6],[710.0,706.0,4.5,2.6],[703.0,705.4,4.5,2.6],[696.1,704.9,4.5,2.6],[691.0,704.5,4.5,2.6],[684.0,704.0,4.5,2.6],[677.0,703.4,4.5,2.6],[670.1,702.9,4.5,2.6],[665.0,702.5,4.5,2.6],[658.0,703.1,4.5,2.6],[651.1,703.8,4.5,2.6],[644.1,704.4,4.5,2.6],[637.1,705.1,4.5,2.6],[630.2,705.7,4.5,2.6],[623.2,706.4,4.5,2.6],[622.0,706.5,4.5,2.6],[615.8,709.8,4.5,2.6],[609.6,713.0,4.5,2.6],[603.4,716.3,4.5,2.6],[597.2,719.6,4.5,2.6],[591.0,722.8,4.5,2.6],[586.0,725.5,4.5,2.6],[583.9,732.2,4.5,2.6],[581.8,738.8,4.5,2.6],[579.7,745.5,4.5,2.6],[577.5,752.2,4.5,2.6],[575.4,758.9,4.5,2.6],[573.3,765.5,4.5,2.6],[573.0,766.5,4.5,2.6],[574.3,773.4,4.5,2.6],[575.5,780.3,4.5,2.6],[576.8,787.2,4.5,2.6],[578.0,794.0,4.5,2.6],[579.0,799.5,4.5,2.6],[584.1,804.3,4.5,2.6],[589.3,809.0,4.5,2.6],[594.4,813.8,4.5,2.6],[599.5,818.5,4.5,2.6],[604.7,823.3,4.5,2.6],[606.0,824.5,4.5,2.6],[612.0,828.1,4.5,2.6],[618.1,831.6,4.5,2.6],[624.1,835.2,4.5,2.6],[628.0,837.5,4.5,2.6],[634.0,841.1,4.5,2.6],[640.1,844.6,4.5,2.6],[646.1,848.2,4.5,2.6],[650.0,850.5,4.5,2.6],[656.6,852.8,4.5,2.6],[663.2,855.1,4.5,2.6],[669.8,857.4,4.5,2.6],[676.4,859.7,4.5,2.6],[683.0,862.1,4.5,2.6],[689.6,864.4,4.5,2.6],[690.0,864.5,4.5,2.6],[696.7,866.6,4.5,2.6],[703.4,868.7,4.5,2.6],[710.1,870.7,4.5,2.6],[712.5,871.5,4.5,2.6],[719.2,873.6,4.5,2.6],[725.9,875.7,4.5,2.6],[732.6,877.7,4.5,2.6],[735.0,878.5,4.5,2.6],[742.0,879.2,4.5,2.6],[748.9,879.9,4.5,2.6],[755.9,880.6,4.5,2.6],[762.9,881.3,4.5,2.6],[769.8,882.0,4.5,2.6],[775.0,882.5,4.5,2.6],[782.0,882.7,4.5,2.6],[789.0,882.8,4.5,2.6],[796.0,883.0,4.5,2.6],[797.5,883.0,4.5,2.6],[804.5,883.2,4.5,2.6],[811.5,883.3,4.5,2.6],[818.5,883.5,4.5,2.6],[820.0,883.5,4.5,2.6],[827.0,883.2,4.5,2.6],[834.0,882.9,4.5,2.6],[841.0,882.7,4.5,2.6],[845.0,882.5,4.5,2.6],[852.0,882.2,4.5,2.6],[859.0,881.9,4.5,2.6],[866.0,881.7,4.5,2.6],[870.0,881.5,4.5,2.6],[876.8,879.9,4.5,2.6],[883.6,878.2,4.5,2.6],[890.4,876.6,4.5,2.6],[895.0,875.5,4.5,2.6],[901.8,873.9,4.5,2.6],[908.6,872.2,4.5,2.6],[915.4,870.6,4.5,2.6],[920.0,869.5,4.5,2.6],[926.9,868.2,4.5,2.6],[933.8,866.9,4.5,2.6],[940.6,865.6,4.5,2.6],[947.5,864.3,4.5,2.6],[954.4,863.0,4.5,2.6],[961.3,861.6,4.5,2.6],[1000.0,859.5,4.5,2.6],[1006.9,858.5,4.5,2.6],[1013.9,857.6,4.5,2.6],[1020.8,856.6,4.5,2.6],[1025.0,856.0,4.5,2.6],[1031.9,855.0,4.5,2.6],[1038.9,854.1,4.5,2.6],[1045.8,853.1,4.5,2.6],[1050.0,852.5,4.5,2.6],[1056.9,851.5,4.5,2.6],[1063.9,850.6,4.5,2.6],[1070.8,849.6,4.5,2.6],[1075.0,849.0,4.5,2.6],[1081.9,848.0,4.5,2.6],[1088.9,847.1,4.5,2.6],[1095.8,846.1,4.5,2.6],[1100.0,845.5,4.5,2.6],[1106.9,844.3,4.5,2.6],[1113.8,843.0,4.5,2.6],[1120.7,841.8,4.5,2.6],[1125.0,841.0,4.5,2.6],[1131.9,839.8,4.5,2.6],[1138.8,838.5,4.5,2.6],[1145.7,837.3,4.5,2.6],[1150.0,836.5,4.5,2.6],[1156.8,834.8,4.5,2.6],[1163.6,833.1,4.5,2.6],[1170.4,831.4,4.5,2.6],[1177.2,829.7,4.5,2.6],[1182.0,828.5,4.5,2.6],[1182.4,821.5,4.5,2.6],[1182.7,814.5,4.5,2.6],[1183.1,807.5,4.5,2.6],[1183.5,800.5,4.5,2.6],[1183.8,793.5,4.5,2.6],[1352.0,170.5,4.5,2.6],[1359.0,169.8,4.5,2.6],[1365.9,169.2,4.5,2.6],[1372.9,168.5,4.5,2.6],[1379.9,167.8,4.5,2.6],[1386.8,167.2,4.5,2.6],[1393.8,166.5,4.5,2.6],[807.2,205.5,5.5,2.6],[628.2,193.5,5.5,2.6],[1387.8,535.5,5.5,2.6],[1280.2,571.5,5.5,2.6],[798.4,374.6,5.3,2.6],[1190.6,643.9,5.2,2.6],[1430.5,723.7,4.9,2.6],[490.9,372.3,4.9,2.6],[578.3,213.9,4.8,2.6],[891.6,616.3,4.8,2.6],[517.0,307.0,4.6,2.6],[544.0,724.0,4.6,2.6],[522.3,557.9,4.5,2.6],[1222.0,832.6,4.3,2.6],[1048.8,306.5,4.1,2.6],[781.9,121.2,4.1,2.6],[590.9,304.3,4.0,2.6],[758.4,207.5,3.9,2.6],[612.1,714.1,3.8,2.6],[1249.1,338.1,3.7,2.6],[1172.2,765.4,3.6,2.6],[485.7,595.6,3.5,2.6],[625.0,294.8,3.5,2.6],[1438.6,295.4,3.5,2.6],[1094.0,692.8,3.5,2.6],[830.0,307.4,3.5,2.6],[1284.7,613.4,3.5,2.6],[579.3,344.3,3.5,2.6],[871.3,274.1,3.5,2.6],[474.2,426.5,3.5,2.6],[551.6,264.9,3.5,2.6],[663.8,284.5,3.5,2.6],[776.7,564.1,3.5,2.6],[1229.8,643.5,3.5,2.6],[1451.0,669.4,3.5,2.6],[508.8,709.5,3.5,2.6],[1417.0,771.4,3.5,2.6],[1356.8,522.5,3.5,2.6],[527.0,365.8,3.5,2.6],[493.7,557.6,3.5,2.6],[611.0,227.1,3.5,2.6],[550.8,285.9,3.5,2.6],[1427.0,522.6,3.5,2.6],[765.7,615.7,3.5,2.6],[752.0,97.0,11.3,3.3],[656.9,372.9,10.9,3.2],[494.1,632.4,10.9,3.2],[1238.1,833.9,10.9,3.2],[1363.9,810.9,10.9,3.2],[1182.1,833.7,10.4,3.1],[1252.2,788.1,10.2,3.0],[1156.8,755.5,9.9,2.9],[1365.2,316.5,9.9,2.9],[1389.2,319.5,9.7,2.9],[1362.8,787.5,9.7,2.9],[903.8,364.5,9.7,2.9],[1241.2,531.9,9.7,2.9],[544.3,200.8,9.5,2.8],[944.2,306.3,9.2,2.7],[835.8,338.3,9.2,2.7],[878.2,343.3,9.2,2.7],[492.7,672.8,9.2,2.7],[1183.7,758.7,9.2,2.7],[1167.2,521.2,9.0,2.7],[924.7,348.1,8.5,2.5],[1074.7,286.0,8.3,2.5],[1199.7,725.0,8.3,2.5],[694.3,279.0,8.3,2.5],[713.3,135.9,8.1,2.5],[848.3,145.9,8.1,2.5],[1068.4,167.3,8.1,2.5],[878.3,511.9,8.1,2.5],[572.6,244.1,7.6,2.5],[1158.3,843.7,7.6,2.5]],"rects":[[775.8,403.2,104.4,34.8],[1043.8,348.5,68.4,29.5],[798.8,541.5,67.5,28.5],[923.0,188.1,54.0,24.9],[898.5,266.0,63.0,24.0],[861.4,307.3,60.3,20.7],[608.5,318.0,63.0,25.0],[504.1,408.7,73.8,29.3],[1164.0,401.9,72.0,28.1],[1360.3,389.1,77.4,36.9],[560.2,559.9,94.5,30.1],[1050.2,566.9,94.5,33.1],[973.9,769.0,159.3,44.0],[590.0,428.0,46.0,11.0],[630.0,618.0,46.0,20.0],[927.0,398.0,32.0,12.0],[1148.0,228.0,24.0,4.0],[1172.0,116.0,56.0,10.0],[1238.0,116.0,42.0,10.0],[1300.0,116.0,12.0,10.0],[1352.0,116.0,12.0,10.0],[1378.0,116.0,26.0,10.0],[646.0,222.0,64.0,9.0]],"houses":[{"x":48.125,"y":22.0,"w":7.25,"h":5.5,"name":"vaidya_house"},{"x":65.0,"y":18.625,"w":4.75,"h":5.125,"name":"karmara_house"},{"x":49.6875,"y":31.125,"w":4.6875,"h":4.625,"name":"ganesh_house"},{"x":57.5,"y":9.375,"w":3.75,"h":4.0625,"name":"house_a"},{"x":55.9375,"y":14.25,"w":4.375,"h":4.0,"name":"house_b"},{"x":53.625,"y":17.0,"w":4.1875,"h":3.625,"name":"house_c"},{"x":37.8125,"y":17.5,"w":4.375,"h":4.0625,"name":"house_d"},{"x":31.25,"y":22.625,"w":5.125,"h":4.875,"name":"house_e"},{"x":72.5,"y":22.0,"w":5.0,"h":5.0,"name":"house_f"},{"x":84.75,"y":20.5,"w":5.375,"h":6.25,"name":"house_g"},{"x":34.6875,"y":31.5625,"w":6.5625,"h":5.4375,"name":"house_h"},{"x":65.3125,"y":32.375,"w":6.5625,"h":5.25,"name":"house_i"}],"lamps":[[1030,215],[965,310],[680,365],[745,405],[520,458],[685,560],[1030,600],[1300,370],[1125,775]],"puddles":[[610,466,16,5],[730,470,11,4],[1082,466,14,5]],"anvil":[1132,428],"dome":[951,480,556],"rift":[995,92],"spots":{"start":[832,588],"entry":[990,500],"tp":[1030,520],"riftOut":[995,150],"stone":[948,548],"stash":[950,604],"karmara":[1140.8,422],"vaidya":[848,452],"ganesh":[806,590]},"place":[["vaidya_house",828.0,440,0,1],["karmara_house",1078.0,380,0,1],["ganesh_house",832.5,572,0,1],["house_a",950.0,215,0,1],["house_b",930.0,292,0,1],["house_c",891.5,330,0,1],["house_d",640.0,345,0,1],["house_e",541.0,440,0,1],["house_f",1200.0,432,0,1],["house_g",1399.0,428,0,1],["house_h",607.5,592,0,1],["house_i",1097.5,602,0,1],["barn",1053.5,815,0,1],["market_stall",612,441,0,1.0],["shed",653,640,0,1.0],["shed",943,412,1,0.667],["haystack",1146,833,0,1.0],["scarecrow",742,810,0,1.0],["training_dummy",1212,181,0,1.0],["training_dummy",1256,178,0,1.0],["training_dummy",1297,174,0,1.0],["weapon_rack",1160,233,0,1.0],["training_post",1095,228,0,1.0],["banner_pole",1152,163,0,1.0],["banner_pole",1426,212,1,1.0],["ruined_wall",1288,128,0,1],["ruin_small",678,233,0,1.0],["stone_statue",912,537,0,1.0],["stone_statue",1172,561,1,0.857],["frail",941.5,751.9,0,1,958,752,925.0,743.0],["frail",905.0,742.9,0,1,925.0,743.0,885.0,729.0],["frail",873.8,728.9,0,1,885.0,729.0,862.5,726.5],["frail",851.2,726.4,0,1,862.5,726.5,840.0,724.0],["frail",820.0,723.9,0,1,840.0,724.0,800.0,718.0],["frail",780.0,717.9,0,1,800.0,718.0,760.0,712.0],["frail",738.5,711.9,0,1,760.0,712.0,717.0,708.0],["frail",704.0,707.9,0,1,717.0,708.0,691.0,706.0],["frail",678.0,705.9,0,1,691.0,706.0,665.0,704.0],["frail",643.5,707.9,0,1,665.0,704.0,622.0,708.0],["frail",604.0,726.9,0,1,622.0,708.0,586.0,727.0],["frail",579.5,767.9,0,1,586.0,727.0,573.0,768.0],["frail",576.0,800.9,0,1,573.0,768.0,579.0,801.0],["frail",592.5,825.9,0,1,579.0,801.0,606.0,826.0],["frail",617.0,838.9,0,1,606.0,826.0,628.0,839.0],["frail",639.0,851.9,0,1,628.0,839.0,650.0,852.0],["frail",670.0,865.9,0,1,650.0,852.0,690.0,866.0],["frail",701.2,872.9,0,1,690.0,866.0,712.5,873.0],["frail",723.8,879.9,0,1,712.5,873.0,735.0,880.0],["frail",755.0,883.9,0,1,735.0,880.0,775.0,884.0],["frail",786.2,884.4,0,1,775.0,884.0,797.5,884.5],["frail",808.8,884.9,0,1,797.5,884.5,820.0,885.0],["frail",832.5,884.9,0,1,820.0,885.0,845.0,884.0],["frail",857.5,883.9,0,1,845.0,884.0,870.0,883.0],["frail",882.5,882.9,0,1,870.0,883.0,895.0,877.0],["frail",907.5,876.9,0,1,895.0,877.0,920.0,871.0],["frail",941.0,870.9,0,1,920.0,871.0,962.0,863.0],["fpost",958,752,0,1],["fpost",925.0,743.0,0,1],["fpost",885.0,729.0,0,1],["fpost",862.5,726.5,0,1],["fpost",840.0,724.0,0,1],["fpost",800.0,718.0,0,1],["fpost",760.0,712.0,0,1],["fpost",717.0,708.0,0,1],["fpost",691.0,706.0,0,1],["fpost",665.0,704.0,0,1],["fpost",622.0,708.0,0,1],["fpost",586.0,727.0,0,1],["fpost",573.0,768.0,0,1],["fpost",579.0,801.0,0,1],["fpost",606.0,826.0,0,1],["fpost",628.0,839.0,0,1],["fpost",650.0,852.0,0,1],["fpost",690.0,866.0,0,1],["fpost",712.5,873.0,0,1],["fpost",735.0,880.0,0,1],["fpost",775.0,884.0,0,1],["fpost",797.5,884.5,0,1],["fpost",820.0,885.0,0,1],["fpost",845.0,884.0,0,1],["fpost",870.0,883.0,0,1],["fpost",895.0,877.0,0,1],["fpost",920.0,871.0,0,1],["fpost",962.0,863.0,0,1],["frail",1012.5,860.9,0,1,1000,861,1025.0,857.5],["frail",1037.5,857.4,0,1,1025.0,857.5,1050.0,854.0],["frail",1062.5,853.9,0,1,1050.0,854.0,1075.0,850.5],["frail",1087.5,850.4,0,1,1075.0,850.5,1100.0,847.0],["frail",1112.5,846.9,0,1,1100.0,847.0,1125.0,842.5],["frail",1137.5,842.4,0,1,1125.0,842.5,1150.0,838.0],["frail",1166.0,837.9,0,1,1150.0,838.0,1182.0,830.0],["frail",1183.0,829.9,0,1,1182.0,830.0,1184.0,792.0],["fpost",1000,861,0,1],["fpost",1025.0,857.5,0,1],["fpost",1050.0,854.0,0,1],["fpost",1075.0,850.5,0,1],["fpost",1100.0,847.0,0,1],["fpost",1125.0,842.5,0,1],["fpost",1150.0,838.0,0,1],["fpost",1182.0,830.0,0,1],["fpost",1184.0,792.0,0,1],["frail",1373.0,171.9,0,1,1352,172,1394.0,168.0],["fpost",1352,172,0,1],["fpost",1394.0,168.0,0,1],["round_tree",807.2,207.0,1,0.975],["round_tree",628.2,195.0,1,0.975],["round_tree",1387.8,537.0,0,0.975],["round_tree",1280.2,573.0,1,0.975],["round_tree_3",798.4,376.1,1,0.942],["round_tree_4",1190.6,645.4,0,0.934],["round_tree_3",1430.5,725.2,0,0.876],["round_tree",490.9,373.8,0,0.869],["round_tree_2",578.3,215.4,1,0.853],["round_tree_3",891.6,617.8,1,0.853],["round_tree",517.0,308.5,1,0.812],["round_tree",544.0,725.5,1,0.812],["round_tree_3",522.3,559.4,0,0.796],["round_tree",1222.0,834.1,1,0.772],["round_tree_3",1048.8,308.0,1,0.738],["round_tree",781.9,122.7,1,0.731],["round_tree",590.9,305.8,1,0.715],["round_tree_4",758.4,209.0,0,0.698],["round_tree_3",612.1,715.6,0,0.682],["round_tree_3",1249.1,339.6,0,0.665],["round_tree",1172.2,766.9,0,0.649],["round_tree",485.7,597.1,1,0.601],["round_tree_3",625.0,296.3,1,0.592],["round_tree_4",1438.6,296.9,1,0.584],["round_tree_3",1094.0,694.3,0,0.576],["round_tree_3",830.0,308.9,1,0.569],["round_tree",1284.7,614.9,1,0.528],["round_tree",579.3,345.8,0,0.527],["round_tree_4",871.3,275.6,0,0.487],["round_tree_3",474.2,428.0,1,0.487],["round_tree",551.6,266.4,1,0.487],["round_tree_3",663.8,286.0,0,0.487],["round_tree_4",776.7,565.6,1,0.487],["round_tree_3",1229.8,645.0,0,0.487],["small_tree",1451.0,670.9,1,0.894],["round_tree_2",508.8,711.0,0,0.447],["small_tree",1417.0,772.9,1,0.894],["round_tree_2",1356.8,524.0,0,0.446],["small_tree",527.0,367.3,1,0.876],["round_tree_3",493.7,559.1,0,0.422],["small_tree",611.0,228.6,1,0.828],["round_tree_2",550.8,287.4,0,0.406],["small_tree",1427.0,524.1,1,0.812],["round_tree_3",765.7,617.2,0,0.406],["bush_2",752.0,101.0,1,0.416],["bush_2",656.9,376.7,1,0.399],["bush",494.1,636.2,1,0.399],["bush_2",1238.1,837.7,0,0.399],["bush_2",1363.9,814.7,1,0.399],["bush_2",1182.1,837.4,0,0.382],["bush",1252.2,791.7,1,0.373],["bush_2",1156.8,759.1,1,0.365],["bush_2",1365.2,320.1,0,0.365],["bush_2",1389.2,322.9,0,0.357],["bush_2",1362.8,790.9,1,0.357],["bush_2",903.8,367.9,1,0.357],["bush",1241.2,535.4,1,0.357],["bush",544.3,204.2,1,0.348],["bush_2",944.2,309.6,0,0.34],["bush_2",835.8,341.6,1,0.34],["bush_2",878.2,346.6,0,0.34],["bush",492.7,676.0,0,0.34],["bush",1183.7,762.0,0,0.34],["bush_2",1167.2,524.4,0,0.331],["bush_2",924.7,351.1,1,0.314],["bush_2",1074.7,288.9,1,0.306],["bush_2",1199.7,727.9,1,0.306],["bush_2",694.3,281.9,0,0.306],["bush_2",713.3,138.7,0,0.297],["bush_2",848.3,148.7,0,0.297],["bush",1068.4,170.1,1,0.297],["bush_2",878.3,514.7,0,0.297],["bush",572.6,246.8,0,0.28],["bush_2",1158.3,846.4,0,0.28],["lamp",1030,247.5,0,1],["lamp",965,342.5,0,1],["lamp",680,397.5,0,1],["lamp",745,437.5,0,1],["lamp",520,490.5,0,1],["lamp",685,592.5,0,1],["lamp",1030,632.5,0,1],["lamp",1300,402.5,0,1],["lamp",1125,807.5,0,1],["crate",655,432,0,1.1],["crate",670,429,0,1.0],["barrel",642,433,0,1.0],["barrel",1046,383,0,1.0],["crate",1072,410,0,1.1],["crate",1088,409,0,1.0],["barrel",1250,432,0,1.0],["crate",1262,434,0,1.0],["barrel",1384,431,0,1.0],["crate",1420,432,0,1.1],["barrel",1434,430,0,0.95],["barrel",898,434,0,1.0],["crate",913,438,0,1.0],["rubble",787,624,0,0.95],["sack1",572,596,0,1.0]],"spr":{"vaidya_house":[2064,0,696,552,348.0,551,1],"karmara_house":[632,768,456,473,228.0,472,1],"ganesh_house":[1584,768,450,458,225.0,457,1],"house_a":[422,1252,360,404,180.0,403,1],"house_b":[1266,1252,420,390,210.0,389,1],"house_c":[2514,1252,402,341,201.0,340,1],"house_d":[0,1252,420,405,210.0,404,1],"house_e":[1090,768,492,469,246.0,468,1],"house_f":[2036,768,480,451,240.0,450,1],"house_g":[1064,0,516,584,258.0,583,1],"house_h":[0,768,630,482,315.0,481,1],"house_i":[3244,0,630,527,315.0,526,1],"barn":[0,0,1062,766,531.0,765,1],"market_stall":[0,1659,348,284,174.0,283,1],"shed":[1688,1252,342,373,171.0,372,1],"haystack":[2918,1252,300,296,150.0,295,1],"scarecrow":[1412,1659,174,179,87.0,178,0],"training_dummy":[1981,1659,90,142,45.0,141,0],"weapon_rack":[1588,1659,156,169,78.0,168,0],"training_post":[1916,1659,63,152,31.5,151,0],"banner_pole":[832,1659,96,237,48.0,236,0],"ruined_wall":[2518,768,1416,426,708.0,425,1],"ruin_small":[3220,1252,420,295,210.0,294,1],"stone_statue":[1746,1659,168,156,84.0,155,0],"fpost":[2273,1659,35,97,17.5,96,0],"frail":[2073,1659,198,110,99.0,109,0],"round_tree":[2762,0,480,540,232.5,539,1],"round_tree_2":[2032,1252,480,363,237.8,362,1],"round_tree_3":[1582,0,480,559,250.1,558,1],"round_tree_4":[784,1252,480,399,243.6,398,1],"small_tree":[3642,1252,240,293,120.0,292,1],"bush":[350,1659,480,239,252.9,238,0],"bush_2":[930,1659,480,221,226.0,220,0]},"fence":{"k":0.0904,"top":12.84,"span":17.9},"train":[1080,118,1445,265],"dummies":[[1212,181],[1256,178],[1297,174]],"ground":{"tile":192,"n":[8,6],"file":384,"fn":[4,3]}};
+
 // a training dummy (2026-11-20, Mathis): stands among the monsters so every attack and skill finds it, but never moves, never
 // fights back and never falls; it wobbles, shows each hit, and keeps a running damage-per-second over the last 5 seconds
 function makeDummy(x, y){ return {type:'dummy', dummy:true, name:'Training dummy', x, y, r:7, hp:1e9, maxhp:1e9, lvl:1, d:{stationary:true}, kbx:0, kby:0, vx:0, vy:0, stun:0, freeze:0, root:0, flash:0, face:1, wob:0, wobS:1, log:[], dot:null}; }
 // inside Palli's training ground (the hero given, or the one acting)
-function inTraining(P){ P = P || G.P; const M = G.M, T = M && M.isTown && M.train; return !!(T && P && P.x > T[0] && P.x < T[2] && P.y > T[1] && P.y < T[3]); }
+function inTraining(P){ P = P || G.P; const M = G.M; if(M && M.out) return true; const T = M && M.isTown && M.train; return !!(T && P && P.x > T[0] && P.x < T[2] && P.y > T[1] && P.y < T[3]); }   // the Outskirts: every attack and skill works
 function genTown2(){
   const D = TOWN2, M = newMap(D.w, D.h, T_GRASS), S = D.spots;
   M.isTown = true; M.name = 'Palli'; M.theme = 'town'; M.v2 = true;
@@ -2024,6 +2026,30 @@ function genTown2(){
   M.props = []; M.items = [];
   M.train = D.train; M.monsters = D.dummies.map(([x, y]) => makeDummy(x, y));   // the training ground: attacks and skills work inside it, on its dummies
   M.solids = townSolids(M).concat(D.solids.map(([x, y, rx, ry]) => ({x, y, rx, ry})), D.rects.map(([x, y, w, h]) => ({x, y, w, h})));
+  if(typeof OUTSK !== 'undefined'){   // the way out (not in the free demo): across the rest of the bridge, then the dead west bank's old road to the edge
+    for(let j = 27; j <= 30; j++) for(let i = 15; i <= 24; i++) setT(M, i, j, T_BRIDGE);
+    for(let j = 25; j <= 30; j++) for(let i = 1; i <= 15; i++) setT(M, i, j, T_GRASS);
+    M.exitW = [0, 392, 30, 492]; }   // walking into it leads out to the Outskirts
+  return M;
+}
+// ---------------- THE OUTSKIRTS OF PALLI ----------------
+// (2026-11-20, Mathis) Past the bridge and Ganesh's dome, under the Malformed's darkened sky: the ruined Aranyan quarter (north), the
+// old road to the sealed gate of Act 2 (west), the fallen colossus, the old shrine, General Hash's Camp of Fortitude (south-east)
+// and the Rift scar (south-west). Its own map, 152 x 128 tiles, built by outskirts/ (ground from batch 28, pieces from batch 29) and
+// tools_out_world.py: drawn and walked like Palli (isTown, with M.out), but every attack and skill works here.
+function genOut(){
+  const D = OUTSK, M = newMap(D.w, D.h, T_GRASS), S = D.spots;
+  M.isTown = true; M.out = true; M.name = 'The Outskirts'; M.theme = 'town'; M.v2 = true;
+  D.tiles.forEach((row, j) => { for(let i = 0; i < row.length; i++) setT(M, i, j, row[i] === 'x' ? T_ROCK : T_GRASS); });
+  M.houses = []; M.torches = []; M.spots = S; M.start = {x:S.entry[0], y:S.entry[1]};
+  M.ground = D.ground; M.gdir = 'out'; M.place = D.place; M.art = {width:M.w*TS, height:M.h*TS};   // (no old pixel art to make)
+  M.objects = [
+    {type:'oshrine', x:S.shrine[0], y:S.shrine[1], name:'The old shrine'},
+    {type:'ogate', x:S.gate[0], y:S.gate[1], name:'The great gate'},
+    {type:'oscar', x:S.scar[0], y:S.scar[1], name:'The Rift scar'}
+  ];
+  M.props = []; M.items = []; M.monsters = [];
+  M.solids = D.solids.map(([x, y, rx, ry]) => ({x, y, rx, ry})).concat(D.rects.map(([x, y, w, h]) => ({x, y, w, h})));
   return M;
 }
 function genTown(){
@@ -3215,7 +3241,7 @@ function drinkPotion(kind){
 // ---------------- town portal ----------------
 function castTownPortal(){
   const P = G.P; if(G.state !== 'play') return;
-  if(G.M.isTown){ toast('You are already in Palli.', '#94b0c2'); return; }
+  if(G.M.isTown && !G.M.out){ toast('You are already in Palli.', '#94b0c2'); return; }
   if(P.cast) return;
   P.cast = {t:0, dur:1.3, kind:'portal'}; sfx('portal');
 }
@@ -3283,8 +3309,8 @@ function enterMap(M, x, y){
   if(!M.art) M.art = renderMapArt(M);
   computeFOV(M, P.x, P.y, 10);
   G.cam.x = P.x; G.cam.y = P.y; G.bossSeen = false; G.questSeen = false; G.activeBoss = null;
-  playMusic(M.isTown ? 'town' : 'dungeon');
-  G.banner = {text:M.isTown ? 'Palli' : M.name, sub: M.isTown ? 'A village beside the river Sarai' : `Depth ${M.level} of 10 · ${DIFFS[M.diff].name}`, t:0};
+  playMusic(M.isTown && !M.out ? 'town' : 'dungeon');
+  G.banner = M.out ? {text:'The Outskirts', sub:'Beyond Ganesh\'s dome, under the Malformed sky', t:0} : {text:M.isTown ? 'Palli' : M.name, sub: M.isTown ? 'A village beside the river Sarai' : `Depth ${M.level} of 10 · ${DIFFS[M.diff].name}`, t:0};
   uiDirty();
 }
 const GANESH_DOOR = {x:192, y:427};
@@ -3298,6 +3324,24 @@ function goTown(viaPortal, at){
   for(const h of party()){ h.buffs = []; derive(h); }
   enterMap(T, at ? at.x : sp ? sp.entry[0] : 22*TS + 8, at ? at.y : sp ? sp.entry[1] : 15*TS + 8);
   if(viaPortal) sfx('portal');
+  saveGame();
+}
+// the Outskirts of Palli (not in the free demo): out along the west bank's road, in on the Outskirts' old road at its east edge;
+// back the same way. The map is made once a session and kept (what lies there stays where it was).
+function goOut(){
+  if(typeof OUTSK === 'undefined') return;
+  if(!G.outMap) G.outMap = genOut();
+  enterMap(G.outMap, OUTSK.spots.entry[0], OUTSK.spots.entry[1]); G.P.face = -1;
+  saveGame();
+}
+function goTownFromOut(){ goTown(false, {x:44, y:452}); G.P.face = 1; }
+// the old shrine by the road: once per hero, five stat points for good (respec keeps them: hud.js respec)
+function useOutShrine(o){
+  const P = G.P;
+  if(P.shrineGift){ toast('The shrine is quiet. It has already given you its gift.', '#94b0c2', 3); return; }
+  P.shrineGift = 1; P.statPts += 5; uiDirty(); sfx('levelup'); G.shake = 0.6;
+  ring(o.x, o.y - 14, 70, '#ffe7a0', 0.9); burst(o.x, o.y - 18, 26, ['#fff4c4', '#ffcd75', '#a7f070'], 50, 80, 1.1);
+  G.banner = {text:'The shrine bestowed upon you a gift.', sub:'You gained 5 permanent stat points.', t:0, gift:true};
   saveGame();
 }
 function goDungeon(L, diff){
@@ -3353,7 +3397,7 @@ function nearestInteract(){
     if(o.type === 'bossbody' || (o.used && (o.type === 'chest' || o.type === 'shrine' || o.type === 'sarc'))) continue;
     if(o.type === 'seal' && M.sealOpen) continue;
     if((o.type === 'papyrus' || o.type === 'corpse') && (lore === undefined ? (lore = !lootNear() && !fightNear(P, M)) : lore) === false) continue;   // items and fights come first
-    const d = Math.hypot(o.x - P.x, o.y - P.y); const rr = o.type === 'rift' ? 34 : o.type === 'npc' || o.type === 'seal' || o.type === 'stairsup' || o.type === 'stairsdown' || o.type === 'sarc' ? 30 : 24;
+    const d = Math.hypot(o.x - P.x, o.y - P.y); const rr = o.type === 'rift' || o.type === 'oscar' ? 34 : o.type === 'ogate' ? 46 : o.type === 'npc' || o.type === 'oshrine' || o.type === 'seal' || o.type === 'stairsup' || o.type === 'stairsdown' || o.type === 'sarc' ? 30 : 24;
     if(d < rr && d < bd){ bd = d; best = o; }
   }
   const l = lootNear(); if(l && (!best || Math.hypot(l.x - P.x, l.y - (P.y - 2)) < bd)) best = lootObj(l);
@@ -3363,7 +3407,7 @@ function interactLabel(o){
   if(o.type === 'loot') return 'Pick up';
   if(o.type === 'stairsup') return G.M.level <= 1 ? 'Climb to Palli' : `Climb to Depth ${G.M.level - 1}`;
   if(o.type === 'stairsdown') return `Descend to Depth ${G.M.level + 1}`;
-  return {npc:'Talk', papyrus:'Read', corpse:'Search', chest:'Open', rift:'Enter Rift', tp:'Enter Portal', stone:'Portal Stone', homeportal:'Return to Palli', shrine:'Touch Shrine', stash:'Open Chest', seal:'Inspect Seal', sarc:'Open Sarcophagus'}[o.type] || 'Use';
+  return {npc:'Talk', papyrus:'Read', corpse:'Search', chest:'Open', rift:'Enter Rift', tp:'Enter Portal', stone:'Portal Stone', homeportal:'Return to Palli', shrine:'Touch Shrine', stash:'Open Chest', seal:'Inspect Seal', sarc:'Open Sarcophagus', oshrine:'Touch the shrine', ogate:'Inspect the gate', oscar:'Inspect the scar'}[o.type] || 'Use';
 }
 function interact(o){
   if(!o) return; if(o.type === 'loot'){ takeLoot(o.l); return; }
@@ -3376,10 +3420,13 @@ function interact(o){
     case 'stairsdown': if(!G.fading) descend(); break;
     case 'stairsup': if(!G.fading) ascend(); break;
     case 'rift': showRiftMenu(); break;
-    case 'tp': if(G.M.isTown) usePortalBack(); else { G.M.objects = G.M.objects.filter(x => x !== o); G.portal = null; goTown(true); } break;
+    case 'tp': if(G.M.isTown && !G.M.out) usePortalBack(); else { G.M.objects = G.M.objects.filter(x => x !== o); G.portal = null; goTown(true); } break;
     case 'stone': toast(G.portal ? 'Your portal shimmers beside the stone.' : 'Town portals you open in the depths will appear here.', '#b98cff'); break;
     case 'homeportal': goTown(true); break;
     case 'stash': G.stash = loadStash(); UI.tab = 'stash'; openPanel('stash'); break;
+    case 'oshrine': useOutShrine(o); break;
+    case 'ogate': toast('The great gate of Aranya is sealed. Chains hold its doors fast. The way beyond is not open yet.', '#ef7d57', 5); break;
+    case 'oscar': toast('The scar\'s mouth is clenched shut. Something stirs deep beneath it. It cannot be entered yet.', '#d77aff', 5); break;
     case 'seal': toast(QUESTS[G.M.quest].seal, '#b98cff', 6); break;
     case 'shrine': {
       o.used = true; sfx('shrine', o);
@@ -3679,7 +3726,9 @@ function update(dt){
   if(M.isTown) for(const m of M.monsters) if(m.dummy){   // the training dummies: settle, and tick what burns or poisons them
     if(m.flash > 0) m.flash -= dt; if(m.wob > 0) m.wob = Math.max(0, m.wob - dt*2.2); m.kbx = m.kby = 0; m.stun = m.freeze = 0; m.poison = null;
     const D = m.dot; if(D){ D.t -= dt; D.acc += dt; if(D.acc >= 0.5){ D.acc -= 0.5; const a = Math.max(1, Math.round(D.dps*0.5)); ftext(m.x + (R() - 0.5)*8, m.y - 30, a, D.c, 0.85); dummyLog(m, a); } if(D.t <= 0) m.dot = null; } }
-  { const tr = !!(M.isTown && inTraining()); if(tr !== !!G.inTrain){ G.inTrain = tr; if(tr) toast('The training ground: your attacks and skills work here.', '#ffcd75'); } }
+  { const tr = !!(M.isTown && !M.out && inTraining()); if(tr !== !!G.inTrain){ G.inTrain = tr; if(tr) toast('The training ground: your attacks and skills work here.', '#ffcd75'); } }
+  if(M.isTown && !G.fading && G.state === 'play' && typeof OUTSK !== 'undefined'){   // Palli's west edge and the Outskirts' east edge lead into each other
+    const X = M.out ? OUTSK.exitE : M.exitW; if(X && party().some(h => h.x > X[0] && h.x < X[2] && h.y > X[1] && h.y < X[3])) fadeTo(M.out ? goTownFromOut : goOut); }
   updateProjectiles(dt);
   updateFx(dt);
   // loot spawn anim
@@ -3692,7 +3741,7 @@ function update(dt){
   G.shake = Math.max(0, G.shake - dt*14);
   // ambient
   if(R() < dt*5) G.parts.push({x:P.x + (R() - 0.5)*220, y:P.y + (R() - 0.5)*160, vx:(R() - 0.5)*5, vy:-2 - R()*4, life:3.5, max:3.5, c: M.isTown ? '#a8c4ff' : M.theme === 'void' ? '#7df9ff' : M.theme === 'flesh' ? '#d77a8a' : '#c8b8d8', g:0, s:1, dust:true});
-  if(M.isTown && R() < dt*1.5){ // fireflies & forge sparks
+  if(M.isTown && !M.out && R() < dt*1.5){ // fireflies & forge sparks
     G.parts.push({x:M.forge.x*TS + (R() - 0.5)*6, y:M.forge.y*TS, vx:(R() - 0.5)*30, vy:-30 - R()*30, life:0.9, max:0.9, c:rpick(['#ffcd75', '#ef7d57']), g:40, s:1});
   }
   // boss encounters: the arena boss and the sealed quest boss
@@ -3730,7 +3779,7 @@ function updatePlayer(dt){
   if(changed) derive(P);
   if(P.down > 0) return;   // fallen in co-op: waits to be revived (coopTick)
   if(G.state !== 'play') return;
-  const regenMul = M.isTown ? 0 : 1;   // no healing in Palli: Vaidya heals
+  const regenMul = M.isTown && !M.out ? 0 : 1;   // no healing in Palli: Vaidya heals (out in the Outskirts, as in the depths)
   P.hp = Math.min(P.d.maxhp, P.hp + P.d.hpReg*dt*regenMul);
   P.mp = Math.min(P.d.maxmp, P.mp + P.d.mpReg*dt*(regenMul || (inTraining() ? 1 : 0)));   // mana comes back while training, life does not
   if(P.regenPot){ const rp = P.regenPot; const k = Math.min(dt, rp.t)/rp.dur; rp.t -= dt; if(rp.kind === 'hp') P.hp = Math.min(P.d.maxhp, P.hp + rp.amt*k); else P.mp = Math.min(P.d.maxmp, P.mp + rp.amt*k); if(rp.t <= 0) P.regenPot = null; }
@@ -4405,7 +4454,7 @@ function shadeClear(S, L, need){   // move a light out of a wall, along the way 
 function shadeWater(M){
   const Wt = SHADE.water; if(Wt.map === M) return Wt.tex;
   const gl = SHADE.gl; Wt.map = M;
-  Wt.ii = null; if(!M.isTown){ Wt.tex = SHADE.tWater0; return Wt.tex; }
+  Wt.ii = null; if(!M.isTown || M.out){ Wt.tex = SHADE.tWater0; return Wt.tex; }   // the Outskirts: no water, no puddles
   const c = mkCanvas(Math.ceil(M.w*TS/2), Math.ceil(M.h*TS/2)), x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#fff';
   // whole tiles, edge to edge (a 1 px inset on each side left gaps between the tiles, and the lamps' streaks showed up as long bars: report 2026-11-18)
   for(let j = 0; j < M.h; j++) for(let i = 0; i < M.w; i++) if(tAt(M, i, j) === T_WATER) x.fillRect(i*TS/2, j*TS/2, TS/2, TS/2);
@@ -4506,7 +4555,7 @@ function shadeDraw(){
     u = common(SHADE.pComp); bind(u.uScene, 2, SHADE.tScene); bind(u.uLight, 1, F.light.tex[0]); bind(u.uDir, 3, F.light.tex[1]); bind(u.uBounce, 4, F.bounce.tex[0]); bind(u.uBloom, 5, F.b1.tex[0]); bind(u.uWater, 6, shadeWater(M)); bind(u.uFront, 7, shadeFront());
     gl.uniform3f(u.uAmb, amb[0], amb[1], amb[2]); gl.uniform4f(u.uVig, VIG0, VIG1, vigK, 0); gl.uniform2f(u.uTexel, 1.5/buf.width, 1.5/buf.height); gl.uniform2f(u.uWorldSize, M.w*TS, M.h*TS);
     gl.uniform1f(u.uTime, t % 1000); gl.uniform1f(u.uBump, SHADE.k.bump); gl.uniform1f(u.uBloomK, SHADE.k.bloom); gl.uniform1f(u.uBounceK, 1);
-    gl.uniform1f(u.uWet, M.isTown ? SHADE.k.wet*(typeof townCover === 'function' && townCover() > 0.4 ? 0.3 : 1) : 0);
+    gl.uniform1f(u.uWet, M.isTown && !M.out ? SHADE.k.wet*(typeof townCover === 'function' && townCover() > 0.4 ? 0.3 : 1) : 0);
     gl.uniform1i(u.uNH2, nHt); if(u.uHeat) gl.uniform4fv(u.uHeat, aH); gl.uniform1i(u.uNG, nG); if(u.uG) gl.uniform4fv(u.uG, aG); if(u.uGC) gl.uniform4fv(u.uGC, aGC);
     to(null, SHADE.el.width, SHADE.el.height); gl.drawArrays(gl.TRIANGLES, 0, 3);
     return true;
@@ -4525,8 +4574,9 @@ function shadeWatch(ms){
 
 // ============ RENDER ============
 const HDP_MAN = {"knight_wk1": [48.0, 142, 105], "knight_wk2": [51.0, 142, 104], "knight_wk3": [54.0, 143, 108], "knight_wk4": [55.5, 143, 109], "knight_wk5": [54.0, 143, 108], "knight_wk6": [51.0, 141, 102], "knight_wk7": [52.0, 140, 104], "knight_wk8": [49.0, 142, 100], "knight_idl1": [57.0, 142, 123], "knight_idl2": [56.0, 142, 121], "knight_idl3": [57.0, 143, 122], "knight_idl4": [55.0, 143, 121], "knight_idl5": [56.0, 144, 121], "knight_idl6": [57.0, 144, 123], "knight_idl7": [56.0, 144, 122], "knight_idl8": [56.0, 143, 122], "knight_atk1": [65.0, 132, 134], "knight_atk2": [64.0, 128, 132], "knight_atk3": [70.0, 139, 121], "knight_atk4": [77.0, 141, 129], "knight_atk5": [54.0, 140, 111], "knight_atk6": [46.0, 130, 143], "knight_atk7": [45.0, 129, 138], "knight_atk8": [63.0, 128, 128], "knight_dth1": [59.0, 138, 127], "knight_dth2": [72.0, 132, 137], "knight_dth3": [79.0, 135, 133], "knight_dth4": [72.0, 124, 131], "knight_dth5": [67.0, 116, 130], "knight_dth6": [69.0, 109, 132], "knight_dth7": [71.0, 88, 148], "knight_dth8": [105.0, 65, 194], "knight_hurt": [51.5, 142, 126], "mage_wk1": [50.0, 140, 109], "mage_wk2": [53.0, 140, 112], "mage_wk3": [48.0, 139, 106], "mage_wk4": [50.0, 139, 108], "mage_wk5": [47.0, 140, 105], "mage_wk6": [50.0, 139, 108], "mage_wk7": [51.0, 139, 108], "mage_wk8": [47.0, 140, 99], "mage_atk1": [50.0, 139, 105], "mage_atk2": [51.0, 136, 111], "mage_atk3": [53.0, 132, 114], "mage_atk4": [51.0, 131, 123], "mage_atk5": [52.0, 157, 131], "mage_atk6": [54.0, 145, 139], "mage_atk7": [54.0, 119, 140], "mage_atk8": [49.0, 129, 116], "mage_dth1": [48.0, 138, 106], "mage_dth2": [60.0, 132, 118], "mage_dth3": [56.0, 131, 101], "mage_dth4": [54.0, 106, 118], "mage_dth5": [58.0, 92, 100], "mage_dth6": [73.0, 72, 117], "mage_dth7": [67.0, 61, 100], "mage_dth8": [68.0, 61, 103], "mage_idl1": [62.0, 139, 128], "mage_idl2": [62.0, 138, 128], "mage_idl3": [62.0, 138, 128], "mage_idl4": [62.0, 137, 128], "mage_idl5": [62.0, 137, 128], "mage_idl6": [62.0, 138, 128], "mage_idl7": [62.0, 138, 128], "mage_idl8": [62.0, 139, 128], "mage_hurt": [45.5, 141, 116], "rogue_wk1": [35.0, 138, 79], "rogue_wk2": [35.0, 138, 77], "rogue_wk3": [34.0, 138, 76], "rogue_wk4": [34.0, 139, 76], "rogue_wk5": [33.0, 139, 70], "rogue_wk6": [38.0, 138, 77], "rogue_wk7": [38.0, 138, 79], "rogue_wk8": [34.0, 138, 73], "rogue_atk1": [36.0, 138, 82], "rogue_atk2": [39.0, 122, 93], "rogue_atk3": [40.0, 120, 86], "rogue_atk4": [38.0, 130, 91], "rogue_atk5": [38.0, 132, 102], "rogue_atk6": [37.0, 126, 99], "rogue_atk7": [31.0, 120, 87], "rogue_atk8": [30.0, 137, 84], "rogue_dth1": [35.0, 138, 79], "rogue_dth2": [37.0, 128, 89], "rogue_dth3": [33.0, 120, 79], "rogue_dth4": [35.0, 112, 84], "rogue_dth5": [40.0, 95, 86], "rogue_dth6": [41.0, 79, 89], "rogue_dth7": [48.0, 55, 98], "rogue_idl1": [53.0, 138, 108], "rogue_idl2": [53.0, 137, 108], "rogue_idl3": [53.0, 137, 108], "rogue_idl4": [53.0, 136, 108], "rogue_idl5": [53.0, 136, 108], "rogue_idl6": [53.0, 137, 108], "rogue_idl7": [53.0, 137, 108], "rogue_idl8": [53.0, 138, 108], "rogue_hurt": [31.0, 141, 108], "rogue_dth8": [53.0, 43, 107]};
+const HDP_REC = {"knight_idl5":[0,0,121,144],"knight_idl6":[123,0,123,144],"knight_idl7":[248,0,122,144],"knight_wk3":[372,0,108,143],"knight_wk4":[482,0,109,143],"knight_wk5":[593,0,108,143],"knight_idl3":[703,0,122,143],"knight_idl4":[827,0,121,143],"knight_idl8":[950,0,122,143],"knight_wk1":[1074,0,105,142],"knight_wk2":[1181,0,104,142],"knight_wk8":[1287,0,100,142],"knight_idl1":[1389,0,123,142],"knight_idl2":[1514,0,121,142],"knight_hurt":[1637,0,126,142],"knight_wk6":[1765,0,102,141],"knight_atk4":[1869,0,129,141],"knight_wk7":[0,146,104,140],"knight_atk5":[106,146,111,140],"knight_atk3":[219,146,121,139],"knight_dth1":[342,146,127,138],"knight_dth3":[471,146,133,135],"knight_atk1":[606,146,134,132],"knight_dth2":[742,146,137,132],"knight_atk6":[881,146,143,130],"knight_atk7":[1026,146,138,129],"knight_atk2":[1166,146,132,128],"knight_atk8":[1300,146,128,128],"knight_dth4":[1430,146,131,124],"knight_dth5":[1563,146,130,116],"knight_dth6":[1695,146,132,109],"knight_dth7":[1829,146,148,88],"knight_dth8":[0,288,194,65],"mage_atk5":[0,0,131,157],"mage_atk6":[133,0,139,145],"mage_hurt":[274,0,116,141],"mage_wk1":[392,0,109,140],"mage_wk2":[503,0,112,140],"mage_wk5":[617,0,105,140],"mage_wk8":[724,0,99,140],"mage_wk3":[825,0,106,139],"mage_wk4":[933,0,108,139],"mage_wk6":[1043,0,108,139],"mage_wk7":[1153,0,108,139],"mage_atk1":[1263,0,105,139],"mage_idl1":[1370,0,128,139],"mage_idl8":[1500,0,128,139],"mage_dth1":[1630,0,106,138],"mage_idl2":[1738,0,128,138],"mage_idl3":[1868,0,128,138],"mage_idl6":[0,159,128,138],"mage_idl7":[130,159,128,138],"mage_idl4":[260,159,128,137],"mage_idl5":[390,159,128,137],"mage_atk2":[520,159,111,136],"mage_atk3":[633,159,114,132],"mage_dth2":[749,159,118,132],"mage_atk4":[869,159,123,131],"mage_dth3":[994,159,101,131],"mage_atk8":[1097,159,116,129],"mage_atk7":[1215,159,140,119],"mage_dth4":[1357,159,118,106],"mage_dth5":[1477,159,100,92],"mage_dth6":[1579,159,117,72],"mage_dth7":[1698,159,100,61],"mage_dth8":[1800,159,103,61],"rogue_hurt":[0,0,108,141],"rogue_wk4":[110,0,76,139],"rogue_wk5":[188,0,70,139],"rogue_wk1":[260,0,79,138],"rogue_wk2":[341,0,77,138],"rogue_wk3":[420,0,76,138],"rogue_wk6":[498,0,77,138],"rogue_wk7":[577,0,79,138],"rogue_wk8":[658,0,73,138],"rogue_atk1":[733,0,82,138],"rogue_dth1":[817,0,79,138],"rogue_idl1":[898,0,108,138],"rogue_idl8":[1008,0,108,138],"rogue_atk8":[1118,0,84,137],"rogue_idl2":[1204,0,108,137],"rogue_idl3":[1314,0,108,137],"rogue_idl6":[1424,0,108,137],"rogue_idl7":[1534,0,108,137],"rogue_idl4":[1644,0,108,136],"rogue_idl5":[1754,0,108,136],"rogue_atk5":[1864,0,102,132],"rogue_atk4":[0,143,91,130],"rogue_dth2":[93,143,89,128],"rogue_atk6":[184,143,99,126],"rogue_atk2":[285,143,93,122],"rogue_atk3":[380,143,86,120],"rogue_atk7":[468,143,87,120],"rogue_dth3":[557,143,79,120],"rogue_dth4":[638,143,84,112],"rogue_dth5":[724,143,86,95],"rogue_dth6":[812,143,89,79],"rogue_dth7":[903,143,98,55],"rogue_dth8":[1003,143,107,43]};   // each side-view frame in its hero's picture (tools_hero_atlas.py)
 const HDP_V = {knight:2, mage:3, rogue:3};   // a hero's frames redrawn: a new version, so no browser keeps the old ones (mage 2: batch 15, her face fixed; rogue 2: side-view skin matched to his turned views; 17 Nov: every hero's skin one tone in every direction)
-const HDP = {}; for(const k in HDP_MAN){ HDP[k] = new Image(); const v = HDP_V[k.split('_')[0]]; HDP[k].src = 'assets/hero_' + k + '.png' + (v ? '?v=' + v : ''); }
+const HDP_ATL = {}; for(const k in HDP_MAN){ const c = k.split('_')[0]; if(!HDP_ATL[c]){ HDP_ATL[c] = new Image(); HDP_ATL[c].src = 'assets/hero_' + c + '_side.webp'; } }   // one picture per hero (2026-11-20: the phone build's file limit)
 // Eight directions (batch 13, the Mage's redrawn in batch 15): the side view is the frames above; south, south-east, north-east and north
 // come from one sheet per hero (HDIR_MAN: [x, y, w, h, anchor x, lift]), loaded when that hero first takes the field, and the west side
 // is drawn mirrored. The dodge has its own frames in every direction, the side included. Hurt, death and the spinning skills stay side-on.
@@ -4689,12 +4739,12 @@ function drawHero(P, bob, g2 = b){   // g2: another canvas to draw into (the Arc
     if(d === 'e') face = mir ? -1 : 1;                               // east or west: the side frames, turned the right way
   }
   if(pose.startsWith('ddg')) pose = 'wk1';                           // the sheet still loading: side-on
-  const k = c + '_' + pose, im = HDP[k]; if(!im || !im.naturalWidth) return false;
-  const s = 1/6, ax = HDP_MAN[k][0], w = im.width*s, h = im.height*s;
+  const k = c + '_' + pose, im = HDP_ATL[c], r = HDP_REC[k]; if(!im || !im.naturalWidth || !r) return false;
+  const s = 1/6, ax = HDP_MAN[k][0], w = r[2]*s, h = r[3]*s;
   const dy = pose === 'down' ? 2 : /^(dth|idl|atk|hurt)/.test(pose) ? 0 : bob*0.34;
-  const X = Math.round((face < 0 ? P.x - (im.width - ax)*s : P.x - ax*s)*6)/6, Y = Math.round((P.y + dy - h)*6)/6;
-  if(g2 === b) silRec(P, im, 0, 0, im.width, im.height, X, Y, w, h, face < 0);
-  if(face < 0){ g2.save(); g2.translate(X + w, Y); g2.scale(-1, 1); g2.drawImage(im, 0, 0, w, h); g2.restore(); } else g2.drawImage(im, X, Y, w, h); return true;
+  const X = Math.round((face < 0 ? P.x - (r[2] - ax)*s : P.x - ax*s)*6)/6, Y = Math.round((P.y + dy - h)*6)/6;
+  if(g2 === b) silRec(P, im, r[0], r[1], r[2], r[3], X, Y, w, h, face < 0);
+  if(face < 0){ g2.save(); g2.translate(X + w, Y); g2.scale(-1, 1); g2.drawImage(im, r[0], r[1], r[2], r[3], 0, 0, w, h); g2.restore(); } else g2.drawImage(im, r[0], r[1], r[2], r[3], X, Y, w, h); return true;
 }
 function hdSparks(cx, cy, age, seed, face){
   if(age > 0.24) return; b.save(); b.globalCompositeOperation = 'lighter';
@@ -4762,6 +4812,12 @@ if(TOWN_V2){ const dx = TOWN2.rift[0] - 344, dy = TOWN2.rift[1] - 88, atlas = ne
   for(const k in TOWN2.spr){ TOWN_MAN.s[k] = TOWN2.spr[k].slice(0, 6); TOWN_MAN.im[k] = atlas; }
   TOWN_MAN.place = TOWN_MAN.place.filter(p => /^pillar/.test(p[0])).map(p => [p[0], p[1] + dx, p[2] + dy, p[3], p[4]]).concat([['anvil', TOWN2.anvil[0], TOWN2.anvil[1], 0, 1]], TOWN2.place);
   TOWN_MAN.lamps = TOWN2.lamps.map(([x, y]) => [x, y]); TOWN_MAN.puddles = TOWN2.puddles.map(p => p.slice()); }
+// the Outskirts' pieces (world.js OUTSK, batch 29) go in with Palli's under keys o_<name>, from their own atlas, which loads the
+// first time the hero heads out (outArt); its ground is cut like Palli's (townTiles), 42 pictures, let go when far behind
+const OUT_ATL = [];
+function outArt(){ if(typeof OUTSK === 'undefined') return []; if(!OUT_ATL.length){ for(let n = 0; n < OUTSK.natlas; n++){ const im = new Image(); im.src = 'assets/out/pieces_' + n + '.webp'; OUT_ATL.push(im); }
+    for(const k in OUTSK.spr){ const r = OUTSK.spr[k]; TOWN_MAN.s[k] = r.slice(0, 6); TOWN_MAN.im[k] = OUT_ATL[r[7]]; if(r[6]) TOWN_FADE[k] = 1; } }
+  return OUT_ATL; }
 // ---- the depths in HD: floors, walls and pieces from ChatGPT batch 08 (one realm's textures load when you first enter it)
 const DEPTHIMG = {}, DSH = new Image(); DSH.src = assetV(DEPTH_MAN.shared.img);
 const dshOK = () => RES > 1 && DSH.naturalWidth > 0;
@@ -4916,18 +4972,21 @@ function drawTownOne(k, x, y, flip, sc, alpha, win){
 // the remade Palli's ground: 12 pictures of 384 x 384 world px (2048 px each, 5.33 px per world px), each loaded when the hero comes
 // near it, and cut into 192 px squares kept scaled to RES (at most 14 at a time); until a picture is in, the whole ground, small
 // (town2_lo), shows there instead
-const TOWN_T = {c:new Map(), key:0, im:{}};
-function townTileIm(fi, fj){ const k = fi + '_' + fj; let im = TOWN_T.im[k]; if(!im){ im = TOWN_T.im[k] = new Image(); im.src = 'assets/town2/g_' + k + '.webp'; } return im; }
+const TOWN_T = {c:new Map(), key:0, im:{}, dir:'town2'}, OUT_T = {c:new Map(), key:0, im:{}, dir:'out'}, OUTLO = {im:null};
+function outLo(){ if(!OUTLO.im){ OUTLO.im = new Image(); OUTLO.im.src = 'assets/out/out_lo.webp'; } return OUTLO.im; }
+function townTileIm(fi, fj, Z = TOWN_T){ const k = fi + '_' + fj; let im = Z.im[k]; if(!im){ im = Z.im[k] = new Image(); im.src = 'assets/' + Z.dir + '/g_' + k + '.webp'; } return im; }
 function townTiles(M, cx, cy){
-  const Z = TOWN_T, G2 = TOWN2.ground, T = G2.tile, F = G2.file, [ni, nj] = G2.n, [fni, fnj] = G2.fn; if(Z.key !== RES){ Z.key = RES; Z.c.clear(); }
+  const Z = M.out ? OUT_T : TOWN_T, G2 = M.out ? OUTSK.ground : TOWN2.ground, T = G2.tile, F = G2.file, [ni, nj] = G2.n, [fni, fnj] = G2.fn; if(Z.key !== RES){ Z.key = RES; Z.c.clear(); }
+  if(M.out) for(const k in Z.im){ const u = k.indexOf('_'), fi = +k.slice(0, u), fj = +k.slice(u + 1);   // the Outskirts: let go of pictures well behind the hero
+    if(Math.abs((fi + 0.5)*F - cx - BW/2) > F*1.5 + BW/2 || Math.abs((fj + 0.5)*F - cy - BH/2) > F*1.5 + BH/2){ Z.im[k].src = ''; delete Z.im[k]; } }
   const i0 = Math.max(0, Math.floor(cx/T)), j0 = Math.max(0, Math.floor(cy/T)), i1 = Math.min(ni - 1, Math.floor((cx + BW)/T)), j1 = Math.min(nj - 1, Math.floor((cy + BH)/T));
   for(let fj = Math.max(0, Math.floor((cy - 90)/F)); fj <= Math.min(fnj - 1, Math.floor((cy + BH + 90)/F)); fj++)
-    for(let fi = Math.max(0, Math.floor((cx - 90)/F)); fi <= Math.min(fni - 1, Math.floor((cx + BW + 90)/F)); fi++) townTileIm(fi, fj);   // a little ahead of the hero
-  const lo = HDA['town_hd.webp'], ls = lo.naturalWidth/(M.w*TS);
+    for(let fi = Math.max(0, Math.floor((cx - 90)/F)); fi <= Math.min(fni - 1, Math.floor((cx + BW + 90)/F)); fi++) townTileIm(fi, fj, Z);   // a little ahead of the hero
+  const lo = M.out ? outLo() : HDA['town_hd.webp'], ls = lo.naturalWidth/(M.w*TS);
   for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++){
     const k = i + '_' + j, w = Math.min(T, M.w*TS - i*T), h = Math.min(T, M.h*TS - j*T); let c = Z.c.get(k);
     if(c){ Z.c.delete(k); Z.c.set(k, c); b.drawImage(c, i*T, j*T, w, h); continue; }
-    const fi = Math.floor(i*T/F), fj = Math.floor(j*T/F), im = townTileIm(fi, fj);
+    const fi = Math.floor(i*T/F), fj = Math.floor(j*T/F), im = townTileIm(fi, fj, Z);
     if(im.complete && im.naturalWidth){ const ps = im.naturalWidth/Math.min(F, M.w*TS - fi*F), sx = (i*T - fi*F)*ps, sy = (j*T - fj*F)*ps;
       c = mkCanvas(Math.round(w*RES), Math.round(h*RES)); const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       g.drawImage(im, sx, sy, Math.min(w*ps, im.naturalWidth - sx), Math.min(h*ps, im.naturalHeight - sy), 0, 0, c.width, c.height); Z.c.set(k, c); while(Z.c.size > 14) Z.c.delete(Z.c.keys().next().value); b.drawImage(c, i*T, j*T, w, h); }
@@ -4993,7 +5052,7 @@ function karmaSince(t){ const c = (t + 0.4) % KARMA_LEN; let last = KARMA_HITS[K
 // talking to the hero; every blow a different take, pitch and weight, the bout's last blow the hardest
 const KARMA_SND = {u:null, o:null, m:null};
 function karmaTick(){
-  const M = G.M, P = G.P; if(!M || !M.isTown || !P || G.state === 'menu'){ KARMA_SND.u = null; return; }
+  const M = G.M, P = G.P; if(!M || !M.isTown || M.out || !P || G.state === 'menu'){ KARMA_SND.u = null; return; }
   if(KARMA_SND.m !== M){ KARMA_SND.m = M; KARMA_SND.o = M.objects.find(o => o.type === 'npc' && o.id === 'karmara'); KARMA_SND.u = null; }
   const o = KARMA_SND.o; if(!o) return;
   const u = (G.time + 0.4) % KARMA_LEN, p = KARMA_SND.u; KARMA_SND.u = u;
@@ -5060,10 +5119,10 @@ function drawTownPlaced(p){
 // Palli's clock and weather: a 12-minute day that starts in the morning, and rain that comes and goes
 const smooth01 = v => v*v*(3 - 2*v);
 // day and night follow the world clock (core.js): day from 6:30, dusk 19:00-20:30, night until 5:00, dawn 5:00-6:30
-function townNight(){ if(G.nightForce !== undefined) return G.nightForce; const h = wxHour();
+function townNight(){ if(G.M && G.M.out) return 1; if(G.nightForce !== undefined) return G.nightForce; const h = wxHour();   // the Outskirts: always under the dark sky, never rain or snow
   return h < 5 ? 1 : h < 6.5 ? 1 - smooth01((h - 5)/1.5) : h < 19 ? 0 : h < 20.5 ? smooth01((h - 19)/1.5) : 1; }
-function townRain(){ if(G.rainForce !== undefined) return G.rainForce; return wxAmt('rain'); }
-function townSnow(){ if(G.snowForce !== undefined) return G.snowForce; return wxAmt('snow'); }
+function townRain(){ if(G.M && G.M.out) return 0; if(G.rainForce !== undefined) return G.rainForce; return wxAmt('rain'); }
+function townSnow(){ if(G.M && G.M.out) return 0; if(G.snowForce !== undefined) return G.snowForce; return wxAmt('snow'); }
 function townAmb(n, r){ const d = [1 - 0.12*r, 1 - 0.1*r, 1 - 0.05*r], u = [0.8, 0.6, 0.6], q = [0.30, 0.32, 0.48];
   return n < 0.5 ? d.map((v, i) => v + (u[i] - v)*n*2) : u.map((v, i) => v + (q[i] - v)*(n - 0.5)*2); }
 // puddle ripples and river ripples while it rains, a splash on every wet footstep
@@ -5357,8 +5416,9 @@ function worldReady(M, P){
   if(WAIT.map === M && WAIT.ok) return true;
   if(WAIT.map !== M){ WAIT.map = M; WAIT.t = performance.now(); WAIT.ok = false; }
   const need = [];
-  for(const k in HDP_MAN) if(k.startsWith(P.cls + '_')) need.push(HDP[k]);
-  if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA), ...new Set(Object.values(TOWN_MAN.im || {}))); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); }
+  if(HDP_ATL[P.cls]) need.push(HDP_ATL[P.cls]);
+  if(M.out) need.push(...outArt());
+  else if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA), ...new Set(Object.values(TOWN_MAN.im || {}))); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); }
   else { need.push(DSH); if(!depthArt(M.theme)) need.push(null); for(const m of M.monsters){ const a = MON_ART[m.type]; if(a){ const k = a + '_' + (m.kind || 'common'); if(MONHD[k]) need.push(MONHD[k]); } } }
   WAIT.ok = need.every(imOK) || performance.now() - WAIT.t > 8000;
   return WAIT.ok;
@@ -5387,14 +5447,15 @@ function render(){
   const sx = Math.max(0, cx), sy = Math.max(0, cy), sw = Math.min(M.art.width - sx, BW + (cx < 0 ? cx : 0)), sh = Math.min(M.art.height - sy, BH + (cy < 0 ? cy : 0));
   const DA = M.isTown ? null : depthArt(M.theme);
   if(DA){ depthChunks(M, DA, cx, cy); drawStairsUp(M, DA); }
+  else if(M.out){ if(RES > 1) townTiles(M, cx, cy); }
   else if(sw > 0 && sh > 0){ if(M.isTown && hdOK('town_hd.webp')){ const cov = townCover(), win = cov > 0 && townSnowImgs();
       if(TOWN_V2 && M.v2){ townTiles(M, cx, cy); drawDome(M, cx, cy); }
       else if(!win || cov < 1) townChunks(HDA['town_hd.webp'], cx, cy);
       if(win){ b.globalAlpha = cov; townChunks(TOWNSNOW.ground, cx, cy); b.globalAlpha = 1; } }
     else b.drawImage(M.art, sx, sy, sw, sh, sx, sy, sw, sh); }
-  if(M.isTown && townOK()) townGroundFx();
+  if(M.isTown && !M.out && townOK()) townGroundFx();
   // water shimmer in town
-  if(M.isTown && !hdOK('town_hd.webp')){ for(let k = 0; k < 18; k++){ const yy = ((k*53 + G.time*20) % (M.h*TS)); const xx = (5 + Math.round(Math.sin(yy/TS*0.35)*1.2))*TS + Math.sin(k*3.1)*10; b.fillStyle = 'rgba(120,180,220,.25)'; b.fillRect(Math.round(xx), Math.round(yy), 4, 1); } }
+  if(M.isTown && !M.out && !hdOK('town_hd.webp')){ for(let k = 0; k < 18; k++){ const yy = ((k*53 + G.time*20) % (M.h*TS)); const xx = (5 + Math.round(Math.sin(yy/TS*0.35)*1.2))*TS + Math.sin(k*3.1)*10; b.fillStyle = 'rgba(120,180,220,.25)'; b.fillRect(Math.round(xx), Math.round(yy), 4, 1); } }
   // sealed quest doors
   if(M.sealTiles && !M.sealOpen && !DA) for(const t of M.sealTiles){
     if(!M.explored[t.y*M.w + t.x]) continue;
@@ -5429,7 +5490,7 @@ function render(){
   const drawList = [];
   for(const o of M.objects){ if(!M.isTown && !M.explored[Math.floor(o.y/TS)*M.w + Math.floor(o.x/TS)]) continue; drawList.push({y:o.y, o}); }
   if(DA){ for(const u of M.hd.ups) if(u[1] > cx - 40 && u[1] < cx + BW + 40 && u[2] > cy - 4 && u[2] < cy + BH + 70) drawList.push({y:u[2], dk:u}); }
-  if(M.isTown && townOK()){ const x0 = cx - 70, x1 = cx + BW + 70, y1 = cy + BH + 110; for(const p of TOWN_MAN.place) if(p[1] > x0 && p[1] < x1 && p[2] > cy - 4 && p[2] < y1) drawList.push({y:p[2], t:p}); }
+  if(M.isTown && townOK()){ const x0 = cx - 70, x1 = cx + BW + 70, y1 = cy + BH + 110; for(const p of M.place || TOWN_MAN.place) if(p[1] > x0 - (M.out ? 110 : 0) && p[1] < x1 + (M.out ? 110 : 0) && p[2] > cy - 4 && p[2] < y1 + (M.out ? 120 : 0)) drawList.push({y:p[2], t:p}); }   // the Outskirts' ruins are wider and taller
   for(const l of G.loot){ if(l.map !== M) continue; drawLoot(l); }
   for(const m of M.monsters){ if(m.dummy) continue; if(M.vis[Math.floor(m.y/TS)*M.w + Math.floor(m.x/TS)] || m.boss && G.bossSeen) drawList.push({y:m.y, m}); }   // a training dummy is drawn as its town piece
   for(const h of party()) if(G.state !== 'dead' || (RES > 1 && HDP_MAN[h.cls + '_dth1'])) drawList.push({y:h.y, p:h});   // HD heroes play their death
@@ -6031,6 +6092,13 @@ function drawObject(o){
       b.fillStyle = '#05040a'; b.beginPath(); b.ellipse(x, y - 8, 6, 12, 0, 0, 7); b.fill();
       if(R() < 0.6){ const a = R()*Math.PI*2; G.parts.push({x:x + Math.cos(a)*40, y:y - 8 + Math.sin(a)*40, vx:-Math.cos(a)*50, vy:-Math.sin(a)*50, life:0.8, max:0.8, c:rpick(['#b98cff', '#e43b44', '#8e4ba8']), g:0, s:1}); }
       break; }
+    case 'oshrine': {   // the old shrine glows (motes rising off it) until this hero has taken its gift
+      if(G.P && G.P.shrineGift) break;
+      const pul = 0.75 + 0.25*Math.sin(t*2.1); b.save(); b.globalCompositeOperation = 'lighter';
+      const gr = b.createRadialGradient(x, y - 22, 0, x, y - 22, 26); gr.addColorStop(0, `rgba(255,226,150,${(0.34*pul).toFixed(3)})`); gr.addColorStop(1, 'rgba(255,190,90,0)');
+      b.fillStyle = gr; b.beginPath(); b.ellipse(x, y - 22, 26, 30, 0, 0, 7); b.fill(); b.restore();
+      if(R() < 0.25) G.parts.push({x:x + (R() - 0.5)*24, y:y - 10 - R()*20, vx:(R() - 0.5)*4, vy:-8 - R()*8, life:1.6, max:1.6, c:rpick(['#fff4c4', '#ffcd75', '#ffe7a0']), g:0, s:1});
+      break; }
     case 'tp': case 'homeportal': {
       if(dshOK()){ drawPortalHD(o, x, y, t); break; }
       const c1 = o.type === 'homeportal' ? '#ffcd75' : '#5fa8ff';
@@ -6086,12 +6154,13 @@ function drawLighting(cx, cy){
   const tx0 = Math.floor(cx/TS) - 1, ty0 = Math.floor(cy/TS) - 1, tw = Math.ceil(BW/TS) + 3, th = Math.ceil(BH/TS) + 3;
   if(lightCv.width !== tw || lightCv.height !== th){ lightCv.width = tw; lightCv.height = th; lightCv.img = lx.createImageData(tw, th); }
   const img = lightCv.img, d = img.data;
-  const tn = M.isTown && townOK() ? townNight() : 1, NEW = M.isTown && townOK();
-  const amb = M.isTown ? (NEW ? townAmb(tn, townRain()) : [0.30, 0.32, 0.48]) : THEMES[M.theme].amb;
+  const tn = M.isTown && townOK() && !M.out ? townNight() : 1, NEW = M.isTown && townOK() && !M.out;
+  const amb = M.out ? OUT_AMB : M.isTown ? (NEW ? townAmb(tn, townRain()) : [0.30, 0.32, 0.48]) : THEMES[M.theme].amb;
   const pf = heroGlow();
   const lights = [], nHero = party().length;   // the heroes' lights come first (shade.js dims what they cannot see in a straight line)
   const clsLight = M.isTown ? [1, 0.85, 0.65] : [1, 0.8, 0.55];
-  for(const h of party()) lights.push({x:h.x/TS, y:(h.y - 8)/TS, r:(M.isTown ? 5 : 6.8)*pf, c:clsLight, i:1.15*tn});
+  for(const h of party()) lights.push({x:h.x/TS, y:(h.y - 8)/TS, r:(M.isTown && !M.out ? 5 : 6.8)*pf, c:clsLight, i:1.15*tn});
+  if(M.out) outLights(M, P, lights);
   if(NEW) TOWN_MAN.lamps.forEach(L => { if(tn > 0.02) lights.push({x:L[0]/TS, y:L[1]/TS + 0.5, r:4.2*flick(L[0]), c:[1, 0.6, 0.28], i:1.2*tn}); });
   if(NEW && tn > 0.02 && G._forgeHit !== undefined){ const k = G._forgeHit; lights.push({x:FORGE.x/TS, y:(FORGE.y + 0.8)/TS, r:(1.7 + 0.9*k)*flick(7), c:[1, 0.5, 0.18], i:(0.75 + 0.6*k)*tn}); }   // the hot bar
   else for(const t of M.torches){ if(Math.abs(t.x - P.x/TS) > 20 || Math.abs(t.y - P.y/TS) > 16) continue; lights.push({x:t.x + 0.5, y:t.y + (M.isTown ? 0 : 0.6), r:(M.isTown ? 4.2 : 5.2)*flick(t.seed || t.x), c:[1, 0.6, 0.28], i:1.2, h:!M.isTown}); }
@@ -6108,7 +6177,7 @@ function drawLighting(cx, cy){
     for(let q = 0; q < n; q++){ const a = q/n*6.2832, x = X + Math.cos(a)*R, y = Y + Math.sin(a)*R; if(x < X - 250 && Math.abs(x - P.x) < 260 && Math.abs(y - P.y) < 200) lights.push({x:x/TS, y:y/TS, r:3.4, c:[0.45, 0.8, 1], i:0.5 + 0.35*tn}); } }
   if(NEW && M.v2){ M.houses.forEach(h => { if(Math.abs(h.x + h.w/2 - P.x/TS) < 24 && Math.abs(h.y + h.h - P.y/TS) < 18) lights.push({x:h.x + h.w/2, y:h.y + h.h - 0.6, r:2.4, c:[1, 0.7, 0.35], i:0.8*tn}); }); }   // its lit windows
   else if(NEW){ lights.push({x:33.9, y:11.4, r:4.2*flick(3), c:[1, 0.45, 0.15], i:0.55 + 0.55*tn, h:1}); [[29.2, 10.2], [11.8, 10.7], [11.7, 25.1]].forEach(w => lights.push({x:w[0], y:w[1], r:2.4, c:[1, 0.7, 0.35], i:0.8*tn})); }
-  else if(M.isTown){ lights.push({x:M.forge.x + 2, y:M.forge.y, r:4.5*flick(3), c:[1, 0.45, 0.15], i:1.1}); M.houses.forEach(h => lights.push({x:h.x + 0.8, y:h.y + h.h - 0.8, r:2.4, c:[1, 0.7, 0.35], i:0.8})); }
+  else if(M.isTown && !M.out){ lights.push({x:M.forge.x + 2, y:M.forge.y, r:4.5*flick(3), c:[1, 0.45, 0.15], i:1.1}); M.houses.forEach(h => lights.push({x:h.x + 0.8, y:h.y + h.h - 0.8, r:2.4, c:[1, 0.7, 0.35], i:0.8})); }
   if(!M.isTown && M.exit && M.explored[M.exit.y*M.w + M.exit.x] && tAt(M, M.exit.x, M.exit.y) === T_EXIT) lights.push({x:M.exit.x + 0.5, y:M.exit.y + 0.5, r:3, c:[1, 0.8, 0.4], i:0.7});
   if(!M.isTown) for(const o of M.objects) if(o.type === 'stairsup') lights.push({x:o.x/TS, y:o.y/TS, r:2.6, c:[0.75, 0.85, 1], i:0.6});   // the way up glows cool
   if(M.bossMon && G.bossSeen && !M.bossMon.dead && M.boss === 'ilvaroth') lights.push({x:M.bossMon.x/TS, y:(M.bossMon.y - 26)/TS, r:7, c:[0.7, 0.3, 1], i:0.9});
@@ -6140,6 +6209,17 @@ function drawLighting(cx, cy){
   b.save(); b.globalCompositeOperation = 'lighter';
   for(const L of lights){ if(L.i < 0.5) continue; const X = L.x*TS - cx, Y = L.y*TS - cy; if(X < -40 || Y < -40 || X > BW + 40 || Y > BH + 40) continue; const rr = L.r*TS*0.45; const gr = b.createRadialGradient(X, Y, 0, X, Y, rr); const [r1, g1, b1] = L.c.map(v => Math.round(v*255)); gr.addColorStop(0, `rgba(${r1},${g1},${b1},${0.12*L.i})`); gr.addColorStop(1, `rgba(${r1},${g1},${b1},0)`); b.fillStyle = gr; b.fillRect(X - rr, Y - rr, rr*2, rr*2); }
   b.restore();
+}
+// the Outskirts' light (2026-11-20, Mathis: really dark, the Malformed have darkened the sky; never pitch black, never bright):
+// a low cold ambient, and the few lights out there: the camp's cook fire and lanterns, the Rift scar's sick glow along its seam,
+// and the old shrine until this hero has taken its gift
+const OUT_AMB = [0.36, 0.34, 0.47];
+function outLights(M, P, lights){
+  const O = OUTSK, near = (x, y, d) => Math.abs(x - P.x) < d && Math.abs(y - P.y) < d*0.8, t = G.time;
+  for(const [x, y] of O.fires) if(near(x, y, 440)) lights.push({x:x/TS, y:y/TS, r:7*flick(x), c:[1, 0.55, 0.22], i:1.35, h:1});
+  for(const [x, y] of O.lanterns) if(near(x, y, 380)) lights.push({x:x/TS, y:(y + 4)/TS, r:3.8*flick(y), c:[1, 0.7, 0.35], i:1.0});
+  for(const [x, y] of O.scarGlow) if(near(x, y, 300)) lights.push({x:x/TS, y:y/TS, r:3.4, c:[0.82, 0.26, 0.95], i:0.5 + 0.14*Math.sin(t*1.3 + x*0.02)});
+  if(!P.shrineGift){ const [sx, sy] = O.spots.shrine; if(near(sx, sy, 420)) lights.push({x:sx/TS, y:(sy - 22)/TS, r:4.4, c:[1, 0.86, 0.52], i:0.9 + 0.2*Math.sin(t*2)}); }
 }
 function hexRGB(h){ const n = parseInt(h.slice(1), 16); return [(n >> 16)/255, ((n >> 8) & 255)/255, (n & 255)/255]; }
 
@@ -6566,7 +6646,7 @@ function wxWord(w){ return w === 'rain' ? 'Rain' : w === 'snow' ? 'Snow' : 'Clea
 function drawClock(dt){
   const c = $('wxclock'); if(!c || !G.P) return;
   CLOCK.t -= dt; if(CLOCK.t > 0) return; CLOCK.t = 0.25;
-  const art = clockArt(), h = wxHour(), I = wxInfo(), hm = Math.floor(h*6)/6, key = hm.toFixed(3) + I.w + I.next + wxLeft(I.left) + art;
+  const art = clockArt(), h = wxHour(), I = wxInfo(), hm = Math.floor(h*6)/6, sky = !!(G.M && G.M.out), key = hm.toFixed(3) + I.w + I.next + wxLeft(I.left) + art + sky;   // sky: in the Outskirts the weather is Palli's, out there only the dark
   if(key === CLOCK.key) return; CLOCK.key = key;
   const S = 3, W = 182, H = 40; if(c.width !== W*S || c.height !== H*S){ c.width = W*S; c.height = H*S; }   // drawn at 3x: crisp on the phone at any interface size
   const x = c.getContext('2d'), o = 20*S, r = 11*S; x.clearRect(0, 0, c.width, c.height); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
@@ -6591,6 +6671,7 @@ function drawClock(dt){
   x.font = `${16*S}px VT323, monospace`; x.fillStyle = '#ffd890'; x.fillText(`${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, tx, 12*S);
   x.font = `${14*S}px VT323, monospace`;
   const word = I.w === 'clear' ? I.next : I.w, txt = I.w === 'clear' ? `${wxWord(I.next)} in ${wxLeft(I.left)}` : `${wxWord(I.w)} · clears ${wxLeft(I.left)}`;
+  if(sky){ x.fillStyle = '#b98cff'; x.fillText('The Malformed sky', tx, 29*S); x.shadowColor = 'transparent'; x.shadowOffsetX = x.shadowOffsetY = 0; return; }
   let t2 = tx; if(art){ x.shadowColor = 'transparent'; x.globalAlpha = I.w === 'clear' ? 0.6 : 1; wxIcon(x, word === 'clear' ? (night ? 'moon' : 'sun') : word, tx + 6.5*S, 29*S, 13*S); x.globalAlpha = 1; x.shadowColor = '#000'; t2 = tx + 15*S; }
   x.fillStyle = word === 'rain' ? '#9cc4ff' : word === 'snow' ? '#eef6ff' : '#cfc4e0'; x.fillText(txt, t2, 29*S);
   x.shadowColor = 'transparent'; x.shadowOffsetX = x.shadowOffsetY = 0;
@@ -6633,7 +6714,7 @@ function updateHUD(dt){
     setTxt(el.querySelector('.ct'), cd > 0 ? (cd < 1 ? cd.toFixed(1) : Math.ceil(cd)) : '');
     el.classList.toggle('nomana', P.mp < manaCost(sk, P) && !!P.skills[sk.id]);
   });
-  setTxt($('aname'), M.isTown ? 'Palli' : M.name);
+  setTxt($('aname'), M.out ? 'The Outskirts' : M.isTown ? 'Palli' : M.name);
   setHtml($('alv'), (coop() ? `<span style="color:${HERO_COL[0]}">P1</span> ` : '') + `${esc(P.name)} · Lv ${P.lvl} ${C.name}` + (M.isTown ? '' : `<br>Depth ${M.level} · <span style="color:${DIFFS[M.diff].color}">${DIFFS[M.diff].name}</span>`));
   setTxt($('quest'), questText());
   const bm = G.activeBoss;
@@ -6642,7 +6723,7 @@ function updateHUD(dt){
   if(G.bossLine){ G.bossLine.t += dt; if(bl.dataset.t !== G.bossLine.text){ bl.dataset.t = G.bossLine.text; bl.textContent = G.bossLine.text; } bl.style.opacity = G.bossLine.t > 8 ? 0 : 1; if(G.bossLine.t > 9 || !bm){ G.bossLine = null; bl.textContent = ''; bl.dataset.t = ''; } }
   const bn = $('banner');
   if(!G.banner && bn.innerHTML){ bn.innerHTML = ''; }
-  if(G.banner){ G.banner.t += dt; if(!G.banner.el){ bn.innerHTML = `<div class="t" style="${G.banner.boss ? 'color:#ff8a8a' : ''}">${esc(G.banner.text)}</div><div class="s">${esc(G.banner.sub)}</div>`; G.banner.el = true; bn.style.opacity = 1; } if(G.banner.t > 2.6){ bn.style.opacity = 0; } if(G.banner.t > 3.4){ G.banner = null; bn.innerHTML = ''; } }
+  if(G.banner){ G.banner.t += dt; const hold = G.banner.gift ? 4.8 : 2.6; if(!G.banner.el){ bn.innerHTML = `<div class="t" style="${G.banner.boss ? 'color:#ff8a8a' : G.banner.gift ? 'color:#ffe7a0;font-size:clamp(26px,6vw,50px);text-shadow:3px 3px 0 #000,0 0 22px rgba(255,214,120,.65)' : ''}">${esc(G.banner.text)}</div><div class="s"${G.banner.gift ? ' style="color:#a7f070;font-size:22px"' : ''}>${esc(G.banner.sub)}</div>`; G.banner.el = true; bn.style.opacity = 1; } if(G.banner.t > hold){ bn.style.opacity = 0; } if(G.banner.t > hold + 0.8){ G.banner = null; bn.innerHTML = ''; } }   // the old shrine's gift stays up longer
   if(isTouch){ const o = G.nearObj; const act = $('act'); if(o && !uiBlocking()){ act.classList.remove('hide'); if(act._lbl !== interactLabel(o)){ act._lbl = interactLabel(o); act.textContent = act._lbl; } } else act.classList.add('hide'); }
   { const calm = !!M.isTown && !inTraining(); if(document.body._town !== calm){ document.body._town = calm; document.body.classList.toggle('intown', calm); } }   // the training ground lights them up   // in Palli the attack and skill buttons stay, dimmed (they can't be used there)
   minimapT -= dt; if(minimapT <= 0){ minimapT = 0.25; drawMinimap(); }
@@ -6691,9 +6772,13 @@ function mapMarks(M){
     else if(o.type === 'chest' && !o.used) mk = {L:'chests', col:'#ffcd75', z:5};
     else if(o.type === 'shrine' && !o.used) mk = {L:'shrines', col:'#a7f070', z:5};
     else if(o.type === 'seal' && !M.sealOpen) mk = {L:'seals', lab:'Sealed door', labCol:'#b98cff'};
+    else if(o.type === 'oshrine') mk = {L:'shrines', col:P.shrineGift ? '#6a7a5a' : '#a7f070', z:6, lab:'Old shrine'};
+    else if(o.type === 'ogate') mk = {L:'portals', col:'#ef7d57', z:7, lab:'Sealed gate'};
+    else if(o.type === 'oscar') mk = {L:'portals', col:'#d77aff', z:7, lab:'Rift scar'};
     else if(o.type === 'stairsup') mk = {L:'stairs', lab:M.level <= 1 ? 'Up to Palli' : 'Stairs up', labCol:'#bcd4ff'};
     if(mk){ mk.x = o.x; mk.y = o.y; out.push(mk); }
   }
+  if(M.out) out.push({L:'people', x:OUTSK.spots.hash[0], y:OUTSK.spots.hash[1] - 70, col:'#ffcd75', z:6, lab:'Camp of Fortitude'});
   if(!M.isTown){
     if(M.arena && M.explored[M.arena.cy*M.w + M.arena.cx]) out.push({L:'bosses', x:M.arena.cx*TS, y:M.arena.cy*TS, lab:M.bossMon && !M.bossMon.dead ? MONS[M.boss].name.split(',')[0] : 'Boss defeated', labCol:'#ff8a8a'});
     if(M.questRoom && M.explored[M.questRoom.cy*M.w + M.questRoom.cx]) out.push({L:'bosses', x:M.questRoom.cx*TS, y:M.questRoom.cy*TS, lab:M.questMon && !M.questMon.dead ? MONS[M.quest].name.split(' ')[0] + "'s chamber" : 'Chamber cleared', labCol:'#ff8a8a'});
@@ -6708,6 +6793,7 @@ function mapMarks(M){
 // Palli, painted: the village's ground and everything standing on it, drawn small once, for the middle map and the map panel
 const TOWNMAP = {c:null};
 function townMapArt(M){
+  if(M && M.out) return outMapArt(M);
   if(TOWNMAP.c) return TOWNMAP.c; if(!M || !M.isTown || !hdOK('town_hd.webp') || !townOK()) return null;
   const S = 2, c = document.createElement('canvas'); c.width = M.w*TS*S; c.height = M.h*TS*S; const x = c.getContext('2d');
   x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(HDA['town_hd.webp'], 0, 0, c.width, c.height);
@@ -6722,6 +6808,18 @@ function townMapArt(M){
     x.save(); x.beginPath(); x.rect(0, 0, c.width, c.height); x.arc(X*S, Y*S, R*S, 0, 6.2832, true); x.fillStyle = g('8,8,20', 0.38); x.fill('evenodd');
     x.strokeStyle = g('120,210,255', 0.8); x.lineWidth = 3*S; x.beginPath(); x.arc(X*S, Y*S, R*S, 0, 6.2832); x.stroke(); x.restore(); }   // Ganesh's dome, on the west as in the game
   return TOWNMAP.c = c;
+}
+// the Outskirts' map: their ground small (1 px per world px), the ruins, the camp and the rest drawn on it, and the Camp of Fortitude named
+const OUTMAP = {c:null};
+function outMapArt(M){
+  if(OUTMAP.c) return OUTMAP.c; const lo = outLo(), A = outArt(); if(!lo.naturalWidth || A.some(im => !im.naturalWidth)) return null;
+  const S = 1, c = document.createElement('canvas'); c.width = M.w*TS*S; c.height = M.h*TS*S; const x = c.getContext('2d');
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(lo, 0, 0, c.width, c.height);
+  for(const p of [...M.place].sort((a, b) => a[2] - b[2])){ const [k, px, py, flip, sc = 1] = p, r = TOWN_MAN.s[k], im = TOWN_MAN.im[k]; if(!r || !im) continue; const f = S*sc/6, w = r[2]*f, h = r[3]*f;
+    if(flip){ x.save(); x.translate(px*S, py*S); x.scale(-1, 1); x.drawImage(im, r[0], r[1], r[2], r[3], -r[4]*f, -r[5]*f, w, h); x.restore(); }
+    else x.drawImage(im, r[0], r[1], r[2], r[3], px*S - r[4]*f, py*S - r[5]*f, w, h); }
+  x.fillStyle = 'rgba(255,170,80,0.16)'; for(const [fx, fy] of OUTSK.fires){ const g = x.createRadialGradient(fx, fy, 0, fx, fy, 90); g.addColorStop(0, 'rgba(255,170,80,0.35)'); g.addColorStop(1, 'rgba(255,170,80,0)'); x.fillStyle = g; x.fillRect(fx - 90, fy - 90, 180, 180); }
+  return OUTMAP.c = c;
 }
 // ---- the map in the middle of the screen (PC): the explored map centred on the hero, see-through, fading out toward the edges ----
 const MAPO = {cache:null, map:null, t:0};
@@ -6793,16 +6891,17 @@ function drawMinimap(){
 }
 function renderMapPanel(){
   const M = G.M, P = G.P;
-  const title = M.isTown ? 'Map of Palli' : `Map · ${M.name}`;
-  const sub = M.isTown ? 'The village of Palli, beside the river Sarai.' : `Depth ${M.level} · <span style="color:${DIFFS[M.diff].color}">${DIFFS[M.diff].name}</span> · only places you have seen are shown`;
-  const leg = M.isTown
+  const title = M.out ? 'Map of the Outskirts' : M.isTown ? 'Map of Palli' : `Map · ${M.name}`;
+  const sub = M.out ? 'Beyond Ganesh\'s dome: the ruined Aranyan quarter, the old road, the Camp of Fortitude.' : M.isTown ? 'The village of Palli, beside the river Sarai.' : `Depth ${M.level} · <span style="color:${DIFFS[M.diff].color}">${DIFFS[M.diff].name}</span> · only places you have seen are shown`;
+  const leg = M.out ? `<span style="color:#a7f070">■</span> The old shrine · <span style="color:#ef7d57">■</span> The sealed gate · <span style="color:#d77aff">■</span> The Rift scar · <span style="color:#ffcd75">■</span> Camp of Fortitude`
+    : M.isTown
     ? `<span style="color:#ffcd75">■</span> People · <span style="color:#b98cff">■</span> The Rift · <span style="color:#7df9ff">■</span> Shared chest · <span style="color:#5fa8ff">■</span> Portal stone`
     : `<span style="color:#fff">■</span> You · <span style="color:#ffcd75">■</span> Stairs / chests · <span style="color:#e8dcc0">■</span> Writings · <span style="color:#a7f070">■</span> Shrine · <span style="color:#b98cff">■</span> Sealed door · <span style="color:#e04050">■</span> Monsters you can see`;
   return panelShell(title, `<div class="sub" style="margin-bottom:6px">${sub}</div><canvas id="fullmap" style="width:100%;image-rendering:pixelated;display:block;background:#0b0810;border:2px solid var(--edge);border-radius:4px"></canvas><div style="font-size:16px;margin-top:6px;line-height:1.3">${leg}</div><div class="sub" style="font-size:15px;margin-top:4px">${isTouch ? 'Tap the corner map to open this map.' : 'Press M or click the corner map to open this map.'}</div>`);
 }
 function drawFullMap(){
   const M = G.M, P = G.P, c = $('fullmap'); if(!c) return;
-  const art = M.isTown ? townMapArt(M) : null, s = art ? 24 : M.isTown ? 8 : 4; c.width = M.w*s; c.height = M.h*s; const x = c.getContext('2d');
+  const art = M.isTown ? townMapArt(M) : null, s = art ? (M.out ? 6 : 24) : M.isTown ? 8 : 4; c.width = M.w*s; c.height = M.h*s; const x = c.getContext('2d');
   c.style.imageRendering = art ? 'auto' : 'pixelated';
   const cssW = c.getBoundingClientRect().width || 330, k = c.width/cssW;
   x.fillStyle = '#0b0810'; x.fillRect(0, 0, c.width, c.height);
@@ -7506,7 +7605,7 @@ function buyPot(k, c){ const P = G.P; if(P.pots[k] >= 10){ toast('You cannot car
 function respec(c){
   const P = G.P; if(P.gold < c){ toast('Not enough gold.', '#e43b44'); sfx('error'); return; }
   P.gold -= c; const C = CLASSES[P.cls];
-  P.stats = {...C.base}; P.statPts = 4*(Math.min(P.lvl, 40) - 1) + 6*Math.max(0, P.lvl - 40);
+  P.stats = {...C.base}; P.statPts = 4*(Math.min(P.lvl, 40) - 1) + 6*Math.max(0, P.lvl - 40) + (P.shrineGift ? 5 : 0);   // the Outskirts' shrine gift is for good
   C.skills.forEach(s => P.skills[s.id] = 0); P.skills[C.skills[0].id] = 1; P.skillPts = Math.max(0, Math.min(P.lvl, 40) - 1); P.slots = cleanSlots(P).map(id => id && slotOpen(P, id) ? id : null);
   derive(P); sfx('levelup'); toast('Your points have been refunded.', '#a7f070'); UI.dirty = true; refreshPanel();
 }
