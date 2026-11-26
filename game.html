@@ -588,7 +588,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.54';
+const GAME_VER = '0.1.56';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -2008,6 +2008,8 @@ const TOWN2 = {"w":96,"h":64,"tiles":["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 function makeDummy(x, y){ return {type:'dummy', dummy:true, name:'Training dummy', x, y, r:7, hp:1e9, maxhp:1e9, lvl:1, d:{stationary:true}, kbx:0, kby:0, vx:0, vy:0, stun:0, freeze:0, root:0, flash:0, face:1, wob:0, wobS:1, log:[], dot:null}; }
 // inside Palli's training ground (the hero given, or the one acting)
 function inTraining(P){ P = P || G.P; const M = G.M; if(M && M.out) return true; const T = M && M.isTown && M.train; return !!(T && P && P.x > T[0] && P.x < T[2] && P.y > T[1] && P.y < T[3]); }   // the Outskirts: every attack and skill works
+// Mr. Greystone (batch 34, 2026-11-26): Palli's town drunk, on his stool left of house_h's door, facing it, the road and Ganesh's house
+const GREY_SPOT = [598, 597];
 function genTown2(){
   const D = TOWN2, M = newMap(D.w, D.h, T_GRASS), S = D.spots;
   M.isTown = true; M.name = 'Palli'; M.theme = 'town'; M.v2 = true;
@@ -2020,13 +2022,14 @@ function genTown2(){
     {type:'npc', id:'karmara', x:S.karmara[0], y:S.karmara[1], name:'Karmara', role:'Blacksmith'},
     {type:'npc', id:'vaidya',  x:S.vaidya[0], y:S.vaidya[1], name:'Vaidya', role:'Healer'},
     {type:'npc', id:'ganesh',  x:S.ganesh[0], y:S.ganesh[1], name:'Ganesh', role:'Storyteller'},
+    {type:'npc', id:'greystone', x:GREY_SPOT[0], y:GREY_SPOT[1], name:'Mr. Greystone', role:'Former teacher', face:1, talks:true, labelUp:28},   // batch 34: on his stool outside house_h
     {type:'rift', x:D.rift[0], y:D.rift[1], name:'The Rift'},
     {type:'stone', x:S.stone[0], y:S.stone[1], name:'Portal Stone'},
     {type:'stash', x:S.stash[0], y:S.stash[1], name:'Shared Chest'}
   ];
   M.props = []; M.items = [];
   M.train = D.train; M.monsters = D.dummies.map(([x, y]) => makeDummy(x, y));   // the training ground: attacks and skills work inside it, on its dummies
-  M.solids = townSolids(M).concat(D.solids.map(([x, y, rx, ry]) => ({x, y, rx, ry})), D.rects.map(([x, y, w, h]) => ({x, y, w, h})));
+  M.solids = townSolids(M).concat(D.solids.map(([x, y, rx, ry]) => ({x, y, rx, ry})), D.rects.map(([x, y, w, h]) => ({x, y, w, h})), [{x:GREY_SPOT[0], y:GREY_SPOT[1] - 1, rx:7, ry:3.5}]);
   if(typeof OUTSK !== 'undefined'){   // the way out (not in the free demo): across the rest of the bridge, then the dead west bank's old road to the edge
     for(let j = 27; j <= 30; j++) for(let i = 15; i <= 24; i++) setT(M, i, j, T_BRIDGE);
     for(let j = 25; j <= 30; j++) for(let i = 1; i <= 15; i++) setT(M, i, j, T_GRASS);
@@ -4920,12 +4923,39 @@ function campDraw(o, t){
   if(breath > 0.05) drawAtlBreath(im, r, o.x, o.y, face, breath); else drawAtl(im, r, o.x, o.y, face, 1);
   return true;
 }
+// <GREY>
+const GREY_MAN = {"n":1,"f":{"greystone":{"btl":[209,101,27,23,14.0,0],"btl_snow":[238,101,27,23,14.0,0],"idl":[278,0,69,98,33.9,0],"tlk_1":[559,0,69,98,33.9,0],"tlk_2":[0,101,67,95,33.8,0],"tlk_3":[69,101,68,95,34.4,0],"tlk_4":[139,101,68,95,34.4,0],"tlk_5":[699,0,68,97,34.6,0],"tlk_6":[769,0,75,96,37.9,0],"tlk_7":[846,0,68,96,34.6,0],"tlk_8":[916,0,68,96,34.4,0],"wrk_1":[349,0,69,98,33.9,0],"wrk_2":[630,0,67,97,33.8,0],"wrk_3":[420,0,68,98,34.4,0],"wrk_4":[490,0,67,98,33.8,0],"wrk_5":[0,0,68,99,34.4,0],"wrk_6":[70,0,68,99,34.4,0],"wrk_7":[140,0,67,99,33.8,0],"wrk_8":[209,0,67,99,33.8,0]}}};   // tools_greystone.py
+// </GREY>
+// ---------------- Mr. Greystone (batch 34, 2026-11-26): Palli's town drunk on his stool, his frames in assets/greystone.webp ----------------
+// (GREY_MAN: tools_greystone.py; every frame stands on the stool's middle, which never moves). He rests, breathing, and every so
+// often takes a long swig (his work loop); when the hero walks up he talks with a teacher's hands. He always faces right (his door,
+// the road and Ganesh's house), so the stool stays put. His empty bottles lie on the ground at his left, snowy in winter.
+const GREY_IM = new Image(); let GREY_ON = false;
+function greyArt(){ if(!GREY_ON && typeof GREY_MAN !== 'undefined'){ GREY_ON = true; GREY_IM.src = 'assets/greystone.webp'; } return GREY_IM; }
+const GREY_REST = 5.5, GREY_SWIG = [[1, .3], [2, .3], [3, .35], [4, 1.2], [5, .45], [6, .5], [7, .55], [8, .4]];   // the swig: lift, drink long, lower, wipe, glasses
+const GREY_L = GREY_REST + GREY_SWIG.reduce((a, s) => a + s[1], 0);
+function greyDraw(o, t){
+  if(typeof GREY_MAN === 'undefined') return false;
+  const F = GREY_MAN.f.greystone, im = greyArt(); if(!im.naturalWidth) return false;
+  const cov = townCover(), bx = o.x - 12, by = o.y + 4;   // the bottles, on the ground at his left, just out of the dirt
+  if(cov < 1) drawAtl(im, F.btl, bx, by, 1);
+  if(cov > 0){ b.globalAlpha = cov; drawAtl(im, F.btl_snow, bx, by, 1); b.globalAlpha = 1; }
+  let key = 'idl', breath = 0;
+  if(o.talks && campNear(o)) key = 'tlk_' + (1 + Math.floor(t/0.16) % 8);
+  else { let c = ((t + (o.seed || 0)) % GREY_L + GREY_L) % GREY_L - GREY_REST;
+    if(c >= 0){ for(const s of GREY_SWIG){ if(c < s[1]){ key = 'wrk_' + s[0]; break; } c -= s[1]; } }
+    else breath = 1 - Math.cos(t*Math.PI*2/3.8); }   // a slow, easy breath while he rests
+  const r = F[key] || F.idl;
+  if(breath > 0.05) drawAtlBreath(im, r, o.x, o.y, 1, breath); else drawAtl(im, r, o.x, o.y, 1);
+  return true;
+}
 const HDA = {}; for(const k of ['town_hd.webp', 'stash_hd.png', 'stone_hd.png', 'stone_hd_lit.png']){ HDA[k] = new Image(); HDA[k].src = assetV(k === 'town_hd.webp' && TOWN_V2 ? 'town2_lo.webp' : k); }   // the remade Palli: its whole ground, small (2 px per world px), under the tiles while they load
 const TOWN_GS = TOWN_V2 ? 3 : 6;   // the town ground's px per world px (the remade Palli is painted at 3)
 const hdOK = k => RES > 1 && HDA[k] && HDA[k].naturalWidth > 0;
 const DEPTH_MAN = {"crypt":{"floor":"depth_crypt_floor.webp","grand":"depth_crypt_grand.webp","top":"depth_crypt_top.webp","s":{"land":[0,0,143,287,71.5,286],"pillar":[145,0,92,210,46.0,209],"stairs_up":[239,0,192,192,96.0,96.0],"stairs":[433,0,191,190,95.5,95.0],"seal":[626,0,96,139,48.0,138],"prop5_open":[724,0,192,107,96.0,106],"prop5":[918,0,191,106,95.5,105],"face":[1111,0,576,96,0,0],"dec2":[1689,0,38,96,19.0,95],"dec3":[1729,0,88,96,44.0,95],"dec1":[1819,0,92,95,46.0,94],"dec4":[1913,0,94,95,47.0,94],"sigil":[0,289,96,92,48.0,46.0],"prop6":[98,289,95,86,47.5,85],"prop4":[195,289,46,76,23.0,75],"det3":[243,289,86,67,43.0,33.5],"det8":[331,289,94,66,47.0,33.0],"det6":[427,289,94,65,47.0,32.5],"det2":[523,289,94,60,47.0,30.0],"det1":[619,289,94,56,47.0,28.0],"prop3":[715,289,46,56,23.0,55],"det4":[763,289,94,54,47.0,27.0],"det7":[859,289,94,50,47.0,25.0],"prop4_broken":[955,289,77,48,38.5,33.6],"det5":[1034,289,94,46,47.0,23.0],"prop1":[1130,289,85,46,42.5,45],"prop2":[1217,289,37,38,18.5,37]},"img":"depth_crypt.webp","flat":false},"flesh":{"floor":"depth_flesh_floor.webp","grand":"depth_flesh_grand.webp","top":"depth_flesh_top.webp","s":{"land":[0,0,287,288,143.5,144.0],"pillar":[289,0,95,210,47.5,209],"stairs_up":[386,0,192,192,96.0,96.0],"stairs":[580,0,191,190,95.5,95.0],"seal":[773,0,96,139,48.0,138],"prop6":[871,0,138,114,69.0,113],"face":[1011,0,576,96,0,0],"dec1":[1589,0,88,96,44.0,95],"dec2":[1679,0,90,96,45.0,95],"sigil":[1771,0,94,96,47.0,48.0],"dec3":[1867,0,95,86,47.5,85],"dec4":[0,290,95,81,47.5,80],"prop3":[97,290,65,56,32.5,55],"prop5":[164,290,95,54,47.5,53],"det4":[261,290,94,52,47.0,26.0],"det5":[357,290,94,48,47.0,24.0],"det2":[453,290,94,44,47.0,22.0],"det3":[549,290,94,44,47.0,22.0],"det7":[645,290,94,43,47.0,21.5],"prop2":[741,290,95,43,47.5,42],"det1":[838,290,94,42,47.0,21.0],"prop4":[934,290,76,34,38.0,33],"det8":[1012,290,94,32,47.0,16.0],"prop1":[1108,290,56,31,28.0,30],"det6":[1166,290,95,26,47.5,13.0]},"img":"depth_flesh.webp","flat":true},"void":{"floor":"depth_void_floor.webp","grand":"depth_void_grand.webp","top":"depth_void_top.webp","s":{"land":[0,0,479,478,239.5,239.0],"pillar":[481,0,90,211,45.0,210],"stairs_up":[573,0,191,192,95.5,96.0],"stairs":[766,0,191,191,95.5,95.5],"face":[959,0,576,96,0,0],"dec1":[1537,0,86,96,43.0,95],"dec4":[1625,0,80,95,40.0,94],"prop1":[1707,0,38,94,19.0,93],"prop5":[1747,0,86,94,43.0,93],"dec3":[1835,0,96,92,48.0,91],"dec2":[1933,0,95,82,47.5,81],"prop6":[0,480,191,76,95.5,75],"det5":[193,480,80,67,40.0,33.5],"det8":[275,480,94,60,47.0,30.0],"det2":[371,480,94,58,47.0,29.0],"prop4":[467,480,56,56,28.0,55],"det4":[525,480,95,55,47.5,27.5],"det1":[622,480,94,49,47.0,24.5],"prop2":[718,480,92,46,46.0,45],"prop3":[812,480,76,44,38.0,43],"det6":[890,480,94,38,47.0,19.0],"det3":[986,480,95,32,47.5,16.0],"det7":[1083,480,94,32,47.0,16.0]},"img":"depth_void.webp","flat":true},"throne":{"floor":"depth_throne_floor.webp","grand":"depth_throne_grand.webp","top":"depth_throne_top.webp","s":{"land":[0,0,383,383,191.5,382],"pillar":[385,0,96,211,48.0,210],"stairs_up":[483,0,192,192,96.0,96.0],"prop5":[677,0,56,100,28.0,99],"face":[735,0,576,96,0,0],"dec1":[1313,0,95,95,47.5,94],"dec4":[1410,0,32,95,16.0,94],"dec2":[1444,0,95,90,47.5,89],"dec3":[1541,0,95,90,47.5,89],"prop3":[1638,0,76,82,38.0,81],"det1":[1716,0,81,68,40.5,34.0],"det7":[1799,0,81,68,40.5,34.0],"det2":[1882,0,86,67,43.0,33.5],"det6":[0,385,94,67,47.0,33.5],"det8":[96,385,88,67,44.0,33.5],"det3":[186,385,78,66,39.0,33.0],"prop2":[266,385,95,66,47.5,65],"det5":[363,385,94,48,47.0,24.0],"prop1":[459,385,95,44,47.5,43],"prop6":[556,385,95,44,47.5,43],"det4":[653,385,94,43,47.0,21.5],"prop4":[749,385,47,28,23.5,27]},"img":"depth_throne.webp","flat":false},"shared":{"img":"depth_shared.webp","s":{"portal_home1":[0,0,114,188,57.0,187],"portal_home2":[116,0,114,188,57.0,187],"portal_home3":[232,0,114,188,57.0,187],"portal_home4":[348,0,114,188,57.0,187],"portal_home5":[464,0,114,188,57.0,187],"portal_home6":[580,0,114,188,57.0,187],"portal_home7":[696,0,114,188,57.0,187],"portal_home8":[812,0,114,188,57.0,187],"portal_town1":[928,0,113,186,56.5,185],"portal_town2":[1043,0,113,186,56.5,185],"portal_town3":[1158,0,113,186,56.5,185],"portal_town4":[1273,0,113,186,56.5,185],"portal_town5":[1388,0,113,186,56.5,185],"portal_town6":[1503,0,113,186,56.5,185],"portal_town7":[1618,0,113,186,56.5,185],"portal_town8":[1733,0,113,186,56.5,185],"shrine_power":[1848,0,95,172,47.5,171],"shrine_speed":[1945,0,95,172,47.5,171],"shrine_life":[0,190,95,172,47.5,171],"chest_open":[97,190,96,110,48.0,109],"shrine_used":[195,190,95,90,47.5,89],"fallen":[292,190,144,76,72.0,75],"chest":[438,190,96,70,48.0,69]}}};
 const TOWN_MAN = {"img":"town_spr.webp","s":{"forge":[0,0,672,468,336.0,467],"hut":[674,0,576,423,288.0,422],"ganesh":[1252,0,605,334,302.5,333],"pine":[0,470,189,310,94.5,309],"oak":[191,470,285,300,142.5,299],"dead":[478,470,265,299,132.5,298],"rift1":[745,470,215,288,107.5,287],"rift2":[962,470,215,288,107.5,287],"rift3":[1179,470,215,288,107.5,287],"rift4":[1396,470,215,288,107.5,287],"rift5":[1613,470,215,288,107.5,287],"rift6":[1830,470,215,288,107.5,287],"rift7":[0,782,215,288,107.5,287],"rift8":[217,782,215,288,107.5,287],"pillar3":[434,782,117,239,58.5,238],"pillar1":[553,782,113,234,56.5,233],"lamp":[668,782,52,227,26.0,226],"pillar2":[722,782,115,227,57.5,226],"well":[839,782,119,115,59.5,114],"grave":[960,782,76,93,38.0,92],"barrel":[1038,782,70,89,35.0,88],"rubble":[1110,782,206,88,103.0,87],"cart":[1318,782,144,87,72.0,86],"fence":[1464,782,101,84,50.5,83],"sack1":[1567,782,66,78,33.0,77],"bush":[1635,782,128,74,64.0,73],"crate":[1765,782,72,73,36.0,72],"anvil":[1839,782,92,67,46.0,66],"hay":[1933,782,91,63,45.5,62],"splash1":[0,1072,62,45,31.0,38.7],"splash2":[64,1072,62,45,31.0,38.7],"splash3":[128,1072,62,45,31.0,38.7],"splash4":[192,1072,62,45,31.0,38.7],"splash5":[256,1072,62,45,31.0,38.7],"splash6":[320,1072,62,45,31.0,38.7],"splash7":[384,1072,62,45,31.0,38.7],"splash8":[448,1072,62,45,31.0,38.7],"sack2":[512,1072,78,42,39.0,41],"ripple1":[592,1072,128,38,64.0,19.0],"ripple2":[722,1072,128,38,64.0,19.0],"ripple3":[852,1072,128,38,64.0,19.0],"ripple4":[982,1072,128,38,64.0,19.0],"ripple5":[1112,1072,128,38,64.0,19.0],"ripple6":[1242,1072,128,38,64.0,19.0],"ripple7":[1372,1072,128,38,64.0,19.0],"ripple8":[1502,1072,128,38,64.0,19.0]},"place":[["pine",505.9,26.0,0,1.01],["pine",36.2,26.5,1,0.89],["oak",358.5,26.8,0,0.96],["pine",612.2,26.9,1,0.93],["dead",200.8,27.0,1,0.95],["oak",474.0,27.6,0,0.98],["oak",583.9,27.6,1,0.89],["oak",164.0,27.9,1,1.05],["pine",248.0,27.9,0,0.96],["oak",212.9,28.0,0,0.98],["oak",409.9,28.0,0,0.94],["oak",485.6,28.0,1,1.0],["pine",518.8,28.1,0,1.03],["pine",441.2,28.4,1,1.05],["pine",419.1,28.8,1,0.89],["oak",280.8,29.1,0,0.88],["pine",149.9,29.2,1,0.98],["oak",532.3,29.2,1,0.97],["oak",134.4,29.5,0,0.91],["oak",262.0,29.6,0,0.98],["oak",328.8,29.6,0,0.95],["oak",372.3,29.6,1,1.04],["pine",181.0,30.0,1,0.89],["pine",227.6,30.0,0,1.05],["pine",342.5,30.0,1,1.02],["pine",631.5,30.1,0,0.92],["pine",386.5,30.2,0,0.98],["pine",567.8,30.6,0,0.91],["dead",292.3,30.7,1,0.92],["pine",552.3,30.7,1,0.88],["dead",453.3,30.8,0,0.98],["pine",598.1,30.9,0,0.98],["pine",309.0,31.0,1,0.92],["pine",21.9,51.2,1,0.99],["pine",650.9,57.6,0,0.92],["pine",230.2,62,1,1.0],["pillar1",280.0,62,0,1.0],["pillar1",312.0,62,1,1.0],["pillar2",344.0,62,0,1.0],["pillar3",376.0,62,1,1.0],["pillar1",408.0,62,0,1.0],["oak",25.8,70.5,0,0.98],["rubble",384.0,73.6,1,0.8],["pine",649.4,76.9,0,0.9],["oak",184.1,78,1,1.0],["pine",567.6,78,1,1.0],["pine",26.8,89.9,0,1.0],["oak",617.5,94,1,1.0],["pillar2",280.0,94,1,1.0],["pillar2",408.0,94,1,1.0],["pine",647.8,96.3,0,0.95],["oak",26.5,106.9,1,0.9],["rubble",308.8,110.4,0,1.0],["oak",647.7,113.3,1,1.07],["pillar3",280.0,126,0,1.0],["pillar3",408.0,126,0,1.0],["pine",23.6,128.5,1,0.97],["pine",650.2,134.9,0,0.9],["pine",21.4,148.5,0,1.04],["bush",387.2,148.8,1,1.0],["pine",645.0,154.9,1,0.96],["bush",568.0,156.8,0,1.0],["lamp",328.0,159,0,1.0],["bush",264.0,163.2,1,1.0],["dead",23.1,165.4,0,0.9],["bush",126.4,168.0,0,1.0],["pine",646.2,171.8,1,0.96],["pine",24.1,189.2,1,0.96],["pine",390.2,190,0,1.0],["forge",504.0,191,0,1.0],["hut",208.0,191,0,1.0],["bush",150.4,192.0,0,1.0],["oak",650.7,195.6,0,0.93],["barrel",264,197,0,1.0],["sack1",271.2,200.8,0,1.0],["sack2",281.6,204.8,1,1.0],["anvil",437.2,206.0,0,1.0],["pine",23.3,208.1,0,1.05],["barrel",566,209,0,1.0],["crate",582.4,214.4,0,1.0],["oak",648.9,214.5,0,0.96],["lamp",529.6,216.6,0,1.0],["pine",632.7,222,0,1.0],["lamp",248.0,223,0,1.0],["pine",25.4,228.1,1,0.98],["pine",650.0,234.5,1,1.05],["cart",538,237,1,1.0],["pine",25.5,249.5,0,1.05],["hay",574.4,249.6,0,1.0],["lamp",328.0,255,0,1.0],["pine",648.2,255.9,1,1.07],["oak",26.4,265.3,1,1.04],["pine",645.2,271.7,1,0.96],["pine",23.8,286.2,1,0.9],["pine",648.2,292.6,0,0.96],["bush",601.6,294.4,0,1.0],["lamp",376.0,303,0,1.0],["well",296,304,0,1.0],["dead",22.4,311.1,0,0.92],["fence",424.0,317,0,1.0],["fence",440.0,317,0,1.0],["fence",456.0,317,0,1.0],["fence",472.0,317,0,1.0],["fence",488.0,317,0,1.0],["fence",504.0,317,0,1.0],["fence",520.0,317,0,1.0],["fence",536.0,317,0,1.0],["fence",552.0,317,0,1.0],["oak",648.8,317.5,1,1.07],["oak",26.5,326.7,0,1.0],["grave",196,331,0,1.0],["pine",645.5,333.1,1,0.97],["dead",153.2,334,0,1.0],["oak",26.3,346.4,1,0.88],["pine",439.7,350,0,1.0],["pine",647.9,352.8,0,0.97],["bush",139.2,361.6,1,1.0],["pine",21.8,365.3,1,0.91],["oak",584.7,366,1,1.0],["lamp",296.0,367,0,1.0],["pine",650.7,371.7,1,0.98],["pine",22.3,386.8,0,0.96],["pine",645.4,393.2,1,1.06],["pine",25.0,408.4,1,0.99],["bush",248.0,412.8,0,1.0],["pine",600.2,414,1,1.0],["bush",137.6,414.4,1,1.0],["pine",645.3,414.8,0,0.96],["ganesh",192.0,415,0,1.0],["oak",25.9,425.1,1,1.05],["oak",537.6,430,0,1.0],["pine",645.6,431.5,0,0.88],["oak",279.6,446,1,1.0],["oak",424.6,446,1,1.0],["oak",26.8,446.6,0,0.99],["pine",649.1,453.0,1,0.97],["pine",21.1,466.4,1,0.99],["dead",650.4,472.8,1,0.98],["pine",284.6,487.1,1,1.06],["dead",445.0,487.1,0,1.04],["oak",167.8,487.3,1,0.97],["oak",223.3,487.3,0,0.93],["dead",465.8,487.3,0,0.93],["pine",611.0,487.4,1,1.06],["dead",394.0,487.6,1,0.91],["oak",336.9,487.7,1,1.08],["pine",302.3,487.8,0,0.93],["pine",203.7,488.1,0,1.0],["oak",556.7,488.2,0,0.98],["oak",522.1,488.3,1,1.03],["dead",184.8,488.4,1,1.07],["pine",150.9,488.8,1,1.02],["oak",137.1,488.9,1,0.95],["oak",357.8,488.9,0,0.92],["pine",408.8,489.0,0,0.93],["pine",111.9,489.1,1,1.03],["oak",263.2,489.2,1,1.04],["oak",541.0,489.4,0,0.9],["oak",633.4,489.6,1,1.02],["pine",243.3,489.7,0,0.98],["oak",498.4,490.4,1,0.99],["oak",430.3,491.0,1,0.89],["oak",574.3,491.5,1,0.94],["pine",315.5,491.6,0,0.96],["pine",483.3,491.6,0,0.92],["pine",597.2,491.7,1,1.0],["oak",369.6,491.8,1,0.95]],"puddles":[[409.6,270.4,14.3,4.3],[227.2,273.6,9.0,4.4],[345.6,324.8,7.1,3.5],[217.6,233.6,5.9,2.1],[505.6,220.8,5.9,2.1],[313.6,321.6,7.1,3.5],[454.4,276.8,3.1,1.6],[166.4,267.2,9.0,4.4]],"lamps":[[328.0,222.5],[376.0,270.5],[529.6,184.1],[248.0,190.5],[296.0,334.5],[328.0,126.5]]};
 const TOWN_MAN_SNOW = {"img":"town_spr_snow.webp","s":{"forge":[0,0,672,469,336.0,468],"hut":[674,0,576,423,288.0,422],"ganesh":[1252,0,605,333,302.5,332],"pine":[0,471,189,310,94.5,309],"oak":[191,471,285,299,142.5,298],"dead":[478,471,265,299,132.5,298],"rift1":[745,471,215,288,107.5,287],"rift2":[962,471,215,288,107.5,287],"rift3":[1179,471,215,288,107.5,287],"rift4":[1396,471,215,288,107.5,287],"rift5":[1613,471,215,288,107.5,287],"rift6":[1830,471,215,288,107.5,287],"rift7":[0,783,215,288,107.5,287],"rift8":[217,783,215,288,107.5,287],"pillar3":[434,783,117,239,58.5,238],"pillar1":[553,783,112,234,56.0,233],"lamp":[667,783,51,227,25.5,226],"pillar2":[720,783,115,226,57.5,225],"well":[837,783,119,115,59.5,114],"grave":[958,783,76,93,38.0,92],"barrel":[1036,783,70,89,35.0,88],"rubble":[1108,783,206,88,103.0,87],"cart":[1316,783,144,86,72.0,85],"fence":[1462,783,101,84,50.5,83],"sack1":[1565,783,65,78,32.5,77],"bush":[1632,783,128,74,64.0,73],"crate":[1762,783,72,73,36.0,72],"anvil":[1836,783,92,67,46.0,66],"hay":[1930,783,90,63,45.0,62],"splash1":[0,1073,62,45,31.0,38.7],"splash2":[64,1073,62,45,31.0,38.7],"splash3":[128,1073,62,45,31.0,38.7],"splash4":[192,1073,62,45,31.0,38.7],"splash5":[256,1073,62,45,31.0,38.7],"splash6":[320,1073,62,45,31.0,38.7],"splash7":[384,1073,62,45,31.0,38.7],"splash8":[448,1073,62,45,31.0,38.7],"snowstep1":[512,1073,59,44,29.5,37.8],"snowstep2":[573,1073,59,44,29.5,37.8],"snowstep3":[634,1073,59,44,29.5,37.8],"snowstep4":[695,1073,59,44,29.5,37.8],"snowstep5":[756,1073,59,44,29.5,37.8],"snowstep6":[817,1073,59,44,29.5,37.8],"snowstep7":[878,1073,59,44,29.5,37.8],"snowstep8":[939,1073,59,44,29.5,37.8],"sack2":[1000,1073,78,42,39.0,41],"ripple1":[1080,1073,128,38,64.0,19.0],"ripple2":[1210,1073,128,38,64.0,19.0],"ripple3":[1340,1073,128,38,64.0,19.0],"ripple4":[1470,1073,128,38,64.0,19.0],"ripple5":[1600,1073,128,38,64.0,19.0],"ripple6":[1730,1073,128,38,64.0,19.0],"ripple7":[1860,1073,128,38,64.0,19.0],"ripple8":[0,1120,128,38,64.0,19.0]}};
+const TOWN_SNOW_X = {"pillar1":[0,1945,112,234,56.0,233],"pillar2":[114,1945,115,226,57.5,225],"pillar3":[231,1945,117,239,58.5,238],"lamp":[350,1945,51,227,25.5,226],"anvil":[403,1945,92,67,46.0,66],"crate":[497,1945,72,73,36.0,72],"barrel":[571,1945,70,89,35.0,88],"rubble":[643,1945,206,88,103.0,87],"sack1":[851,1945,65,78,32.5,77],"snowstep1":[918,1945,59,44,29.5,37.8],"snowstep2":[979,1945,59,44,29.5,37.8],"snowstep3":[1040,1945,59,44,29.5,37.8],"snowstep4":[1101,1945,59,44,29.5,37.8],"snowstep5":[1162,1945,59,44,29.5,37.8],"snowstep6":[1223,1945,59,44,29.5,37.8],"snowstep7":[1284,1945,59,44,29.5,37.8],"snowstep8":[1345,1945,59,44,29.5,37.8],"stash_hd_snow.png":[1406,1945,113,86],"stone_hd_snow.png":[1521,1945,113,223],"stone_hd_lit_snow.png":[1636,1945,112,223]};
 // the remade Palli (world.js TOWN2, ChatGPT batches 25-27): its buildings, trees, fences and training ground stand as pieces, packed in
 // their own atlas (assets/town2/pieces.webp, 6 px per world px as the old one); the Rift's pillars (moved up the north road), Karmara's
 // anvil, the lamp posts, crates and barrels come from the old atlas
@@ -4934,7 +4964,12 @@ if(TOWN_V2){ const dx = TOWN2.rift[0] - 344, dy = TOWN2.rift[1] - 88, atlas = ne
   const own = {};   // (a piece with a picture of its own: TOWN2.sprIm, e.g. the dead tree at the west edge, batch 32)
   for(const k in TOWN2.spr){ TOWN_MAN.s[k] = TOWN2.spr[k].slice(0, 6); const f = TOWN2.sprIm && TOWN2.sprIm[k]; if(f && !own[f]){ own[f] = new Image(); own[f].src = 'assets/' + f; } TOWN_MAN.im[k] = f ? own[f] : atlas; }
   TOWN_MAN.place = TOWN_MAN.place.filter(p => /^pillar/.test(p[0])).map(p => [p[0], p[1] + dx, p[2] + dy, p[3], p[4]]).concat([['anvil', TOWN2.anvil[0], TOWN2.anvil[1], 0, 1]], TOWN2.place);
-  TOWN_MAN.lamps = TOWN2.lamps.map(([x, y]) => [x, y]); TOWN_MAN.puddles = TOWN2.puddles.map(p => p.slice()); }
+  TOWN_MAN.lamps = TOWN2.lamps.map(([x, y]) => [x, y]); TOWN_MAN.puddles = TOWN2.puddles.map(p => p.slice());
+  // winter (2026-11-26, the Town2Snow set, md_hd/tools_town2_snow.py): every batch 27 piece has its snowy twin at the same rect of
+  // assets/town2/pieces_snow.webp; the lamps, crates, barrels, pillars and the anvil keep the old town's winter atlas; the west bank's
+  // pieces (a picture of their own) stand outside the dome and stay as they are
+  TOWN_MAN_SNOW.v2 = {}; for(const k in TOWN2.spr) if(!(TOWN2.sprIm && TOWN2.sprIm[k])){ TOWN_MAN_SNOW.s[k] = TOWN2.spr[k].slice(0, 6); TOWN_MAN_SNOW.v2[k] = 1; }
+  for(const k in TOWN_SNOW_X) if(TOWN_SNOW_X[k].length === 6){ TOWN_MAN_SNOW.s[k] = TOWN_SNOW_X[k]; TOWN_MAN_SNOW.v2[k] = 1; } }
 // the Outskirts' pieces (world.js OUTSK, batch 29) go in with Palli's under keys o_<name>, from their own atlas, which loads the
 // first time the hero heads out (outArt); its ground is cut like Palli's (townTiles), 42 pictures, let go when far behind
 const OUT_ATL = [];
@@ -5066,18 +5101,25 @@ function drawFx(n, i, x, y, w, ang = 0, alpha = 1, tint = null, mirror = false, 
 const TOWNIMG = new Image(); if(TOWN_MAN.img) TOWNIMG.src = 'assets/' + TOWN_MAN.img;
 // winter Palli (ChatGPT batch 16, built by hd/town2_snow.py): the same pieces in the same places, crossfaded in as snow settles
 // (G.snowCover, sim.js) and out as it melts. Loaded the first time it is needed.
+// The remade Palli's winter is one picture, assets/town2/pieces_snow.webp (in TOWNSNOW.ground): its pieces at their green rects, the old
+// winter pieces it still places and the snowy stash and stone on a shelf under them (TOWN_SNOW_X, written by tools_town2_snow.py); its
+// ground is tiles (TOWN_TS)
 const TOWNSNOW = {img:null, ground:null};
-function townSnowImgs(){ if(!TOWN_MAN_SNOW) return false; if(!TOWNSNOW.img){ TOWNSNOW.img = new Image(); TOWNSNOW.img.src = 'assets/' + TOWN_MAN_SNOW.img; TOWNSNOW.ground = new Image(); TOWNSNOW.ground.src = assetV('town_hd_snow.webp');
+function townSnowImgs(){ if(!TOWN_MAN_SNOW) return false; if(!TOWNSNOW.ground){ TOWNSNOW.img = TOWN_V2 ? {_ok:1} : new Image(); if(!TOWN_V2) TOWNSNOW.img.src = 'assets/' + TOWN_MAN_SNOW.img; TOWNSNOW.ground = new Image(); TOWNSNOW.ground.src = TOWN_V2 ? 'assets/town2/pieces_snow.webp' : assetV('town_hd_snow.webp');
+  if(TOWN_V2){ const im = TOWNSNOW.ground, ok = () => { im._ok = 1; snowCutHD(); }; if(im.decode) im.decode().then(ok, () => { im.onload = ok; if(im.complete && im.naturalWidth) ok(); }); else im.onload = ok; return false; }
   for(const im of [TOWNSNOW.img, TOWNSNOW.ground]){ const ok = () => { im._ok = 1; }; if(im.decode) im.decode().then(ok, () => { im.onload = ok; if(im.complete && im.naturalWidth) ok(); }); else im.onload = ok; }   // used only once wholly loaded and decoded: a picture still arriving has its size known early, and squares cut from it then stayed half empty (2026-11-14)
   for(const k of ['stash_hd_snow.png', 'stone_hd_snow.png', 'stone_hd_lit_snow.png']){ HDA[k] = new Image(); HDA[k].src = assetV(k); } }
   return !!(TOWNSNOW.img._ok && TOWNSNOW.ground._ok); }
-function townCover(){ return TOWN_MAN_SNOW && !TOWN_V2 && G.M && G.M.isTown ? Math.max(0, Math.min(1, G.snowCover || 0)) : 0; }
+function snowCutHD(){   // the snowy stash and stone, cut from the remade Palli's winter atlas into HDA (as if loaded from their old files)
+  for(const k of ['stash_hd_snow.png', 'stone_hd_snow.png', 'stone_hd_lit_snow.png']){ const r = TOWN_SNOW_X[k]; if(!r) continue; const c = mkCanvas(r[2], r[3]);
+    c.getContext('2d').drawImage(TOWNSNOW.ground, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); c.naturalWidth = r[2]; c.naturalHeight = r[3]; HDA[k] = c; } }
+function townCover(){ return TOWN_MAN_SNOW && G.M && G.M.isTown && !G.M.out ? Math.max(0, Math.min(1, G.snowCover || 0)) : 0; }   // (never in the Outskirts: under the Malformed sky)
 const townOK = () => RES > 1 && TOWNIMG.naturalWidth > 0;
 // Palli's pieces are painted at 6 px per world px; each is scaled once to the picture's sharpness (RES) and kept, so a frame copies
 // them instead of shrinking the big art again (2026-11-14: Palli cost twice a depth to draw, most of it shrinking the same pictures)
 const TOWNR = {res:0, c:{}};
 function townSpr(k, sc, win){ if(TOWNR.res !== RES){ TOWNR.res = RES; TOWNR.c = {}; } const key = (win ? 'W|' : '') + k + '|' + sc; let c = TOWNR.c[key]; if(c) return c;   // each piece at each size it is placed at
-  const src = win ? TOWNSNOW.img : TOWN_MAN.im && TOWN_MAN.im[k] || TOWNIMG; if(!src.complete || !src.naturalWidth) return null;   // a remade piece still loading
+  const src = win ? (TOWN_MAN_SNOW.v2 && TOWN_MAN_SNOW.v2[k] ? TOWNSNOW.ground : TOWNSNOW.img) : TOWN_MAN.im && TOWN_MAN.im[k] || TOWNIMG; if(!src.complete || !src.naturalWidth) return null;   // a remade piece still loading
   const r = (win ? TOWN_MAN_SNOW : TOWN_MAN).s[k], f = RES/6*sc; c = mkCanvas(Math.ceil(r[2]*f) + 2, Math.ceil(r[3]*f) + 2); const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(src, r[0], r[1], r[2], r[3], 1, 1, r[2]*f, r[3]*f); return TOWNR.c[key] = c; }
 function drawTownKey(k, x, y, flip, sc = 1, alpha = 1, sx){
@@ -5103,17 +5145,20 @@ function drawTownOne(k, x, y, flip, sc, alpha, win, sx){
 // the remade Palli's ground: 12 pictures of 384 x 384 world px (2304 px each, 6 px per world px, since batch 33), each loaded when the hero comes
 // near it, and cut into 192 px squares kept scaled to RES (at most 14 at a time); until a picture is in, the whole ground, small
 // (town2_lo), shows there instead
-const TOWN_T = {c:new Map(), key:0, im:{}, dir:'town2'}, OUT_T = {c:new Map(), key:0, im:{}, dir:'out'}, OUTLO = {im:null};
+const TOWN_T = {c:new Map(), key:0, im:{}, dir:'town2'}, TOWN_TS = {c:new Map(), key:0, im:{}, dir:'town2', pre:'s_', all:false}, OUT_T = {c:new Map(), key:0, im:{}, dir:'out'}, OUTLO = {im:null};
 function outLo(){ if(!OUTLO.im){ OUTLO.im = new Image(); OUTLO.im.src = 'assets/out/out_lo.webp'; } return OUTLO.im; }
-function townTileIm(fi, fj, Z = TOWN_T){ const k = fi + '_' + fj; let im = Z.im[k]; if(!im){ im = Z.im[k] = new Image(); im.src = 'assets/' + Z.dir + '/g_' + k + '.webp'; } return im; }
-function townTiles(M, cx, cy){
-  const Z = M.out ? OUT_T : TOWN_T, G2 = M.out ? OUTSK.ground : TOWN2.ground, T = G2.tile, F = G2.file, [ni, nj] = G2.n, [fni, fnj] = G2.fn; if(Z.key !== RES){ Z.key = RES; Z.c.clear(); }
+function townTileIm(fi, fj, Z = TOWN_T){ const k = fi + '_' + fj; let im = Z.im[k]; if(!im){ im = Z.im[k] = new Image(); im.src = 'assets/' + Z.dir + '/' + (Z.pre || '') + 'g_' + k + '.webp'; } return im; }
+// Z: whose pictures (TOWN_TS: winter Palli's, s_g_<i>_<j>.webp, laid over the green at the snow's cover; where one is still loading the
+// green shows through, and Z.all says whether every square came from its own picture this frame)
+function townTiles(M, cx, cy, Z0, alpha = 1){
+  const Z = Z0 || (M.out ? OUT_T : TOWN_T), G2 = M.out ? OUTSK.ground : TOWN2.ground, T = G2.tile, F = G2.file, [ni, nj] = G2.n, [fni, fnj] = G2.fn; if(Z.key !== RES){ Z.key = RES; Z.c.clear(); }
   for(const k in Z.im){ const u = k.indexOf('_'), fi = +k.slice(0, u), fj = +k.slice(u + 1);   // let go of pictures well behind the hero (Palli's are 2304 px since batch 33: kept all, they'd fill a phone's memory)
     if(Math.abs((fi + 0.5)*F - cx - BW/2) > F*1.5 + BW/2 || Math.abs((fj + 0.5)*F - cy - BH/2) > F*1.5 + BH/2){ Z.im[k].src = ''; delete Z.im[k]; } }
   const i0 = Math.max(0, Math.floor(cx/T)), j0 = Math.max(0, Math.floor(cy/T)), i1 = Math.min(ni - 1, Math.floor((cx + BW)/T)), j1 = Math.min(nj - 1, Math.floor((cy + BH)/T));
   for(let fj = Math.max(0, Math.floor((cy - 90)/F)); fj <= Math.min(fnj - 1, Math.floor((cy + BH + 90)/F)); fj++)
     for(let fi = Math.max(0, Math.floor((cx - 90)/F)); fi <= Math.min(fni - 1, Math.floor((cx + BW + 90)/F)); fi++) townTileIm(fi, fj, Z);   // a little ahead of the hero
-  const lo = M.out ? outLo() : HDA['town_hd.webp'], ls = lo.naturalWidth/(M.w*TS);
+  const lo = M.out ? outLo() : HDA['town_hd.webp'], ls = Z0 ? 0 : lo.naturalWidth/(M.w*TS); Z.all = true;
+  if(alpha < 1) b.globalAlpha = alpha;
   for(let j = j0; j <= j1; j++) for(let i = i0; i <= i1; i++){
     const k = i + '_' + j, w = Math.min(T, M.w*TS - i*T), h = Math.min(T, M.h*TS - j*T); let c = Z.c.get(k);
     if(c){ Z.c.delete(k); Z.c.set(k, c); b.drawImage(c, i*T, j*T, w, h); continue; }
@@ -5121,8 +5166,9 @@ function townTiles(M, cx, cy){
     if(im.complete && im.naturalWidth){ const ps = im.naturalWidth/Math.min(F, M.w*TS - fi*F), sx = (i*T - fi*F)*ps, sy = (j*T - fj*F)*ps;
       c = mkCanvas(Math.round(w*RES), Math.round(h*RES)); const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       g.drawImage(im, sx, sy, Math.min(w*ps, im.naturalWidth - sx), Math.min(h*ps, im.naturalHeight - sy), 0, 0, c.width, c.height); Z.c.set(k, c); while(Z.c.size > 14) Z.c.delete(Z.c.keys().next().value); b.drawImage(c, i*T, j*T, w, h); }
-    else if(ls) b.drawImage(lo, i*T*ls, j*T*ls, w*ls, h*ls, i*T, j*T, w, h);
+    else { Z.all = false; if(ls) b.drawImage(lo, i*T*ls, j*T*ls, w*ls, h*ls, i*T, j*T, w, h); }
   }
+  if(alpha < 1) b.globalAlpha = 1;
 }
 // Ganesh's dome (drawn, not painted): the land outside it lies under the Malformed sky, and where it stands a wall of light runs round,
 // two chains of light links drifting along it (the Wardens' chains; batch 25 painted them so)
@@ -5234,9 +5280,13 @@ function drawForge(){
 const TOWN_FADE = {forge:1, hut:1, ganesh:1, pine:1, oak:1, dead:1};
 if(TOWN_V2) for(const k in TOWN2.spr) if(TOWN2.spr[k][6]) TOWN_FADE[k] = 1;
 // a fence rail of the remade Palli: the rail picture laid from one post to the next (sheared along slopes), repeated to fill the gap
-function drawRail(p){ const im = TOWN_MAN.im && TOWN_MAN.im.frail; if(!im || !im.naturalWidth) return; const F = TOWN2.fence, [x0, y0, x1, y1] = p.slice(5), r = TOWN_MAN.s.frail, W = r[2];
+function drawRail(p){ const cov = townCover(), win = cov > 0 && townSnowImgs();   // (in winter the snowy rail over it, at the cover)
+  if(!win || cov < 1) drawRailOne(p, TOWN_MAN.im && TOWN_MAN.im.frail, 1); if(win) drawRailOne(p, TOWNSNOW.ground, cov); }
+function drawRailOne(p, im, alpha){ if(!im || !im.naturalWidth) return; const F = TOWN2.fence, [x0, y0, x1, y1] = p.slice(5), r = TOWN_MAN.s.frail, W = r[2];
   const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0)/F.span)), dx = (x1 - x0)/n, dy = (y1 - y0)/n;
-  for(let s = 0; s < n; s++){ b.save(); b.transform(dx/W, dy/W, 0, F.k, x0 + dx*s, y0 + dy*s - F.top); b.drawImage(im, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); b.restore(); } }
+  if(alpha < 1) b.globalAlpha = alpha;
+  for(let s = 0; s < n; s++){ b.save(); b.transform(dx/W, dy/W, 0, F.k, x0 + dx*s, y0 + dy*s - F.top); b.drawImage(im, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); b.restore(); }
+  if(alpha < 1) b.globalAlpha = 1; }
 // the Outskirts: a piece's ground line at world x (its strips' lines), and whether the hero stands behind it (it fades then)
 function outLine(p, x){ const T = OUTSK.ty[p[0]], ws = p[5], L = p[1] - T.ww*ws/2; let a = (x - L)/ws; if(p[3]) a = T.ww - a; if(a < 0 || a > T.ww) return null;
   for(const r of T.sb) if(a <= r[1]) return p[2] + r[2]*ws; return null; }
@@ -5557,7 +5607,7 @@ function worldReady(M, P){
   const need = [];
   if(HDP_ATL[P.cls]) need.push(HDP_ATL[P.cls]);
   if(M.out) need.push(...outArt(), ...campArt());
-  else if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA), ...new Set(Object.values(TOWN_MAN.im || {}))); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); }
+  else if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA), ...new Set(Object.values(TOWN_MAN.im || {}))); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); if(M.objects.some(o => o.id === 'greystone')) need.push(greyArt()); }
   else { need.push(DSH); if(!depthArt(M.theme)) need.push(null); for(const m of M.monsters){ const a = MON_ART[m.type]; if(a){ const k = a + '_' + (m.kind || 'common'); if(MONHD[k]) need.push(MONHD[k]); } } }
   WAIT.ok = need.every(imOK) || performance.now() - WAIT.t > 8000;
   return WAIT.ok;
@@ -5588,9 +5638,9 @@ function render(){
   if(DA){ depthChunks(M, DA, cx, cy); drawStairsUp(M, DA); }
   else if(M.out){ if(RES > 1) townTiles(M, cx, cy); }
   else if(sw > 0 && sh > 0){ if(M.isTown && hdOK('town_hd.webp')){ const cov = townCover(), win = cov > 0 && townSnowImgs();
-      if(TOWN_V2 && M.v2){ townTiles(M, cx, cy); drawDome(M, cx, cy); }
+      if(TOWN_V2 && M.v2){ if(!win || cov < 1 || !TOWN_TS.all) townTiles(M, cx, cy); if(win) townTiles(M, cx, cy, TOWN_TS, cov); else TOWN_TS.all = false; drawDome(M, cx, cy); }
       else if(!win || cov < 1) townChunks(HDA['town_hd.webp'], cx, cy);
-      if(win){ b.globalAlpha = cov; townChunks(TOWNSNOW.ground, cx, cy); b.globalAlpha = 1; } }
+      if(win && !TOWN_V2){ b.globalAlpha = cov; townChunks(TOWNSNOW.ground, cx, cy); b.globalAlpha = 1; } }
     else b.drawImage(M.art, sx, sy, sw, sh, sx, sy, sw, sh); }
   if(M.isTown && !M.out && townOK()) townGroundFx();
   // water shimmer in town
@@ -5899,8 +5949,8 @@ function breathBlob(){ if(BREATH.img) return BREATH.img; const c = mkCanvas(32, 
 function drawBreath(cx, cy){
   const t = G.time, z = zoom, M = G.M, P = G.P, src = [];
   for(const h of party()) if(!(h.down > 0) && !(h.lying > 0) && G.state !== 'dead') src.push([h, h.x + (h.face < 0 ? -2.4 : 2.4), h.y - 18.4, h.face < 0 ? -1 : 1]);
-  for(const o of M.objects){ if(o.type !== 'npc') continue; const near = P && Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26, f = near ? (P.x > o.x ? 1 : -1) : (o.face || (o.id === 'ganesh' ? 1 : -1));
-    src.push([o, o.x + f*2.4, o.y - (o.id === 'karmara' && !near ? 16.5 : o.id === 'hash' ? (near ? 23.5 : 17) : 19), f]); }
+  for(const o of M.objects){ if(o.type !== 'npc') continue; const near = P && Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26, f = o.id === 'greystone' ? 1 : near ? (P.x > o.x ? 1 : -1) : (o.face || (o.id === 'ganesh' ? 1 : -1));
+    src.push([o, o.x + f*2.4, o.y - (o.id === 'karmara' && !near ? 16.5 : o.id === 'hash' ? (near ? 23.5 : 17) : o.id === 'greystone' ? 12.5 : 19), f]); }
   for(const [e, x, y, f] of src){ let n = BREATH.next.get(e); if(n === undefined || n > t + 5){ n = t + Math.random()*2.5; BREATH.next.set(e, n); }
     if(t >= n){ BREATH.list.push({x, y, f, t0:t}); BREATH.next.set(e, t + 2.3 + Math.random()*1.6); } }
   if(BREATH.list.length > 40) BREATH.list.splice(0, BREATH.list.length - 40);
@@ -6221,6 +6271,7 @@ function drawObject(o){
     case 'camp': { drawShadow(o.x, o.y, o.id === 'archer' || o.id === 'healer' ? 10 : 12, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
     case 'npc': {
       if(o.id === 'hash'){ drawShadow(o.x, o.y, 14, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
+      if(o.id === 'greystone'){ drawShadow(o.x, o.y, 12, 1 - (o.silK || 0)); SIL.ent = o; greyDraw(o, t); SIL.ent = null; break; }
       drawShadow(x, y, 12, 1 - (o.silK || 0));
       const bob = Math.floor(t*1.5 + x) % 2 ? -1 : 0;
       SIL.ent = o; const npcHD = RES > 1 && hdNPC(o, x, y, t); SIL.ent = null;
@@ -7577,6 +7628,10 @@ function talkTo(id){
     if(first){ P.talked.karmara = true; P.pots.hp = Math.min(10, P.pots.hp + 2); saveGame(); npcSay('karmara_intro1', {duck:true, vol:0.9});
       showDialog('Karmara', KARMARA_INTRO, [{label:'Next', fn:() => { npcSay('karmara_intro2', {duck:true, vol:0.9}); showDialog('Karmara', KARMARA_INTRO2 + '\n\n(Received 2 Health Potions)', opts, 'karmara'); }}], 'karmara'); }
     else showDialog('Karmara', rpick(KARMARA_LINES), opts, 'karmara');
+  } else if(id === 'greystone'){   // Mr. Greystone on his stool: his first words, then his two lines in turn
+    const opts = [{label:'Farewell', fn:closeDialog}];
+    if(first){ P.talked.greystone = true; P.greyN = 0; saveGame(); showDialog('Mr. Greystone', GREY_INTRO, opts, 'greystone'); }
+    else { const n = P.greyN || 0; P.greyN = n + 1; showDialog('Mr. Greystone', GREY_LINES[n % GREY_LINES.length], opts, 'greystone'); }
   } else if(id === 'hash'){   // General Hash, at his tent in the Camp of Fortitude: his first words, then his name on the next page
     const opts = [{label:'Farewell', fn:closeDialog}];
     if(first){ P.talked.hash = true; saveGame(); showDialog('General Hash', HASH_INTRO, [{label:'Next', fn:() => showDialog('General Hash', HASH_INTRO2, opts, 'hash')}], 'hash'); }
@@ -7781,7 +7836,7 @@ function renderRift(){
 }
 
 // ---------------- dialog & notes ----------------
-const PORTRAIT = {ganesh:'ganesh', karmara:'karmara', vaidya:'vaidya', hash:'hash'};
+const PORTRAIT = {ganesh:'ganesh', karmara:'karmara', vaidya:'vaidya', hash:'hash', greystone:'greystone'};
 let DLG_PICK = null;
 function showDialog(who, text, options, kind){
   UI.dialog = true; INPUT.attack = false;
