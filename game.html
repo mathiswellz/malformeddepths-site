@@ -294,6 +294,12 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
 .cell .lbl{position:absolute;bottom:0;left:0;right:0;font-size:12px;color:#6a6080;text-align:center;line-height:1}
 .cell .brk{position:absolute;top:1px;right:3px;color:var(--blood);font-size:14px}
 .cell .pl{position:absolute;top:0;left:3px;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000,-1px 0 0 #000}
+/* a Notch (batch 35): the iron disc in the cell's bottom-right corner, its stone laid in the hollow (tools_stones.py: 48.6%, 46.6%, r 32.6%) */
+.cell .nt,.ntc{position:absolute;right:0;bottom:0;width:46%;height:46%;pointer-events:none}
+.cell .nt img,.ntc img{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:auto}
+.cell .nt img.ns,.ntc img.ns{left:17.6%;top:15.6%;width:62%;height:62%}
+.ncard{display:flex;gap:8px;align-items:center;margin:4px 0}
+.ntc{position:relative;flex:none;width:40px;height:40px}
 .eqgrid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-bottom:8px}
 .card{border:2px solid var(--edge);background:#0b0810;padding:8px 10px;margin-top:8px;border-radius:4px;line-height:1.15}
 .card .nm{font-size:22px}
@@ -592,7 +598,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.59';
+const GAME_VER = '0.1.60';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -671,6 +677,20 @@ const KARMARA_INTRO2 = "Here, take these potions. Can't have you dying down ther
 const KARMARA_IMBUE = "Hold up. I've been working on something while you were down in the red dark.\n\nThe power in heroic steel sits on the metal like heat on a blade, and heat can be moved. I can draw it off a piece now and lay a different one in its place.\n\nYou'll want that. Wear two pieces with the same power and only one ever counts.\n\nHere. I made this one to prove it to myself. It's yours. Bring me any heroic piece and I'll imbue it with whatever you need.";
 const KARMARA_LINES = ["Steel doesn't care what's on the other end of it. Neither should you.", "Back in one piece? Your gear isn't. Let me see it.", "Ganesh has been staring at that river more than usual. Old men and their ghosts.", "If you find any Aranyan steel down there, bring it to me. I'd give my left hand to study it."];
 
+// Mr. Greystone, Palli's town drunk (2026-11-27, Mathis's script, word for word): his first words, then what the hero can ask him, as
+// with Ganesh. He lives in Palli, so all of this is in the free demo too (0.1.56-0.1.59 kept his lines in the Outskirts' block, which the
+// demo drops: Talk did nothing there). when(P): the Artificer is asked about only once the hero has found an Aranyan Stone (depth 5 on).
+const GREY_INTRO = "Oh... ugh.. who the hell are you? I...I never saw a face like yours before here in Palli. You must be one of Ganesh's... ideas.";
+const GREY_ASK = [
+  {id:'who', q:'Who are you?', a:"Asking a man who he is when you haven't introduced yourself?! Well... fine. My name is Mr. Greystone! I help the helpers, helping the folks! Yup! That's me!"},
+  {id:'bottle', q:"Your bottle is empty, but you're still drinking it.", a:"I used to be a teacher of sorts... one of a kind!! They used to say... now? I'm... I'm somethin... somethin of-of-of... of an Artificer! Yes! A mage Artificer! There's a reason this bottle is empty, but definitely does the trick."},
+  {id:'ganesh', q:'How long have you known Ganesh?', a:"Ahhh. Ganesh! He's my favorite buddy! He always looks out for the people, even me in my youth days. Good man, he is. We go back to the days where I helped him build this little town after the war. Do you like the glowing chains? He... uhhh... he's a great man I tell ya!"},
+  {id:'ilvaroth', q:'Do you know who Ilvaroth is?', a:"Know em?! No, no... but I did beat the shit out of a few of his demons before they were banished!"},
+  {id:'artificer', q:'You said you are an Artificer?', when:P => !!P.aranya, a:"Yes! I am able to create the concepts of the powers that be, and place them into an Aranyan Stone! If you would like, I could carve a Notch into your gear and place a magical stone within it! Sounds fascinating, doesn't it?"}
+];
+// DRAFTS (Claude), for Mathis to keep, change or cut: his greeting after the first meeting, and the one once the hero has found an Aranyan Stone
+const GREY_AGAIN = "Ahh! Ganesh's... idea! Back again, are ya? Whaddya want to know?";
+const GREY_NEWS = "There you are! You found somethin' down there, didn't ya? Somethin' that hums... I can hear it from here! Go on, go on. Ask me!";
 const VAIDYA_INTRO = "Hold still, stranger. You've river water in your lungs and the cold of the grave on your skin.\n\nI'm Vaidya. I mend what can be mended. Since the Rift opened, most who come to me can't be.\n\nCome back whenever you're hurt and I'll heal you for free. My potions cost a little coin. Herbs don't grow themselves.";
 const VAIDYA_LINES = ["Sit. Breathe. There, the color's back in your face.", "My apprentice Niru went into the Rift a month ago. If you see her... no. Never mind.", "Strange. Your heartbeat sounds like water over stones.", "Drink the red ones for wounds, the blue ones for the mind. Don't mix them up."];
 const ILVAROTH_INTRO = "Little clay doll. I know his hands on you. I can smell the river in your veins.\n\nCome closer. I will reshape you into something beautiful.";
@@ -853,6 +873,39 @@ const GODLY_POWERS = {
 };
 function godlyPow(it){ return it && it.rarity === 'godly' && it.power ? GODLY_POWERS[it.power] || null : null; }
 function powerName(it, id){ id = id || it.power; const g = it && it.power === id ? godlyPow(it) : null; return g ? g.name : (powerDef(id) || {}).name || id; }
+// ---------- Aranyan Stones (2026-11-27, Mathis): Mr. Greystone, once an Artificer of Aranya, carves a Notch into a piece of gear and sets
+// a stone in it. Four stones, one for each element, in the gear's three tiers. Every worn stone gives its own bonus; two of one element
+// worn together wake its pair power, three its full power. A set is as strong as its weakest stone (the pair: the best two of them).
+// Notches go only in the weapon, the chest and the amulet (NOTCH_SLOTS), so a hero wears three stones at most.
+const STONE_ELS = ['prithvi', 'jala', 'agni', 'vayu'], STONE_TIERS = ['typical', 'grand', 'heroic'];
+const STONE_TIER_NAME = {typical:'Rough', grand:'Cut', heroic:'Flawless'};   // the art: a rough chunk, a cut and polished stone, a flawless relic
+const NOTCH_SLOTS = ['weapon', 'chest', 'amulet'];
+const STONES = {
+  prithvi:{name:'Prithvi', elem:'Earth', color:'#8fc45a',
+    one:{v:[5, 8, 12], text:v => `+${v}% maximum life`},
+    two:{name:'Rooted', v:[15, 22, 30], text:v => `+${v}% armor`},
+    three:{name:'Stoneheart', v:[15, 20, 25], text:v => `Below 40% life, stone skin absorbs damage equal to ${v}% of your life for 8 seconds (every 40 seconds)`}},
+  jala:{name:'Jala', elem:'Water', color:'#4fb3e8',
+    one:{v:[10, 16, 24], text:v => `+${v}% mana regeneration`},
+    two:{name:'Tidewater', v:[20, 30, 40], text:v => `Potions restore ${v}% more`},
+    three:{name:'The Rolling Wave', v:[60, 90, 120], text:v => `Every 8 seconds, your next hit sends out a wave that strikes the enemies around it for ${v}% weapon damage and pushes them back`}},
+  agni:{name:'Agni', elem:'Fire', color:'#ff7a3a',
+    one:{v:[4, 6, 9], text:v => `+${v}% damage`},
+    two:{name:'Kindling', v:[10, 15, 20], text:v => `${v}% chance on hit to set the enemy burning for half the hit's damage over 3 seconds`},
+    three:{name:"Agni's Wrath", v:[30, 45, 60], text:v => `Critical hits burst into flame, burning the enemies around the target for ${v}% of the hit over 3 seconds`}},
+  vayu:{name:'Vayu', elem:'Air', color:'#d6e2f0',
+    one:{v:[3, 5, 7], text:v => `+${v}% attack speed`},
+    two:{name:'Tailwind', v:[6, 9, 12], text:v => `+${v}% movement speed, and your dodge is ready ${v*2}% sooner`},
+    three:{name:'Eye of the Storm', v:[7, 10, 13], text:v => `${v}% chance to evade a blow completely`}}
+};
+// where stones are found (depth 5 and deeper; the first one waits on the floor of the first such depth the hero enters) and how often
+const STONE_FROM = 5, STONE_DROP = {monster:0.004, elite:0.04, boss:0.3, chest:0.06, sarc:0.04};
+const STONE_RARITY = {breeze:[0.08, 0.008], nightmare:[0.16, 0.025], malformed:[0.25, 0.05]};   // the chance a stone is Grand, and Heroic
+const STONE_VALUE = {typical:30, grand:120, heroic:400};
+// Mr. Greystone's prices: a Notch (the first is free), fusing three alike into one of the next tier, and making a Rough stone
+const notchCost = it => ({gold:Math.round((40 + (it.ilvl || 1)*6)*({typical:1, grand:1.6, heroic:2.6, godly:3.6}[it.rarity] || 1)), carbon:{typical:2, grand:4, heroic:6, godly:8}[it.rarity] || 2});
+const fuseCost = (to, lvl) => to === 'heroic' ? {gold:150 + lvl*25, carbon:12} : {gold:60 + lvl*10, carbon:5};
+const makeCost = lvl => ({gold:80 + lvl*12, carbon:4});
 // Palli remade (2026-11-19, Mathis): the layout of batch 25's painting. The demo keeps the old town until the finished art is in
 const TOWN_V2 = true;   // the remade Palli (batches 25-27); the free demo has it too since 0.1.42
 const OLD_RARITY = {common:'typical', magic:'typical', rare:'grand', legendary:'heroic'};
@@ -1394,14 +1447,15 @@ function getWalk(name, over, frame, mode){
 }
 const ICON_CACHE = {};
 // ChatGPT icons (batches 09/10, hd/icons.py): items, potions, oils, Carbon, gold, notes, skills, menu buttons, flasks
-const HD_ICONS = new Set(["u_eye_malformity", "u_aldren_breastplate", "u_last_hour", "u_hands_hundred", "u_healers_lullaby", "u_shapers_rod", "a_cloth_boots_0", "a_cloth_boots_1", "a_cloth_boots_2", "a_cloth_boots_h", "a_cloth_chest_0", "a_cloth_chest_1", "a_cloth_chest_2", "a_cloth_chest_3", "a_cloth_chest_h", "a_cloth_gloves_0", "a_cloth_gloves_1", "a_cloth_gloves_2", "a_cloth_gloves_h", "a_cloth_helm_0", "a_cloth_helm_1", "a_cloth_helm_2", "a_cloth_helm_3", "a_cloth_helm_h", "a_heavy_boots_0", "a_heavy_boots_1", "a_heavy_boots_2", "a_heavy_boots_h", "a_heavy_chest_0", "a_heavy_chest_1", "a_heavy_chest_2", "a_heavy_chest_3", "a_heavy_chest_h", "a_heavy_gloves_0", "a_heavy_gloves_1", "a_heavy_gloves_2", "a_heavy_gloves_h", "a_heavy_helm_0", "a_heavy_helm_1", "a_heavy_helm_2", "a_heavy_helm_3", "a_heavy_helm_h", "a_leather_boots_0", "a_leather_boots_1", "a_leather_boots_2", "a_leather_boots_h", "a_leather_chest_0", "a_leather_chest_1", "a_leather_chest_2", "a_leather_chest_3", "a_leather_chest_h", "a_leather_gloves_0", "a_leather_gloves_1", "a_leather_gloves_2", "a_leather_gloves_h", "a_leather_helm_0", "a_leather_helm_1", "a_leather_helm_2", "a_leather_helm_3", "a_leather_helm_h", "btn_bag", "btn_char", "btn_journal", "btn_map", "btn_menu", "btn_portal", "btn_ritual", "btn_skill", "carbon", "flask_hp_empty", "flask_hp_full", "flask_mp_empty", "flask_mp_full", "gold_0", "gold_1", "gold_2", "hpot", "j_amulet_0", "j_amulet_1", "j_amulet_2", "j_amulet_3", "j_amulet_h", "j_ring_0", "j_ring_1", "j_ring_2", "j_ring_3", "j_ring_h", "mpot", "note", "oil_bleed", "oil_cold", "oil_fire", "oil_lightning", "oil_malformed", "oil_poison", "oil_slime", "skill_bash", "skill_blink", "skill_blossom", "skill_charge", "skill_cry", "skill_cuts", "skill_fan", "skill_fireball", "skill_meteor", "skill_nova", "skill_singularity", "skill_step", "skill_venom", "skill_whirl", "skill_wrath", "w_axe_0", "w_axe_1", "w_axe_2", "w_axe_3", "w_axe_4", "w_axe_h", "w_dagger_0", "w_dagger_1", "w_dagger_2", "w_dagger_3", "w_dagger_4", "w_dagger_h", "w_mace_0", "w_mace_1", "w_mace_2", "w_mace_3", "w_mace_4", "w_mace_h", "w_staff_0", "w_staff_1", "w_staff_2", "w_staff_3", "w_staff_4", "w_staff_h", "w_sword_0", "w_sword_1", "w_sword_2", "w_sword_3", "w_sword_4", "w_sword_h", "w_wand_0", "w_wand_1", "w_wand_2", "w_wand_3", "w_wand_4", "w_wand_h"]);
+const HD_ICONS = new Set(["u_eye_malformity", "u_aldren_breastplate", "u_last_hour", "u_hands_hundred", "u_healers_lullaby", "u_shapers_rod", "a_cloth_boots_0", "a_cloth_boots_1", "a_cloth_boots_2", "a_cloth_boots_h", "a_cloth_chest_0", "a_cloth_chest_1", "a_cloth_chest_2", "a_cloth_chest_3", "a_cloth_chest_h", "a_cloth_gloves_0", "a_cloth_gloves_1", "a_cloth_gloves_2", "a_cloth_gloves_h", "a_cloth_helm_0", "a_cloth_helm_1", "a_cloth_helm_2", "a_cloth_helm_3", "a_cloth_helm_h", "a_heavy_boots_0", "a_heavy_boots_1", "a_heavy_boots_2", "a_heavy_boots_h", "a_heavy_chest_0", "a_heavy_chest_1", "a_heavy_chest_2", "a_heavy_chest_3", "a_heavy_chest_h", "a_heavy_gloves_0", "a_heavy_gloves_1", "a_heavy_gloves_2", "a_heavy_gloves_h", "a_heavy_helm_0", "a_heavy_helm_1", "a_heavy_helm_2", "a_heavy_helm_3", "a_heavy_helm_h", "a_leather_boots_0", "a_leather_boots_1", "a_leather_boots_2", "a_leather_boots_h", "a_leather_chest_0", "a_leather_chest_1", "a_leather_chest_2", "a_leather_chest_3", "a_leather_chest_h", "a_leather_gloves_0", "a_leather_gloves_1", "a_leather_gloves_2", "a_leather_gloves_h", "a_leather_helm_0", "a_leather_helm_1", "a_leather_helm_2", "a_leather_helm_3", "a_leather_helm_h", "btn_bag", "btn_char", "btn_journal", "btn_map", "btn_menu", "btn_portal", "btn_ritual", "btn_skill", "carbon", "flask_hp_empty", "flask_hp_full", "flask_mp_empty", "flask_mp_full", "gold_0", "gold_1", "gold_2", "hpot", "j_amulet_0", "j_amulet_1", "j_amulet_2", "j_amulet_3", "j_amulet_h", "j_ring_0", "j_ring_1", "j_ring_2", "j_ring_3", "j_ring_h", "mpot", "note", "oil_bleed", "oil_cold", "oil_fire", "oil_lightning", "oil_malformed", "oil_poison", "oil_slime", "skill_bash", "skill_blink", "skill_blossom", "skill_charge", "skill_cry", "skill_cuts", "skill_fan", "skill_fireball", "skill_meteor", "skill_nova", "skill_singularity", "skill_step", "skill_venom", "skill_whirl", "skill_wrath", "w_axe_0", "w_axe_1", "w_axe_2", "w_axe_3", "w_axe_4", "w_axe_h", "w_dagger_0", "w_dagger_1", "w_dagger_2", "w_dagger_3", "w_dagger_4", "w_dagger_h", "w_mace_0", "w_mace_1", "w_mace_2", "w_mace_3", "w_mace_4", "w_mace_h", "w_staff_0", "w_staff_1", "w_staff_2", "w_staff_3", "w_staff_4", "w_staff_h", "w_sword_0", "w_sword_1", "w_sword_2", "w_sword_3", "w_sword_4", "w_sword_h", "w_wand_0", "w_wand_1", "w_wand_2", "w_wand_3", "w_wand_4", "w_wand_h", "stone_prithvi_0", "stone_jala_0", "stone_agni_0", "stone_vayu_0", "stone_prithvi_1", "stone_jala_1", "stone_agni_1", "stone_vayu_1", "stone_prithvi_h", "stone_jala_h", "stone_agni_h", "stone_vayu_h", "notch"]);
 const HDI = {};
 // how much empty space (fraction of the icon) lies under the picture in each item icon, so things on the ground sit on their shadow
-const HD_ICON_FOOT = {"a_cloth_boots_0":0.164,"a_cloth_boots_1":0.156,"a_cloth_boots_2":0.094,"a_cloth_boots_h":0.031,"a_cloth_gloves_0":0.086,"a_cloth_gloves_1":0.094,"a_cloth_gloves_2":0.094,"a_cloth_gloves_h":0.086,"a_cloth_helm_1":0.297,"a_cloth_helm_3":0.125,"a_heavy_boots_0":0.07,"a_heavy_boots_1":0.086,"a_heavy_boots_2":0.094,"a_heavy_boots_h":0.062,"a_heavy_gloves_0":0.109,"a_heavy_gloves_1":0.117,"a_heavy_gloves_2":0.117,"a_heavy_gloves_h":0.109,"a_heavy_helm_0":0.117,"a_leather_boots_0":0.133,"a_leather_boots_1":0.094,"a_leather_gloves_0":0.078,"a_leather_gloves_1":0.078,"a_leather_gloves_2":0.078,"a_leather_gloves_h":0.07,"btn_bag":0.039,"btn_map":0.102,"carbon":0.039,"gold_0":0.141,"gold_1":0.156,"gold_2":0.109,"note":0.141};
+const HD_ICON_FOOT = {"a_cloth_boots_0":0.164,"a_cloth_boots_1":0.156,"a_cloth_boots_2":0.094,"a_cloth_boots_h":0.031,"a_cloth_gloves_0":0.086,"a_cloth_gloves_1":0.094,"a_cloth_gloves_2":0.094,"a_cloth_gloves_h":0.086,"a_cloth_helm_1":0.297,"a_cloth_helm_3":0.125,"a_heavy_boots_0":0.07,"a_heavy_boots_1":0.086,"a_heavy_boots_2":0.094,"a_heavy_boots_h":0.062,"a_heavy_gloves_0":0.109,"a_heavy_gloves_1":0.117,"a_heavy_gloves_2":0.117,"a_heavy_gloves_h":0.109,"a_heavy_helm_0":0.117,"a_leather_boots_0":0.133,"a_leather_boots_1":0.094,"a_leather_gloves_0":0.078,"a_leather_gloves_1":0.078,"a_leather_gloves_2":0.078,"a_leather_gloves_h":0.07,"btn_bag":0.039,"btn_map":0.102,"carbon":0.039,"gold_0":0.141,"gold_1":0.156,"gold_2":0.109,"note":0.141,"stone_prithvi_0":0.131,"stone_jala_0":0.1,"stone_agni_0":0.1,"stone_vayu_0":0.109,"stone_prithvi_1":0.098,"stone_jala_1":0.05,"stone_agni_1":0.05,"stone_vayu_1":0.087,"stone_prithvi_h":0.026};
 function hdIcon(key){ if(!HD_ICONS.has(key)) return null; let im = HDI[key]; if(!im){ im = HDI[key] = new Image(); im.src = 'assets/icons/' + key + '.webp'; } return im.complete && im.naturalWidth ? im : null; }
 function hdIconURL(key, fb){ return HD_ICONS.has(key) ? 'assets/icons/' + key + '.webp' : fb(); }
 function itemIconKey(it){
   if(it.kind === 'hpot' || it.kind === 'mpot' || it.kind === 'carbon') return it.kind;
+  if(it.kind === 'stone') return stoneIconKey(it);   // batch 35 (tools_stones.py): the Aranyan Stones
   if(it.uniq && UNIQUES[it.uniq]){ const U = UNIQUES[it.uniq]; return HD_ICONS.has(U.icon) ? U.icon : U.fallback; }
   const h = it.rarity === 'heroic' || it.rarity === 'godly';
   if(it.slot === 'weapon'){ const B = WEAPON_BASES[it.wtype]; if(!B) return null; const i = B.names.indexOf(it.base); return `w_${it.wtype}_${h ? 'h' : i >= 0 ? i : clamp(Math.floor(it.ilvl/10), 0, 4)}`; }
@@ -1410,6 +1464,11 @@ function itemIconKey(it){
   const i = A[it.slot].indexOf(it.base);
   return `a_${C.armor}_${it.slot}_${h ? 'h' : i >= 0 ? i : clamp(Math.floor(it.ilvl/(it.slot === 'helm' || it.slot === 'chest' ? 13 : 17)), 0, A[it.slot].length - 1)}`;
 }
+const stoneIconKey = st => `stone_${STONES[st.el] ? st.el : 'agni'}_${{grand:1, heroic:'h'}[st.rarity] || 0}`;
+// a piece of gear's Notch (batch 35): the iron disc in the cell's corner, with its stone laid in the hollow (tools_stones.py found it at
+// 48.6% across, 46.6% down, 32.6% of the icon wide in radius)
+function notchHTML(it, cls = 'nt'){ if(!it || !it.notch) return ''; const st = it.stone && it.stone.kind === 'stone' ? it.stone : null;
+  return `<span class="${cls}"><img src="assets/icons/notch.webp" alt="" draggable="false">${st ? `<img class="ns" src="assets/icons/${stoneIconKey(st)}.webp" alt="" draggable="false">` : ''}</span>`; }
 function iconURL(name, over, scale = 4){
   const key = name + JSON.stringify(over || '') + scale;
   if(ICON_CACHE[key]) return ICON_CACHE[key];
@@ -2339,6 +2398,9 @@ function genDungeon(L, seed, diff){
   if(arena) M.arena = arena;
   M.boss = lv.boss;
   settleProps(M);
+  // where a hero's first Aranyan Stone waits (depth 5 and deeper), halfway along the way down (core.js enterMap lays it there)
+  if(L >= STONE_FROM){ const r = order[Math.max(1, Math.floor(order.length*0.5))];
+    for(let t = 0; t < 12 && r && !r.arena && !M.stoneSpot; t++){ const s = objSpot(r) || freeSpot(r); if(s && !blockedCircle(M, s.x*TS + 8, s.y*TS + 10, 8) && !inLip(M, s.x*TS + 8, s.y*TS + 10)){ claim(s); M.stoneSpot = {x:s.x*TS + 8, y:s.y*TS + 10}; } } }
   return M;
 }
 
@@ -2616,6 +2678,31 @@ const itemName = it => (it.plus ? `+${it.plus} ` : '') + it.name;
 const itemValue = it => Math.round(it.value*(1 + 0.15*(it.plus || 0)));
 function affixLabel(a, it){ const af = AFFIXES.find(x => x.id === a.id); const v = it ? afVal(it, a) : a.v; return `+${v}${af.label.startsWith('%') ? af.label : ' ' + af.label}`; }
 function powerDef(id){ return HEROIC_POWERS.find(p => p.id === id); }
+// ---------------- Aranyan Stones (data.js STONES; Mr. Greystone sets them in Notches, hud.js renderArtificer) ----------------
+// A stone is a bag item of its own kind (no slot: it is never worn by itself). A notched piece carries it.notch, and its stone in it.stone.
+const isStone = it => !!it && it.kind === 'stone';
+function makeStone(el, rarity){
+  if(!STONES[el]) el = rpick(STONE_ELS); if(!STONE_TIERS.includes(rarity)) rarity = 'typical';
+  return {id:Math.random().toString(36).slice(2, 9), kind:'stone', el, rarity, name:`${STONE_TIER_NAME[rarity]} ${STONES[el].name} Stone`, value:STONE_VALUE[rarity], plus:0, req:1, affixes:[]};
+}
+function rollStoneRarity(diff){ const [g, h] = STONE_RARITY[diff] || STONE_RARITY.breeze, r = R(); return r < h ? 'heroic' : r < h + g ? 'grand' : 'typical'; }
+function stoneDrop(ch, x, y){ const M = G.M; if(!M || M.isTown || (M.level || 0) < STONE_FROM || R() >= ch) return; dropItem(makeStone(null, rollStoneRarity(curDiff())), x, y); }
+// the stones in what the hero wears (the weapon, chest and amulet places), by element: their tiers, best first (indexes in STONE_TIERS)
+function stoneSets(P){
+  const by = {};
+  for(const s of NOTCH_SLOTS){ const it = P.eq[s]; if(!itemActive(it) || !it.notch || !isStone(it.stone)) continue; (by[it.stone.el] = by[it.stone.el] || []).push(Math.max(0, STONE_TIERS.indexOf(it.stone.rarity))); }
+  for(const el in by) by[el].sort((a, b) => b - a);
+  return by;
+}
+const stoneVal = (el, k, ti) => ti >= 0 ? STONES[el][k].v[ti] : 0;   // percent
+function stoneBurn(m, total){ const dps = total/3; if(m.dead || m.dummy) return; if(!m.poison || !(m.poison.t > 0) || m.poison.dps < dps) m.poison = {dps, t:3, fire:true}; }
+// the first stone, picked up in the depths: Greystone has something to say (hud.js talkTo, npcHasNews, questText)
+function stoneFound(st){
+  const P = G.P; if(P.aranya || !isStone(st)) return;
+  P.aranya = {el:st.el, at:G.M ? G.M.level : STONE_FROM};
+  G.banner = {text:'You found an Aranyan Stone.', sub:'Mr. Greystone would like to talk with you.', t:0, gift:true};
+  toast('Mr. Greystone would like to talk with you.', '#ffcd75', 6); sfx('unlock'); saveGame();
+}
 
 // ---------------- player ----------------
 function newPlayer(cls, name){
@@ -2634,7 +2721,7 @@ function newPlayer(cls, name){
   return P;
 }
 function migratePlayer(P){
-  P.hurtAt = null; P.flash = 0; P.walk = 0; P.ult = null;   // moment-to-moment state from the last session (its clock is gone)
+  P.hurtAt = null; P.flash = 0; P.walk = 0; P.ult = null; P.waveAt = P.earthAt = P.stoneSkin = P.stoneSkinT = 0; delete P._stoneN;   // moment-to-moment state from the last session (its clock is gone)
   P.v = 2; P.carbon = P.carbon || 0; P.oils = P.oils || {}; P.imbue = null;
   P.prog = P.prog || {breeze:P.done || 0, nightmare:0, malformed:0};
   DIFF_ORDER.forEach(d => { if(P.prog[d] === undefined) P.prog[d] = 0; });
@@ -2687,27 +2774,35 @@ function derive(P){
   if(setKey){ const t = GODLY_SETS[setKey].tiers[setTier - 1]; if(t.res){ add.rpoi += t.res; add.rmal += t.res; } if(t.stats) for(const st of ['str', 'dex', 'int', 'vit']) s[st] += t.stats; }
   if(P._setTier !== undefined && setTier > P._setTier && G.state === 'play' && typeof sfx === 'function'){ sfx('set_complete'); toast(`${GODLY_SETS[setKey].name}: ${GODLY_SETS[setKey].tiers[setTier - 1].text}`, GODLY_COL, 5); }
   P._setTier = setTier;
+  // Aranyan Stones: every worn stone's own bonus; two or three of one element wake its powers, as strong as their weakest stone
+  const ss = stoneSets(P), one = el => (ss[el] || []).reduce((a, ti) => a + stoneVal(el, 'one', ti), 0), set = (el, n) => ss[el] && ss[el].length >= n ? stoneVal(el, n === 2 ? 'two' : 'three', ss[el][n - 1]) : 0;
+  add.dmg += one('agni'); add.as += one('vayu');
+  if(P._stoneN && G.state === 'play' && typeof toast === 'function') for(const el of STONE_ELS){ const n = Math.min(3, (ss[el] || []).length);
+    if(n >= 2 && n > (P._stoneN[el] || 0)){ const S = STONES[el], k = n === 2 ? 'two' : 'three'; toast(`${S.name}: ${S[k].name} wakes. ${S[k].text(set(el, n))}`, S.color, 5); if(typeof sfx === 'function') sfx('set_complete'); } }
+  P._stoneN = {}; for(const el in ss) P._stoneN[el] = ss[el].length;
   let bDmg = 0, bArm = 0, bAs = 0, bMs = 0;
   for(const b of P.buffs){ if(b.id === 'cry'){ bDmg += b.dmg; bArm += b.arm; } if(b.id === 'venom') bAs += 0.25; if(b.id === 'power') bDmg += 0.25; if(b.id === 'speed'){ bMs += 0.3; bAs += 0.2; } if(b.id === 'rush'){ bMs += b.k || 0.2; bAs += b.k || 0.2; } }
   const d = P.d = {};
   d.stats = s; d.dupPow = dupPow; d.setTier = setTier; d.setKey = setKey;
+  d.stone = {sets:ss, life:one('prithvi')/100, mreg:one('jala')/100, armor:set('prithvi', 2)/100, heart:set('prithvi', 3)/100, tide:set('jala', 2)/100, wave:set('jala', 3)/100,
+    kindle:set('agni', 2)/100, wrath:set('agni', 3)/100, wind:set('vayu', 2)/100, evade:set('vayu', 3)/100};
   d.gp = {}; for(const k in pw) if(pw[k] === 2) d.gp[k] = true;   // which powers are worn at Godly strength
   d.powers = {allskills:pw.allskills === 2 ? GODLY_POWERS.allskills.v : pw.allskills, lifesteal:0.03*pw.lifesteal, thorns:0.35*pw.thorns, shock:Math.min(0.5, 0.12*pw.shock), secondwind:pw.secondwind > 0, greed:0.5*pw.greed,
     wellspring:pw.wellspring ? 0.2 : 0, executioner:pw.executioner ? 0.4 : 0, ward:pw.ward ? 0.15 : 0, rime:pw.rime ? 0.25 : 0, bloodrush:pw.bloodrush > 0,
     manasiphon:pw.manasiphon ? 0.01 : 0, giantsbane:pw.giantsbane === 2 ? GODLY_POWERS.giantsbane.v : pw.giantsbane ? 0.3 : 0, ironskin:pw.ironskin ? 0.12 : 0, swiftness:pw.swiftness ? 0.15 : 0, chainspark:pw.chainspark > 0, corpseburst:pw.corpseburst ? 0.25 : 0,
     bulwark:pw.bulwark > 0, crusader:pw.crusader ? 0.2 : 0, pyre:pw.pyre > 0, permafrost:pw.permafrost ? 0.3 : 0, venomlord:pw.venomlord > 0, phantom:pw.phantom > 0};
-  d.maxhp = Math.round((C.hp + s.vit*5 + (P.lvl - 1)*4)*0.85 + add.hp);   // souls-like: heroes 15% frailer
+  d.maxhp = Math.round(((C.hp + s.vit*5 + (P.lvl - 1)*4)*0.85 + add.hp)*(1 + d.stone.life));   // souls-like: heroes 15% frailer (Prithvi stones: more life)
   d.maxmp = Math.round(C.mp + s.int*3 + (P.lvl - 1)*3 + add.mp);
   d.mult = (1 + s[C.primary]*0.015 + add.dmg/100 + bDmg)*0.85;   // and hit 15% softer
   d.min = wmin; d.max = wmax;
   d.crit = Math.min(0.75, 0.05 + s.dex*0.0015 + add.crit/100);
   d.critMult = P.cls === 'rogue' ? 2.1 : 1.75;
-  d.armor = Math.round(armor + add.arm + s.str*0.4 + bArm);
+  d.armor = Math.round((armor + add.arm + s.str*0.4 + bArm)*(1 + d.stone.armor));   // two Prithvi: Rooted
   d.as = wspd*(1 + s.dex*0.003 + add.as/100 + bAs);
-  d.ms = 74*(1 + Math.min(0.6, add.ms/100 + bMs + d.powers.swiftness));
+  d.ms = 74*(1 + Math.min(0.6, add.ms/100 + bMs + d.powers.swiftness + d.stone.wind));   // two Vayu: Tailwind
   d.loh = add.loh; d.cdr = Math.min(0.4, add.cdr/100);
   d.res = {poison:Math.min(RES_CAP, add.rpoi), malformed:Math.min(RES_CAP, add.rmal)};   // percent, per element
-  d.hpReg = 0.1 + s.vit*0.012; d.mpReg = 1.4 + s.int*0.05;   // life comes back slowly (was 0.4 + vit*0.06); none at all in Palli
+  d.hpReg = 0.1 + s.vit*0.012; d.mpReg = (1.4 + s.int*0.05)*(1 + d.stone.mreg);   // life comes back slowly (was 0.4 + vit*0.06); none at all in Palli
   d.avg = (wmin + wmax)/2*d.mult;
   if(P.hp > d.maxhp) P.hp = d.maxhp; if(P.mp > d.maxmp) P.mp = d.maxmp;
 }
@@ -2889,6 +2984,15 @@ function hitMonster(m, amt, o = {}){
     for(const o2 of near){ G.fx.push({kind:'zap', x:m.x, y:m.y - 8, x2:o2.x, y2:o2.y - 8, t:0, dur:0.18, color:'#9fe8ff'}); hitMonster(o2, amt*0.5, {crit:false, noProc:true, silent:true, color:'#9fe8ff'}); }
     if(near.length) sfx('zap', m);
   }
+  // Aranyan Stones: Kindling (two Agni), Agni's Wrath (three Agni, on a critical hit), the Rolling Wave (three Jala, every 8 seconds)
+  const S = P.d.stone;
+  if(S && !o.noProc){
+    if(S.kindle && R() < S.kindle){ stoneBurn(m, amt*0.5); burst(m.x, m.y - 6, 6, ['#ff7a3a', '#ffcd75', '#e43b44'], 40, -60, 0.5); sfx('burn', m); }
+    if(crit && S.wrath){ G.fx.push({kind:'boom', x:m.x, y:m.y - 6, r:40, t:0, dur:0.3, color:'#ff7a3a', fxn:'boom_fire'}); sfx('fire', m);
+      for(const o2 of G.M.monsters) if(!o2.dead && Math.hypot(o2.x - m.x, o2.y - m.y) < 40 + o2.r) stoneBurn(o2, amt*S.wrath); }
+    if(S.wave && !(P.waveAt > G.time)){ P.waveAt = G.time + 8; ring(m.x, m.y - 4, 60, '#7fd4ff', 0.45); burst(m.x, m.y - 4, 16, ['#7fd4ff', '#cdefff', '#2a7ab8'], 90, 60, 0.6); sfx('ice', m);
+      for(const o2 of G.M.monsters.slice()) if(o2 !== m && !o2.dead && Math.hypot(o2.x - m.x, o2.y - m.y) < 60 + o2.r) hitMonster(o2, rollDamage(S.wave), {noProc:true, silent:true, kb:60, fx:m.x, fy:m.y, color:'#7fd4ff'}); }
+  }
   if(m.hp <= 0) killMonster(m);
 }
 // a hit on a training dummy: the number, a puff of straw, a wobble, and the damage kept for its damage-per-second; no knockback,
@@ -2909,6 +3013,8 @@ function dummyDps(m){ if(!m.log.length || G.time - m.log[m.log.length - 1][0] > 
 function hurtPlayer(amt, src, melee, elem){
   const P = G.P; if(P.invuln > 0 || P.down > 0 || G.state !== 'play') return;
   if(CHEAT && CHEAT.god) return;   // cheat: god mode
+  const S = P.d.stone;
+  if(S && S.evade && R() < S.evade){ ftext(P.x, P.y - 28, 'Evaded', '#d6e2f0'); burst(P.x, P.y - 8, 8, ['#d6e2f0', '#ffffff', '#9fb4cc'], 50, -20, 0.5); sfx('dodge'); return; }   // three Vayu: Eye of the Storm
   if(src && src.weak > 0) amt *= 0.75;   // Poison Oil weakens enemy attacks
   const lvl = src && src.lvl ? src.lvl : P.lvl;
   // Poison and Malformed hits pass through armor (resistance is their defense) and hit a little softer to make up for it; bosses' a little softer still
@@ -2922,6 +3028,11 @@ function hurtPlayer(amt, src, melee, elem){
   // heroic: Warden's Ward soaks the blow first
   if(P.ward > 0){ const soak = Math.min(P.ward, amt); P.ward -= soak; amt -= soak; P.hurtAt = G.time;
     ftext(P.x + 10, P.y - 24, soak, '#7da8ff'); if(P.ward <= 0){ ring(P.x, P.y - 6, 30, '#7da8ff', 0.35); sfx('blink'); } if(amt <= 0){ P.flash = 0.06; return; } }
+  // three Prithvi: Stoneheart, stone skin when a blow would leave the hero below 40% life (it soaks for 8 seconds; every 40 seconds)
+  if(S && S.heart && !(P.earthAt > G.time) && P.hp - amt < P.d.maxhp*0.4){ P.earthAt = G.time + 40; P.stoneSkin = Math.round(P.d.maxhp*S.heart); P.stoneSkinT = G.time + 8;
+    ring(P.x, P.y - 6, 34, '#b8a07a', 0.5); burst(P.x, P.y - 8, 18, ['#8fc45a', '#b8a07a', '#6a5a3a'], 60, 60, 0.7); sfx('bash'); toast('Stoneheart!', '#8fc45a', 2); }
+  if(P.stoneSkin > 0 && G.time < (P.stoneSkinT || 0)){ const soak = Math.min(P.stoneSkin, amt); P.stoneSkin -= soak; amt -= soak; P.hurtAt = G.time;
+    ftext(P.x - 10, P.y - 24, soak, '#b8a07a'); if(amt <= 0){ P.flash = 0.06; return; } } else P.stoneSkin = 0;
   P.hp -= amt; P.flash = 0.12; P.hurtAt = G.time; G.shake = Math.max(G.shake, 2.5);
   if(src && src.elite && src.elite.id === 'vampiric') src.hp = Math.min(src.maxhp, src.hp + amt*0.6);
   ftext(P.x, P.y - 28, amt, '#e43b44');
@@ -2979,6 +3090,7 @@ function killMonster(m){
   else if(elite){ if(R() < 0.3) cn = RRI(1, 2); }
   else if(R() < 0.02) cn = 1;
   if(cn) dropLoot({carbon:Math.max(1, Math.round(cn*carbonMult()))}, m.x, m.y);
+  stoneDrop(boss ? STONE_DROP.boss : elite ? STONE_DROP.elite : STONE_DROP.monster, m.x, m.y);   // Aranyan Stones, depth 5 and deeper
   if(m.type === 'ilvaroth') dropItem(makeUnique('eye'), m.x, m.y);
   { const gk = BOSS_GODLY[m.type], ch = GODLY_DROP[curDiff()] || 0; if(gk && ch && R() < ch) dropItem(makeUnique(gk), m.x + 14, m.y); }   // a boss's own Godly piece, Nightmare and Malformed only   // Godly: The Eye of Malformity, every time he falls (2026-11-18, Mathis)
   if(m.isBoss) bossDefeated(m);
@@ -3260,7 +3372,7 @@ function dodge(){
   const D = DODGE[P.cls] || DODGE.knight, m = Math.hypot(INPUT.mx, INPUT.my), ang = m > 0.2 ? Math.atan2(INPUT.my, INPUT.mx) : (P.face >= 0 ? 0 : Math.PI);
   const ease = P.cls === 'knight', v = D.dist/D.dur/(ease ? 0.7 : 1);   // the roll slows as it ends (average speed x0.7)
   P.dodge = {t:0, dur:D.dur, vx:Math.cos(ang)*v, vy:Math.sin(ang)*v, ang, kind:P.cls, ease, x0:P.x, y0:P.y, trail:[]};
-  P.dodgeCd = DODGE_CD; P.invuln = Math.max(P.invuln || 0, D.iframe); P.swing = null; P.spin = null;
+  P.dodgeCd = P.dodgeCdMax = DODGE_CD*(1 - 2*(P.d.stone ? P.d.stone.wind : 0)); P.invuln = Math.max(P.invuln || 0, D.iframe); P.swing = null; P.spin = null;
   if(Math.abs(Math.cos(ang)) > 0.2) P.face = Math.cos(ang) >= 0 ? 1 : -1;
   sfx(P.cls === 'knight' ? 'roll' : 'dodge'); uiDirty(); return true;
 }
@@ -3271,7 +3383,7 @@ function drinkPotion(kind){
   if(typeof P.potCd !== 'object' || !P.potCd) P.potCd = {hp:0, mp:0};
   if(P.potCd[kind] > 0){ if(kind === 'hp') toast(`Health potion ready in ${P.potCd.hp.toFixed(1)} s`, '#94b0c2', 1); return; }
   P.pots[kind]--; P.potCd[kind] = kind === 'hp' ? 3 : 0.8;   // a health potion every 3 seconds at most
-  const amt = Math.round((kind === 'hp' ? P.d.maxhp : P.d.maxmp)*0.45 + 15);
+  const amt = Math.round(((kind === 'hp' ? P.d.maxhp : P.d.maxmp)*0.45 + 15)*(1 + (P.d.stone ? P.d.stone.tide : 0)));   // two Jala: Tidewater
   P.regenPot = {kind, amt, t:1.2, dur:1.2};
   ftext(P.x, P.y - 26, '+' + amt, kind === 'hp' ? '#e43b44' : '#5fa8ff');
   burst(P.x, P.y - 6, 16, kind === 'hp' ? ['#e43b44', '#ff8a8a'] : ['#5fa8ff', '#a8c4ff'], 40, -50, 0.8);
@@ -3345,6 +3457,8 @@ function enterMap(M, x, y){
   if(!M.isTown){
     M.sealOpen = !!(M.quest && P.quests[M.quest] !== 'none');
     if(!M.spawned){ spawnMonsters(M); M.spawned = true; } else spawnQuestBoss(M);
+    // a hero who has never found an Aranyan Stone finds one on the floor of the first depth they enter from depth 5 down (2026-11-27, Mathis)
+    if(M.stoneSpot && !M.stoneLaid && party().some(h => !h.aranya)){ M.stoneLaid = true; G.loot.push({item:makeStone(null, 'typical'), x:M.stoneSpot.x, y:M.stoneSpot.y, sx:M.stoneSpot.x, sy:M.stoneSpot.y, t:1, map:M, first:true}); }
   }
   if(!M.art) M.art = renderMapArt(M);
   computeFOV(M, P.x, P.y, 10);
@@ -3485,6 +3599,7 @@ function openSarc(o){
   dropGold(Math.round((14 + lvl*4)*(0.7 + R()*0.6)*DIFFS[curDiff()].gold*(1 + P.d.powers.greed)), o.x, o.y + 14);   // in front of it
   if(R() < 0.65) dropItem(makeGear(rollRarity(curDiff(), 1)), o.x, o.y + 14);
   if(R() < 0.1) dropLoot({carbon:Math.max(1, Math.round(RRI(1, 2)*carbonMult()))}, o.x, o.y + 14);
+  stoneDrop(STONE_DROP.sarc, o.x, o.y + 14);
   for(const l of G.loot.slice(n0)) l.y = Math.max(l.y, o.y + 8 + R()*6);   // everything lands in front of it, where the hero can reach
 }
 // urns in the crypt break when hit: a little gold, very rarely Carbon
@@ -3509,6 +3624,7 @@ function openChest(o){
   dropGold(Math.round((20 + lvl*6)*(0.7 + R()*0.6)*DIFFS[curDiff()].gold*(1 + P.d.powers.greed)), o.x, o.y);
   if(R() < 0.4) dropLoot({carbon:Math.max(1, Math.round(RRI(1, 3)*carbonMult()))}, o.x, o.y);
   if(R() < 0.25) dropLoot({pot: R() < 0.5 ? 'hp' : 'mp'}, o.x, o.y);
+  stoneDrop(STONE_DROP.chest, o.x, o.y);
 }
 function readNote(L, n, o){
   const note = NOTES[L - 1][n]; if(!note) return;
@@ -3544,6 +3660,7 @@ function takeLoot(l){
   const rc = rarityDef(l.item.rarity).color;
   ftext(l.x, l.y - 8, l.item.name, rc, 0.9);
   if(l.item.rarity !== 'typical' && !l.own) toast(`Found ${rarityDef(l.item.rarity).name}: ${l.item.name}`, rc);
+  if(isStone(l.item) && !G.M.isTown) stoneFound(l.item);
   uiDirty(); return true;
 }
 function pickupNearest(){ const l = lootNear(32); return l ? takeLoot(l) : false; }   // the pick-up button with nothing else in reach: a little farther
@@ -3569,7 +3686,7 @@ function unequip(slot){
   P.inv[i] = it; delete P.eq[slot]; derive(P); uiDirty();
 }
 function dropInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx] = null; dropLoot({item:it, own:true}, P.x, P.y); G.loot[G.loot.length - 1].t = -0.6; uiDirty(); }   // it stays on the ground until picked up again
-function sellInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx] = null; if(UI.sel && UI.sel.inv === idx) UI.sel = null; const v = Math.round(itemValue(it)*0.4); P.gold += v; sfx('coin'); toast(`Sold ${itemName(it)} for ${v} gold.`, '#ffcd75'); uiDirty(); }
+function sellInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; if(!it.slot || it.stone){ toast(it.slot ? STONE_KEEP : 'Karmara does not buy Aranyan Stones.', '#ffcd75'); sfx('error'); return; } P.inv[idx] = null; if(UI.sel && UI.sel.inv === idx) UI.sel = null; const v = Math.round(itemValue(it)*0.4); P.gold += v; sfx('coin'); toast(`Sold ${itemName(it)} for ${v} gold.`, '#ffcd75'); uiDirty(); }
 function repairCost(it){ if(!it || !it.maxDur) return 0; return Math.ceil((it.maxDur - it.dur)*(1 + it.ilvl*0.25)*({typical:1, grand:1.4, heroic:2, godly:2.6}[it.rarity] || 1)); }
 function repairAll(){
   const P = G.P; let cost = 0; const all = [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean);
@@ -4882,12 +4999,17 @@ function drawAnchBreath(im, x, y, face, ax, d){   // drawAnch, with the upper 56
   if(SIL.ent) silRec(SIL.ent, im, 0, 0, W, H, X, Y, w, h, face < 0);
   b.save(); b.translate(face < 0 ? X + w : X, Y); if(face < 0) b.scale(-1, 1);
   b.drawImage(im, 0, cut, W, H - cut, 0, cut*s, w, (H - cut)*s); b.drawImage(im, 0, 0, W, cut, 0, d*s, w, (cut - d)*s); b.restore(); }
+// the one the hero is talking with talks for the whole conversation (2026-11-27, Mathis: Greystone showed no talking). While a dialog
+// is open the world's clock (G.time) stands still, so their talk frames run on G.dlgT (main.js); and the hero can start a talk from
+// 30 px away (core.js nearestInteract), outside the 34 x 26 box that turns townsfolk to talk as the hero walks up.
+function npcTalking(o){ return !!(UI.dialog && G.talkId === o.id) || campNear(o); }
+function npcTalkT(o, t){ return UI.dialog && G.talkId === o.id ? G.dlgT || 0 : t; }
 function hdNPC(o, x, y, t){                       // townsfolk: work when the hero is away, turn and talk when they walk up
-  const P = G.P, near = P && Math.abs(P.x - x) < 34 && Math.abs(P.y - y) < 26;
+  const P = G.P, near = P && npcTalking(o);
   const face = near ? (P.x > x ? 1 : -1) : (o.id === 'ganesh' ? 1 : -1);
   if(NPC_MAN[o.id + '_work1']){
     let key, spark = -1, seed = 0, breath = 0;
-    if(near) key = 'talk' + (1 + Math.floor(t/0.15) % 8);
+    if(near) key = 'talk' + (1 + Math.floor(npcTalkT(o, t)/0.15) % 8);
     else if(o.id === 'karmara'){
       const [i, c, loops] = karmaAt(t), q = KARMA_SEQ[i];
       key = 'work' + q[0]; if(q[0] === 6){ spark = c; seed = loops*KARMA_SEQ.length + i; }
@@ -4925,7 +5047,7 @@ function campDraw(o, t){
   const F = CAMP_MAN.f[o.id]; if(!F) return false;
   let key, face = o.face || 1, breath = 0;
   if(o.walk && !o.halt){ const [d, mir] = HDIR_SRC[o.dir] || HDIR_SRC.e; key = 'wk_' + d + '_' + (1 + Math.floor((o.stride || 0)/2.6) % 8); face = mir ? -1 : 1; }
-  else if(o.talks && campNear(o)){ key = 'tlk_' + (1 + Math.floor(t/0.15) % 8); face = G.P.x > o.x ? 1 : -1; }
+  else if(o.talks && npcTalking(o)){ key = 'tlk_' + (1 + Math.floor(npcTalkT(o, t)/0.15) % 8); face = G.P.x > o.x ? 1 : -1; }
   else if(o.work && F.wrk_1){ key = 'wrk_' + campWorkFrame(o.id, t + (o.seed || 0)); if(o.dir) face = HDIR_SRC[o.dir][1] ? -1 : 1; }
   else { const [d, mir] = HDIR_SRC[o.dir || (face < 0 ? 'w' : 'e')]; key = d === 'e' ? 'idl' : 'idl_' + d; face = mir ? -1 : 1; breath = 1 - Math.cos((t + (o.seed || 0))*Math.PI*2/3.4); }   // 0..2 px, one breath every 3.4 s
   const r = F[key] || F.idl, im = CAMP_IM[r[5]]; if(!im || !im.naturalWidth) return false;
@@ -4950,7 +5072,7 @@ function greyDraw(o, t){
   if(cov < 1) drawAtl(im, F.btl, bx, by, 1);
   if(cov > 0){ b.globalAlpha = cov; drawAtl(im, F.btl_snow, bx, by, 1); b.globalAlpha = 1; }
   let key = 'idl', breath = 0;
-  if(o.talks && campNear(o)) key = 'tlk_' + (1 + Math.floor(t/0.16) % 8);
+  if(o.talks && npcTalking(o)) key = 'tlk_' + (1 + Math.floor(npcTalkT(o, t)/0.16) % 8);
   else { let c = ((t + (o.seed || 0)) % GREY_L + GREY_L) % GREY_L - GREY_REST;
     if(c >= 0){ for(const s of GREY_SWIG){ if(c < s[1]){ key = 'wrk_' + s[0]; break; } c -= s[1]; } }
     else breath = 1 - Math.cos(t*Math.PI*2/3.8); }   // a slow, easy breath while he rests
@@ -5776,8 +5898,11 @@ function drawLoot(l){
   const k = Math.min(1, l.t), x = l.sx + (l.x - l.sx)*k, y = l.sy + (l.y - l.sy)*k - Math.sin(k*Math.PI)*14;
   const hdk = l.gold ? (l.gold < 25 ? 'gold_0' : l.gold < 120 ? 'gold_1' : 'gold_2') : l.pot ? (l.pot === 'hp' ? 'hpot' : 'mpot') : l.carbon ? 'carbon' : l.item ? itemIconKey(l.item) : null, him = hdk && hdIcon(hdk);
   if(him){                            // ChatGPT icon on the floor, about 2/3 of a tile, with the old rarity beam
-    const it = l.item, s = it ? 11 : 9;
-    if(it && it.rarity !== 'typical'){ const rc = rarityDef(it.rarity).color, hh = it.rarity === 'godly' ? 140 : it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if((it.rarity === 'heroic' && R() < 0.3) || (it.rarity === 'godly' && R() < 0.8)) G.parts.push({x:x + (R() - 0.5)*(it.rarity === 'godly' ? 12 : 6), y:y - R()*(it.rarity === 'godly' ? 40 : 20), vx:0, vy:-25, life:0.8, max:0.8, c:it.rarity === 'godly' && R() < 0.4 ? '#f0d8ff' : rc, g:0, s:1}); }
+    const it = l.item, stn = it && it.kind === 'stone', s = it && !stn ? 11 : 9;   // an Aranyan Stone lies at about half a tile
+    if(stn){ const c = (STONES[it.el] || STONES.agni).color, hh = it.rarity === 'heroic' ? 70 : it.rarity === 'grand' ? 45 : 30;   // a thin beam in its element's colour, taller for the finer tiers
+      b.globalAlpha = 0.22 + 0.1*Math.sin(G.time*4 + l.x); b.fillStyle = c; b.fillRect(Math.round(x) - 1, Math.round(y) - hh, 3, hh); b.globalAlpha = 1;
+      if(R() < 0.15) G.parts.push({x:x + (R() - 0.5)*6, y:y - R()*12, vx:0, vy:-18, life:0.7, max:0.7, c, g:0, s:1}); }
+    else if(it && it.rarity !== 'typical'){ const rc = rarityDef(it.rarity).color, hh = it.rarity === 'godly' ? 140 : it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if((it.rarity === 'heroic' && R() < 0.3) || (it.rarity === 'godly' && R() < 0.8)) G.parts.push({x:x + (R() - 0.5)*(it.rarity === 'godly' ? 12 : 6), y:y - R()*(it.rarity === 'godly' ? 40 : 20), vx:0, vy:-25, life:0.8, max:0.8, c:it.rarity === 'godly' && R() < 0.4 ? '#f0d8ff' : rc, g:0, s:1}); }
     const ft = (HD_ICON_FOOT[hdk] || 0)*s, gnd = k >= 1;   // the picture's lowest point rests inside its shadow (gold no longer floats)
     b.fillStyle = 'rgba(3,2,8,.5)'; b.beginPath(); b.ellipse(x, y + 1.5, s*(l.gold ? 0.5 : 0.45), s*0.17, 0, 0, Math.PI*2); b.fill();
     const sm = b.imageSmoothingEnabled; b.imageSmoothingEnabled = true; b.drawImage(him, x - s/2, y - s + 1.5 + ft + (gnd ? 0.6 : 0), s, s); b.imageSmoothingEnabled = sm;
@@ -5787,7 +5912,8 @@ function drawLoot(l){
   if(l.gold){ pcircle(b, x, y, 3, '#14121c'); pcircle(b, x, y, 2, '#ffcd75'); b.fillStyle = '#fff6c2'; b.fillRect(Math.round(x) - 1, Math.round(y) - 1, 1, 1); return; }
   if(l.pot){ const img = getIconSprite(l.pot === 'hp' ? 'hpot' : 'mpot'); b.drawImage(img, Math.round(x - 6), Math.round(y - 10)); return; }
   if(l.carbon){ const img = getIconSprite('carbon'); b.drawImage(img, Math.round(x - 6), Math.round(y - 10)); if(Math.floor(G.time*3 + l.x) % 4 === 0){ b.fillStyle = '#ffffff'; b.fillRect(Math.round(x) - 1, Math.round(y) - 7, 1, 1); } return; }
-  const it = l.item, rc = rarityDef(it.rarity).color;
+  const it = l.item; if(!it || it.kind === 'stone') return;   // (a stone's picture is still loading: no old pixel art for it)
+  const rc = rarityDef(it.rarity).color;
   if(it.rarity !== 'typical'){ const hh = it.rarity === 'godly' ? 140 : it.rarity === 'heroic' ? 90 : 55; b.globalAlpha = 0.25 + 0.1*Math.sin(G.time*4); b.fillStyle = rc; b.fillRect(Math.round(x) - 2, Math.round(y) - hh, 4, hh); b.globalAlpha = 1; if(it.rarity === 'heroic' && R() < 0.3) G.parts.push({x:x + (R() - 0.5)*6, y:y - R()*20, vx:0, vy:-25, life:0.8, max:0.8, c:'#ff4545', g:0, s:1}); }
   b.fillStyle = 'rgba(3,2,8,.5)'; b.fillRect(Math.round(x) - 5, Math.round(y) + 1, 10, 2);
   const img = getIconSprite(it.slot === 'weapon' ? it.wtype : it.slot, MATS[it.rarity] || MATS.typical);
@@ -5957,7 +6083,7 @@ function breathBlob(){ if(BREATH.img) return BREATH.img; const c = mkCanvas(32, 
 function drawBreath(cx, cy){
   const t = G.time, z = zoom, M = G.M, P = G.P, src = [];
   for(const h of party()) if(!(h.down > 0) && !(h.lying > 0) && G.state !== 'dead') src.push([h, h.x + (h.face < 0 ? -2.4 : 2.4), h.y - 18.4, h.face < 0 ? -1 : 1]);
-  for(const o of M.objects){ if(o.type !== 'npc') continue; const near = P && Math.abs(P.x - o.x) < 34 && Math.abs(P.y - o.y) < 26, f = o.id === 'greystone' ? 1 : near ? (P.x > o.x ? 1 : -1) : (o.face || (o.id === 'ganesh' ? 1 : -1));
+  for(const o of M.objects){ if(o.type !== 'npc') continue; const near = P && npcTalking(o), f = o.id === 'greystone' ? 1 : near ? (P.x > o.x ? 1 : -1) : (o.face || (o.id === 'ganesh' ? 1 : -1));
     src.push([o, o.x + f*2.4, o.y - (o.id === 'karmara' && !near ? 16.5 : o.id === 'hash' ? (near ? 23.5 : 17) : o.id === 'greystone' ? 16.5 : 19), f]); }
   for(const [e, x, y, f] of src){ let n = BREATH.next.get(e); if(n === undefined || n > t + 5){ n = t + Math.random()*2.5; BREATH.next.set(e, n); }
     if(t >= n){ BREATH.list.push({x, y, f, t0:t}); BREATH.next.set(e, t + 2.3 + Math.random()*1.6); } }
@@ -6609,6 +6735,8 @@ function heroEffects(P){
   const sz = G.fx && G.fx.find(f => f.kind === 'slowzone' && Math.hypot(P.x - f.x, P.y - f.y) < f.r);
   if(sz) out.push({id:'slow', bad:true, name:'Slowed', desc:'Moving at 40% speed while you stand in the clock', t:Math.max(0, sz.dur - sz.t), dur:sz.dur, col:'#b98cff', icon:buffIcon('slow', '#b98cff')});
   if(P.d && P.d.powers && P.d.powers.ward && P.ward > 0){ const wm = Math.round(P.d.maxhp*P.d.powers.ward); out.push({id:'ward', name:"Warden's Ward", desc:`Absorbs the next ${Math.round(P.ward)} damage. Comes back in full after 8 s unhurt`, t:P.ward, dur:wm, col:'#7da8ff', icon:buffIcon('renew', '#7da8ff')}); }
+  if(P.stoneSkin > 0 && G.time < (P.stoneSkinT || 0)) out.push({id:'stoneskin', name:'Stoneheart', desc:`Stone skin absorbs the next ${Math.round(P.stoneSkin)} damage`, t:P.stoneSkinT - G.time, dur:8, col:'#8fc45a', icon:'assets/icons/stone_prithvi_h.webp'});
+  else if(P.d && P.d.stone && P.d.stone.heart && P.earthAt > G.time) out.push({id:'heartcd', bad:true, name:'Stoneheart used', desc:'It can shield you again when this runs out', t:P.earthAt - G.time, dur:40, col:'#8fc45a', icon:'assets/icons/stone_prithvi_0.webp'});
   if(P.d && P.d.powers && P.d.powers.secondwind && P.swCd > 0) out.push({id:'sw', bad:true, name:'Second Wind used', desc:'It can save you again when this runs out', t:P.swCd, dur:60, col:'#ff8a8a', icon:buffIcon('heart', '#ff4545')});
   return out;
 }
@@ -6897,7 +7025,7 @@ function updateHUD(dt){
     const off = [...$('skills').children, $('dodgeb')].some(el => { const q = el.getBoundingClientRect(); return q.width && (q.right > innerWidth + 2 || q.left < -2 || q.bottom > innerHeight + 2 || q.top < -2); });
     if(k && (k !== TOUCH.atkKey || off)){ if(TOUCH.atkKey && !off && k === TOUCH.atkKey){} else { TOUCH.atkKey = k; TOUCH.placed = false; layoutTouch(); } } }
   if(UI.dirty){ UI.dirty = false; buildSkillBar(); UI.glyph = null; $('bChar').classList.toggle('alert', P.statPts > 0); $('bSkill').classList.toggle('alert', P.skillPts > 0 || !(P.slots || []).some(Boolean)); $('bPortal').classList.toggle('hide', !!M.isTown); }
-  { const db = $('dodgeb'), cd = Math.max(0, (P.dodgeCd || 0)/DODGE_CD); setSty(db, '--cd', cd.toFixed(2)); db.classList.toggle('cd', cd > 0); const nm = (DODGE[P.cls] || DODGE.knight).name.split(' ').pop(); if(db.textContent !== nm) db.textContent = nm; }
+  { const db = $('dodgeb'), cd = Math.max(0, (P.dodgeCd || 0)/(P.dodgeCdMax || DODGE_CD)); setSty(db, '--cd', cd.toFixed(2)); db.classList.toggle('cd', cd > 0); const nm = (DODGE[P.cls] || DODGE.knight).name.split(' ').pop(); if(db.textContent !== nm) db.textContent = nm; }
   flaskUpd('hpf', clamp(P.hp/P.d.maxhp, 0, 1), 'hp', P.poisoned > 0); $('hpf').classList.toggle('poison', P.poisoned > 0);
   flaskUpd('mpf', clamp(P.mp/P.d.maxmp, 0, 1), 'mp', false);
   setTxt($('hpf').querySelector('.v'), Math.ceil(Math.max(0, P.hp))); setTxt($('mpf').querySelector('.v'), Math.floor(P.mp));
@@ -6948,6 +7076,7 @@ function questText(){
     return M.level >= 10 ? 'Return to Palli.' : 'Find the stairs leading deeper.';
   }
   if(npcHasNews('ganesh')) return 'Ganesh has more to tell you.';
+  if(greyNews()) return 'Mr. Greystone would like to talk with you.';
   for(const q in QUESTS) if(questAvailable(q)) return `${QUESTS[q].giverName} wants to speak with you.`;
   const d = UI.riftDiff && P.unlocked[UI.riftDiff] ? UI.riftDiff : 'breeze';
   return P.done === 0 ? 'Enter the Rift, north of the village.' : `Return to the Rift. Depth ${Math.min(10, P.prog[d] + 1)} awaits.`;
@@ -6955,6 +7084,7 @@ function questText(){
 function npcHasNews(id){
   const P = G.P; if(!P) return false;
   if(id === 'ganesh') return !P.talked.ganesh || P.ganeshHeard < Math.min(10, P.done) || DIFF_ORDER.some(d => d !== 'breeze' && P.wonDiff[d] && !P.ganeshAgain[d]);
+  if(id === 'greystone') return !P.talked.greystone || greyNews();
   const q = Object.keys(QUESTS).find(k => QUESTS[k].giver === id);
   return !P.talked[id] || (q && (questAvailable(q) || P.quests[q] === 'killed'));
 }
@@ -7153,7 +7283,7 @@ function panelShell(title, body, foot, side){
   if(side && sideDetails(side === 'wide')) return `<div class="sidewin">${foot || '<div class="sub">Select an item to see its details here.</div>'}</div><div class="panel">${head}<div class="pb">${body}</div></div>`;
   return `<div class="panel">${head}<div class="pb">${body}</div>${foot ? `<div class="pf">${foot}</div>` : ''}</div>`;
 }
-const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }, get cheats(){ return renderCheats; }, get imbue(){ return renderImbue; }};
+const PANEL_FN = {get help(){ return renderHelp; }, get report(){ return renderReport; }, get inv(){ return renderInv; }, get char(){ return renderChar; }, get skills(){ return renderSkills; }, get journal(){ return renderJournal; }, get menu(){ return renderMenu; }, get shop(){ return renderShop; }, get healer(){ return renderHealer; }, get oils(){ return renderOils; }, get rift(){ return renderRift; }, get settings(){ return renderSettings; }, get saves(){ return renderSaves; }, get stash(){ return renderStash; }, get map(){ return renderMapPanel; }, get mapset(){ return renderMapSet; }, get keys(){ return renderKeys; }, get cheats(){ return renderCheats; }, get imbue(){ return renderImbue; }, get artificer(){ return renderArtificer; }};
 function refreshPanel(){
   const p = UI.panel; if(!p) return; const m = $('modal');
   if(UI.duo && coop()){   // both heroes' pages side by side, each drawn as its own hero
@@ -7173,10 +7303,11 @@ function cellHTML(it, sel, onclick, opts = {}){
   const P = G.P, dd = (opts.drop ? ` data-drop="${opts.drop}"` : '') + (it && opts.drag ? ` data-drag="${opts.drag}"` : '') + (it && opts.sell != null ? ` data-sell="${opts.sell}"` : '');
   if(!it) return `<button class="cell empty${sel ? ' sel' : ''}"${dd} onclick="${onclick}">${opts.label ? `<span class="lbl">${opts.label}</span>` : ''}</button>`;
   const bad = it.slot && !canEquip(it), dup = opts.dup ? ' dup' : '';
-  return `<button class="cell${sel ? ' sel' : ''}${dup}${it.rarity === 'godly' ? ' godly' : ''}"${dd}${opts.dup ? ' title="Its heroic power is not counting: another piece you wear has the same one"' : ''} style="border-color:${rarColor(it)}aa" onclick="${onclick}"><img src="${itemIcon(it)}" draggable="false">${it.plus ? `<span class="pl">+${it.plus}</span>` : ''}${bad ? '<span class="brk">✕</span>' : it.maxDur && it.dur === 0 ? '<span class="brk">!</span>' : ''}</button>`;
+  return `<button class="cell${sel ? ' sel' : ''}${dup}${it.rarity === 'godly' ? ' godly' : ''}"${dd}${opts.dup ? ' title="Its heroic power is not counting: another piece you wear has the same one"' : ''} style="border-color:${rarColor(it)}aa" onclick="${onclick}"><img src="${itemIcon(it)}" draggable="false">${notchHTML(it)}${it.plus ? `<span class="pl">+${it.plus}</span>` : ''}${bad ? '<span class="brk">✕</span>' : it.maxDur && it.dur === 0 ? '<span class="brk">!</span>' : ''}</button>`;
 }
 function itemCard(it, ctx){
   const P = G.P; if(!it) return '';
+  if(isStone(it)) return stoneCard(it);
   const rar = rarityDef(it.rarity);
   let h = `<div class="card"><div class="nm${it.rarity === 'godly' ? ' godly' : ''}" style="color:${rar.color}">${esc(itemName(it))}</div>${it.uniq && UNIQUES[it.uniq] ? `<div class="sub" style="font-style:italic;color:#c9b3e6">${esc(UNIQUES[it.uniq].lore)}</div>` : ''}<div class="sub">${rar.name} ${SLOT_NAMES[it.slot]}${it.wtype ? ' · ' + it.wtype[0].toUpperCase() + it.wtype.slice(1) : ''} · Item level ${it.ilvl}</div>`;
   if(it.cls) h += `<div class="${it.cls === P.cls ? 'sub' : 'bad'}">${CLASSES[it.cls].name} only</div>`;
@@ -7205,10 +7336,34 @@ function itemCard(it, ctx){
     if(S){ const worn = new Set(eqSlots(P).map(sl => P.eq[sl]).filter(x => x && x.uniq).map(x => x.uniq)), tier = P.d.setKey && GODLY_SETS[P.d.setKey] === S ? P.d.setTier : 0;
       h += `<div style="margin-top:4px;color:${GODLY_COL}">${S.name}</div>` + S.pieces.map(u => `<div style="font-size:15px;color:${worn.has(u) ? '#e8e0d0' : '#6a6080'}">${worn.has(u) ? '◆' : '◇'} ${esc(UNIQUES[u].name)}</div>`).join('')
         + S.tiers.map((t, i) => `<div style="font-size:15px;color:${tier > i ? '#a7f070' : '#6a6080'}">${t.text}</div>`).join(''); } }
+  if(it.notch){ const st = isStone(it.stone) ? it.stone : null, S = st && STONES[st.el], sleeps = st && place && !NOTCH_SLOTS.includes(place);   // its Notch, and the stone in it (batch 35)
+    h += `<div class="ncard">${notchHTML(it, 'ntc')}<div>${st ? `<span style="color:${rarColor(st)}">${esc(st.name)}</span><div style="color:${sleeps ? '#7d7484' : S.color}">${S.one.text(S.one.v[Math.max(0, STONE_TIERS.indexOf(st.rarity))])}</div>${sleeps ? '<div class="sub">Its stone sleeps in the off-hand.</div>' : ''}` : '<span class="sub">An empty Notch. Mr. Greystone can set an Aranyan Stone in it.</span>'}</div></div>`; }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +${maxPlus(it)}</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
   else if(ctx !== 'nosell') h += `<div class="sub">Sells for ${Math.round(itemValue(it)*0.4)} gold</div>`;
+  return h + '</div>';
+}
+// an Aranyan Stone's card: its own bonus, and what two and three of its element do together at its tier (data.js STONES)
+function stoneCard(st){
+  const S = STONES[st.el] || STONES.agni, ti = Math.max(0, STONE_TIERS.indexOf(st.rarity)), rar = rarityDef(st.rarity);
+  return `<div class="card"><div class="nm" style="color:${rar.color}">${esc(st.name)}</div><div class="sub">${rar.name} Aranyan Stone · ${S.name}, the ${S.elem} stone</div>`
+    + `<div style="color:${S.color}">${S.one.text(S.one.v[ti])}</div>`
+    + `<div style="font-size:15px;margin-top:4px"><span style="color:${S.color}">Two worn, ${S.two.name}:</span> ${S.two.text(S.two.v[ti])}</div>`
+    + `<div style="font-size:15px"><span style="color:${S.color}">Three worn, ${S.three.name}:</span> ${S.three.text(S.three.v[ti])}</div>`
+    + `<div class="sub" style="font-size:15px;margin-top:4px">Two or three worn together are as strong as the weakest of them. Mr. Greystone sets stones into a Notch in a weapon, chest or amulet.</div></div>`;
+}
+// what the stones in the hero's weapon, chest and amulet give now (the Character page and Mr. Greystone's window)
+function stonesHTML(P = G.P){
+  if(!P.aranya && !NOTCH_SLOTS.some(s => P.eq[s] && P.eq[s].notch)) return '';
+  const ss = P.d && P.d.stone ? P.d.stone.sets : {}; let h = '<div class="card"><div style="color:#ffcd75">Aranyan Stones</div>';
+  for(const s of NOTCH_SLOTS){ const it = P.eq[s]; h += `<div class="sub" style="font-size:15px">${EQ_NAMES[s]}: ${!it ? 'nothing worn' : !it.notch ? 'no Notch' : isStone(it.stone) ? `<span style="color:${rarColor(it.stone)}">${esc(it.stone.name)}</span>${itemActive(it) ? '' : ' (broken, so it sleeps)'}` : 'an empty Notch'}</div>`; }
+  let any = false;
+  for(const el of STONE_ELS){ const t = ss[el]; if(!t) continue; const S = STONES[el]; any = true;
+    h += `<div style="color:${S.color}">${S.name}: ${S.one.text(t.reduce((a, ti) => a + S.one.v[ti], 0))}</div>`;
+    if(t.length >= 2) h += `<div style="color:${S.color}">${S.two.name}: ${S.two.text(S.two.v[t[1]])}</div>`;
+    if(t.length >= 3) h += `<div style="color:${S.color}">${S.three.name}: ${S.three.text(S.three.v[t[2]])}</div>`; }
+  if(!any) h += '<div class="sub" style="font-size:15px">No stones worn yet.</div>';
   return h + '</div>';
 }
 function moneyRow(){ const P = G.P; return `<div class="row" style="justify-content:space-between;margin-bottom:6px"><span style="color:var(--gold)">${P.gold} gold</span><span style="color:#c3cad8">${P.carbon} Carbon</span></div>`; }
@@ -7245,6 +7400,7 @@ function invDetails(){
   const P = G.P; let det = '';
   if(UI.sel){
     if(UI.sel.eq){ const it = P.eq[UI.sel.eq]; if(it) det = itemCard(it) + `<div class="row" style="margin-top:8px"><button class="btn" onclick="unequip('${UI.sel.eq}');UI.sel=null;refreshPanel()">Unequip</button></div>`; }
+    else if(isStone(P.inv[UI.sel.inv])) det = stoneCard(P.inv[UI.sel.inv]) + `<div class="row" style="margin-top:8px"><button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`;
     else { const it = P.inv[UI.sel.inv]; if(it){ const why = equipBlock(it), tgt = eqTarget(it, P), cur = tgt && P.eq[tgt];
       det = itemCard(it) + (cur && !why ? `<div class="sub" style="margin-top:6px">${eqPlaces(it, P).length > 1 ? `Would replace your ${EQ_NAMES[tgt].toLowerCase()} (the weaker one):` : 'Currently equipped:'}</div>` + itemCard(cur) : '') + (why ? `<div class="bad" style="margin-top:6px;color:#ff7a7a">${esc(why)}</div>` : '') + `<div class="row" style="margin-top:8px">${!why ? `<button class="btn gold" onclick="equipItem(${UI.sel.inv});UI.sel=null;refreshPanel()">Equip</button>` : ''}<button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`; } }
   }
@@ -7257,12 +7413,12 @@ function renderInv(){
   if(sideDetails()) return `<div class="sidewin${det ? '' : ' blank'}">${det}</div>` + panelShell('Inventory', body).replace('<div class="panel">', '<div class="panel inv">');
   return panelShell('Inventory', body, det || null).replace('<div class="panel">', '<div class="panel inv">');
 }
-function selEq(s){ if(UI.panel === 'imbue'){ imbPick({eq:s}); return; } UI.sel = G.P.eq[s] ? {eq:s} : null; G.lastUp = null; refreshPanel(); }
-function selInv(i){ if(UI.panel === 'imbue'){ imbPick({inv:i}); return; } UI.sel = G.P.inv[i] ? {inv:i} : null; G.lastUp = null; UI.sellAsk = null; refreshPanel(); }
+function selEq(s){ if(UI.panel === 'imbue'){ imbPick({eq:s}); return; } if(UI.panel === 'artificer'){ artPick({eq:s}); return; } UI.sel = G.P.eq[s] ? {eq:s} : null; G.lastUp = null; refreshPanel(); }
+function selInv(i){ if(UI.panel === 'imbue'){ imbPick({inv:i}); return; } if(UI.panel === 'artificer'){ artPick({inv:i}); return; } UI.sel = G.P.inv[i] ? {inv:i} : null; G.lastUp = null; UI.sellAsk = null; refreshPanel(); }
 // ---------- bag sorting: tap a sort to apply it, tap the same one again to flip the order ----------
 const BAG_SORTS = [['level', 'Level'], ['rarity', 'Rarity'], ['type', 'Type'], ['value', 'Value'], ['usable', 'Usable']];
 function bagKey(it, by){
-  const rar = Math.max(0, RARITY.findIndex(r => r.id === it.rarity)), req = it.req || 1, val = itemValue(it), ty = -Math.max(0, SLOTS.indexOf(it.slot));
+  const rar = Math.max(0, RARITY.findIndex(r => r.id === it.rarity)), req = it.req || 1, val = itemValue(it), ty = isStone(it) ? -SLOTS.length : -Math.max(0, SLOTS.indexOf(it.slot));
   if(by === 'rarity') return [rar, req, it.ilvl || 0, val];
   if(by === 'type') return [ty, req, rar, val];
   if(by === 'value') return [val, rar, req];
@@ -7299,6 +7455,7 @@ function autoSort(P = G.P){
 function quickEquip(kind, key){
   const P = G.P;
   if(kind === 'inv'){ const i = +key, it = P.inv[i]; if(!it) return;
+    if(isStone(it)){ const msg = 'Aranyan Stones are set into a Notch by Mr. Greystone, in Palli.'; toast(msg, '#ffcd75'); UI.dndMsg = msg; uiDirty(); return; }
     const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); UI.dndMsg = why; uiDirty(); return; }
     const s = equipItem(i); UI.sel = s ? {eq:s} : null; refreshPanel(); return; }
   const it = P.eq[key]; if(!it) return; const j = P.inv.indexOf(null);
@@ -7313,8 +7470,8 @@ function dndOK(src, dst){
   const [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
   if(sk === 'st') return !!G.stash.items[+sv] && (dk === 'inv' || dk === 'bag' || dk === 'st');   // out of the shared chest
   if(sk === 'inv' && (dk === 'st' || dk === 'stg')) return !!P.inv[+sv];   // into it
-  if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'imb') return true; if(dk === 'inv') return true; if(dk === 'eq') return eqPlaces(it, P).includes(dv); return dk === 'eqall'; }
-  if(sk === 'eq'){ if(!P.eq[sv]) return false; return dk === 'inv' || dk === 'bag' || dk === 'imb'; }
+  if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'imb' || dk === 'art') return true; if(dk === 'inv') return true; if(dk === 'eq') return eqPlaces(it, P).includes(dv); return dk === 'eqall' && !!it.slot; }
+  if(sk === 'eq'){ if(!P.eq[sv]) return false; return dk === 'inv' || dk === 'bag' || dk === 'imb' || dk === 'art'; }
   if(sk === 'sk') return dk === 'sl';
   if(sk === 'sl') return dk === 'sl' || dk === 'sklist';
   return false;
@@ -7323,7 +7480,7 @@ function dndOK(src, dst){
 function dndHot(src, dst){
   const P = G.P, [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
   if(sk === 'inv' && dk === 'eq'){ const it = P.inv[+sv]; return it && eqPlaces(it, P).includes(dv) ? (equipBlock(it) ? 'no' : 'ok') : false; }
-  if(dk === 'imb') return 'ok';
+  if(dk === 'imb' || dk === 'art') return 'ok';
   if(dk === 'sl') return dndOK(src, dst);
   return false;   // bag cells light up only under the finger
 }
@@ -7341,6 +7498,7 @@ function dndDrop(src, dst){
   if(sk === 'inv'){
     const i = +sv, it = P.inv[i]; if(!it) return;
     if(dk === 'imb'){ imbPick({inv:i}); return; }
+    if(dk === 'art'){ if(isStone(it)) artSet(i); else artPick({inv:i}); return; }   // Greystone's notch slot: a piece to work on, or a stone to set in it
     if(dk === 'inv'){ const j = +dv; [P.inv[i], P.inv[j]] = [P.inv[j], P.inv[i]]; if(UI.sel && UI.sel.inv === i) UI.sel = {inv:j}; else if(UI.sel && UI.sel.inv === j) UI.sel = {inv:i};
       if(P.sortBy){ P.sortBy = P.sortDir = UI.sortBy = UI.sortDir = null; UI.dndMsg = 'You moved an item, so the bag no longer sorts itself. Pick a sort to turn it back on.'; }   // arranged by hand: the auto-sort steps aside
       sfx('pickup'); uiDirty(); return; }
@@ -7351,6 +7509,7 @@ function dndDrop(src, dst){
   if(sk === 'eq'){
     const slot = sv, it = P.eq[slot]; if(!it) return;
     if(dk === 'imb'){ imbPick({eq:slot}); return; }
+    if(dk === 'art'){ artPick({eq:slot}); return; }
     let j = dk === 'inv' ? +dv : -1;
     if(j >= 0 && P.inv[j]){
       const o = P.inv[j];
@@ -7435,6 +7594,7 @@ function dndDrop(src, dst){
     if(kind === 'st'){ stashTake(+key); UI.sel = null; refreshPanel(); return; }   // chest: a right click takes the item into the bag
     if(UI.panel === 'stash' && kind === 'inv'){ stashPut(+key); UI.sel = null; refreshPanel(); return; }   // and puts a bag item into the chest
     if(UI.panel === 'imbue'){ imbPick(kind === 'eq' ? {eq:key} : {inv:+key}); return; }   // at Karmara's imbue table a right click lays the piece in the imbue slot
+    if(UI.panel === 'artificer'){ if(kind === 'inv' && isStone(G.P.inv[+key])) artSet(+key); else artPick(kind === 'eq' ? {eq:key} : {inv:+key}); return; }   // at Greystone's: a stone goes into the Notch, a piece into his hands
     quickEquip(kind, key);
   });
   m.addEventListener('dragstart', e => e.preventDefault());
@@ -7454,6 +7614,7 @@ function renderChar(){
   if(pw.manasiphon) pws.push('Mana Siphon'); if(pw.giantsbane) pws.push(`+${Math.round(pw.giantsbane*100)}% damage to bosses & elites`); if(pw.ironskin) pws.push(`${Math.round(pw.ironskin*100)}% less damage taken`); if(pw.swiftness) pws.push(`+${Math.round(pw.swiftness*100)}% move speed`); if(pw.chainspark) pws.push('Chain Spark'); if(pw.corpseburst) pws.push('Corpse Burst');
   if(pw.bulwark) pws.push('Bulwark'); if(pw.crusader) pws.push('Crusader'); if(pw.pyre) pws.push('Pyre'); if(pw.permafrost) pws.push('Permafrost'); if(pw.venomlord) pws.push('Venom Lord'); if(pw.phantom) pws.push('Phantom');
   h += `<div class="card"><div>Damage: ${Math.round(d.min*d.mult)}–${Math.round(d.max*d.mult)}</div><div>Life: ${d.maxhp} · Mana: ${d.maxmp}</div><div>Armor: ${d.armor} <span class="sub">(${Math.round(100*Math.min(0.75, d.armor/(d.armor + 50 + 10*P.lvl)))}% reduction)</span></div><div>Critical chance: ${(d.crit*100).toFixed(1)}% · Crit damage ×${d.critMult}</div><div>Attack speed: ${d.as.toFixed(2)} · Move speed: ${Math.round(d.ms)}</div><div>Life regen: ${d.hpReg.toFixed(1)}/s · Mana regen: ${d.mpReg.toFixed(1)}/s</div>${d.loh ? `<div>Life per hit: ${d.loh}</div>` : ''}${d.cdr ? `<div>Cooldown reduction: ${Math.round(d.cdr*100)}%</div>` : ''}<div>Resistances: ${Object.entries(ELEMENTS).map(([k, E]) => `<span style="color:${E.color}">${E.name} ${d.res[k]}%</span>`).join(' · ')}<span class="sub"> (${RES_CAP}% max)</span></div>${pws.length ? `<div style="color:#ff4545">Heroic: ${pws.join(' · ')}</div>` : ''}<div style="color:#c3cad8">Carbon: ${P.carbon}</div><div class="sub">Monsters slain: ${P.kills} · Deaths: ${P.deaths}</div></div>`;
+  h += stonesHTML(P);
   return panelShell('Character', h);
 }
 function addStat(s){ const P = G.P; if(P.statPts <= 0) return; P.statPts--; P.stats[s]++; const ohp = P.d.maxhp, omp = P.d.maxmp; derive(P); P.hp += P.d.maxhp - ohp; P.mp += P.d.maxmp - omp; sfx('click'); UI.dirty = true; refreshPanel(); }
@@ -7607,6 +7768,25 @@ function ganeshAsk(line){
   opts.push({label:'Farewell', fn:closeDialog});
   showDialog('Ganesh', line, opts, 'ganesh');
 }
+// Mr. Greystone answers, then offers the questions again (Mathis's script in GREY_ASK). Once the hero has found an Aranyan Stone (depth 5
+// on) they can ask about the Artificer: the first time, he gives them a stone like it and will carve their first Notch for free; after
+// that his window (Stones and Notches) is the first choice whenever they talk.
+function greyNews(){ const P = G.P; return !!(P && P.aranya) && !(P.greyAsked && P.greyAsked.artificer); }
+function greyAsk(line){
+  const P = G.P, opts = [];
+  if(P.aranya && P.greyAsked && P.greyAsked.artificer) opts.push({label:'Stones and Notches', fn:openArtificer});
+  for(const q of GREY_ASK){ if(q.when && !q.when(P)) continue;
+    opts.push({label:q.q, fn:() => { P.greyAsked = P.greyAsked || {}; const gift = q.id === 'artificer' && !P.greyAsked.artificer; P.greyAsked[q.id] = true; saveGame(); if(gift) greyGift(q.a); else greyAsk(q.a); }}); }
+  opts.push({label:'Farewell', fn:closeDialog});
+  showDialog('Mr. Greystone', line, opts, 'greystone');
+}
+function greyGift(line){
+  const P = G.P, st = makeStone(P.aranya.el, 'typical'), i = P.inv.indexOf(null);
+  if(i >= 0){ P.inv[i] = st; autoSort(P); } else dropLoot({item:st, own:true}, P.x, P.y + 12);
+  P.aranya.gift = 1; P.aranya.free = 1;   // his first Notch is on the house
+  sfx('legend'); saveGame(); uiDirty();
+  showDialog('Mr. Greystone', line + `\n\n(Received ${st.name}${i < 0 ? ', at your feet: your bag is full' : ''}. He will carve your first Notch for free.)`, [{label:'Show me', fn:openArtificer}, {label:'Farewell', fn:closeDialog}], 'greystone');
+}
 // once Ganesh has told the hero about Niru, Karmara and Vaidya can be asked about her (draft lines), until her fate is known
 function niruOption(who){
   const P = G.P, st = P.quests && P.quests.broodmother;
@@ -7615,7 +7795,7 @@ function niruOption(who){
   return {label:N.q, fn:() => showDialog(name, N.a, [{label:'Farewell', fn:closeDialog}], who)};
 }
 function talkTo(id){
-  const P = G.P; const first = !P.talked[id];
+  const P = G.P; const first = !P.talked[id]; G.talkId = id;   // they talk, hands and all, for as long as the conversation lasts (render.js npcTalking)
   if(id === 'ganesh'){
     P.talked.ganesh = true;
     const idx = Math.min(10, P.done);
@@ -7637,10 +7817,9 @@ function talkTo(id){
     if(first){ P.talked.karmara = true; P.pots.hp = Math.min(10, P.pots.hp + 2); saveGame(); npcSay('karmara_intro1', {duck:true, vol:0.9});
       showDialog('Karmara', KARMARA_INTRO, [{label:'Next', fn:() => { npcSay('karmara_intro2', {duck:true, vol:0.9}); showDialog('Karmara', KARMARA_INTRO2 + '\n\n(Received 2 Health Potions)', opts, 'karmara'); }}], 'karmara'); }
     else showDialog('Karmara', rpick(KARMARA_LINES), opts, 'karmara');
-  } else if(id === 'greystone'){   // Mr. Greystone on his stool: his first words, then his two lines in turn
-    const opts = [{label:'Farewell', fn:closeDialog}];
-    if(first){ P.talked.greystone = true; P.greyN = 0; saveGame(); showDialog('Mr. Greystone', GREY_INTRO, opts, 'greystone'); }
-    else { const n = P.greyN || 0; P.greyN = n + 1; showDialog('Mr. Greystone', GREY_LINES[n % GREY_LINES.length], opts, 'greystone'); }
+  } else if(id === 'greystone'){   // Mr. Greystone on his stool: his first words, then what the hero can ask him (data.js GREY_ASK)
+    if(first){ P.talked.greystone = true; saveGame(); greyAsk(GREY_INTRO); }
+    else greyAsk(greyNews() ? GREY_NEWS : GREY_AGAIN);
   } else if(id === 'hash'){   // General Hash, at his tent in the Camp of Fortitude: his first words, then his name on the next page
     const opts = [{label:'Farewell', fn:closeDialog}];
     // voiced (2026-11-27, Mathis's own recording): each page plays its clip (Next or Farewell cuts the one before it)
@@ -7676,7 +7855,7 @@ function gearPicker(includeEq, filter, sellable = false){
 }
 // selling in bulk at the forge: everything, or one tier. Upgraded (+) items are never sold in bulk. The first press asks, the second sells.
 const SELL_SETS = [['all', 'Sell all'], ['typical', 'All Typical'], ['grand', 'All Grand'], ['heroic', 'All Heroic']];
-function bulkList(kind){ return G.P.inv.map((it, i) => [it, i]).filter(([it]) => it && !it.plus && it.rarity !== 'godly' && (kind === 'all' || it.rarity === kind)); }   // Godly pieces are only ever sold one at a time
+function bulkList(kind){ return G.P.inv.map((it, i) => [it, i]).filter(([it]) => it && it.slot && !it.stone && !it.plus && it.rarity !== 'godly' && (kind === 'all' || it.rarity === kind)); }   // Godly pieces are only ever sold one at a time
 function sellBulk(kind){
   const P = G.P, L = bulkList(kind); if(!L.length) return;
   if(UI.sellAsk !== kind){ UI.sellAsk = kind; sfx('click'); refreshPanel(); setTimeout(() => { if(UI.sellAsk === kind){ UI.sellAsk = null; if(UI.panel === 'shop') refreshPanel(); } }, 4000); return; }
@@ -7693,8 +7872,10 @@ function salvageBase(it){ if(!it) return 0; if(it.rarity === 'godly') return 18;
 function salvageBack(it){ return Math.round(upgradeSpent(it)/4); }   // a quarter of the Carbon spent upgrading it (2026-11-19, Mathis)
 function salvageValue(it){ return it ? salvageBase(it) + salvageBack(it) : 0; }
 function salvageSoft(it){ return ['helm', 'chest', 'gloves', 'boots'].includes(it.slot) && it.cls && CLASSES[it.cls].armor !== 'heavy'; }
+const STONE_KEEP = 'An Aranyan Stone is set in it. Mr. Greystone can take it out first.';   // Karmara never sells or breaks a stone
 function salvageItem(i){
   const P = G.P, it = P.inv[i]; if(!it || !it.slot) return;
+  if(it.stone){ toast(STONE_KEEP, '#ffcd75'); sfx('error'); return; }
   if((it.rarity === 'heroic' || it.rarity === 'godly') && UI.salvAsk !== it.id){ UI.salvAsk = it.id; sfx('click'); refreshPanel(); return; }   // Heroic and Godly: tap twice
   const n = salvageValue(it); UI.salvAsk = null; P.inv[i] = null; P.carbon += n; UI.sel = null;
   sfx(salvageSoft(it) ? 'salvage_rip' : 'salvage_break'); toast(`${itemName(it)} broken down: +${n} Carbon`, '#c3cad8');
@@ -7710,8 +7891,8 @@ function renderShop(){
   } else if(tab === 'sell'){
     const sets = SELL_SETS.map(([k, label]) => { const L = bulkList(k), g = L.reduce((t, [it]) => t + Math.round(itemValue(it)*0.4), 0), ask = UI.sellAsk === k;
       return `<button class="btn sm${ask ? ' gold' : ''}" ${L.length ? '' : 'disabled'} style="${ask || k === 'all' ? '' : `color:${rarityDef(k).color}`}" onclick="sellBulk('${k}')">${ask ? `Sell ${L.length} for ${g}g?` : `${label} (${L.length})`}</button>`; }).join('');
-    h += gearPicker(false, () => true, true) + `<div class="sub" style="margin-top:8px">${isTouch ? '' : 'Right-click an item to sell it at once. '}Upgraded (+) items are only sold one at a time.</div><div class="row" style="margin-top:4px;flex-wrap:wrap;gap:6px">${sets}</div>`;
-    if(UI.sel && UI.sel.inv !== undefined && sel){ foot += itemCard(sel) + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="sellInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Sell for ${Math.round(itemValue(sel)*0.4)}g</button></div>`; }
+    h += gearPicker(false, it => !!it.slot, true) + `<div class="sub" style="margin-top:8px">${isTouch ? '' : 'Right-click an item to sell it at once. '}Upgraded (+) items are only sold one at a time.</div><div class="row" style="margin-top:4px;flex-wrap:wrap;gap:6px">${sets}</div>`;
+    if(UI.sel && UI.sel.inv !== undefined && sel){ foot += itemCard(sel) + (sel.stone ? `<div class="card" style="margin-top:6px;color:#ffcd75">${STONE_KEEP}</div>` : `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="sellInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Sell for ${Math.round(itemValue(sel)*0.4)}g</button></div>`); }
   } else if(tab === 'repair'){
     let cost = 0, list = ''; [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean).forEach(it => { const c = repairCost(it); if(c > 0){ cost += c; list += `<div class="stat"><span style="color:${rarColor(it)}">${esc(itemName(it))}</span><span class="sub">${it.dur}/${it.maxDur} · ${c}g</span></div>`; } });
     h += list || '<div class="card sub">"Your gear\'s in good shape. For now."</div>';
@@ -7736,7 +7917,8 @@ function renderShop(){
   } else if(tab === 'salvage'){   // Karmara breaks gear down for Carbon (2026-11-19, Mathis)
     h += `<div class="sub" style="margin-bottom:6px">"Something you'll never wear? Hand it here. I'll break it down to the Carbon in it."</div>`;
     h += gearPicker(false, it => !!it.slot);
-    if(sel && UI.sel.inv !== undefined){ const n = salvageValue(sel), big = sel.rarity === 'heroic' || sel.rarity === 'godly', ask = UI.salvAsk === sel.id;
+    if(sel && UI.sel.inv !== undefined && sel.stone) foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px;color:#ffcd75">${STONE_KEEP}</div>`;
+    else if(sel && UI.sel.inv !== undefined){ const n = salvageValue(sel), big = sel.rarity === 'heroic' || sel.rarity === 'godly', ask = UI.salvAsk === sel.id;
       foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Salvage for <b style="color:#c3cad8">${n} Carbon</b>. The item is destroyed.${salvageBack(sel) ? `<div class="sub" style="font-size:15px">${salvageBase(sel)} for the piece + ${salvageBack(sel)} back from the ${upgradeSpent(sel)} Carbon spent upgrading it</div>` : ''}</div><div class="row" style="margin-top:8px"><button class="btn gold" onclick="salvageItem(${UI.sel.inv})">${big && !ask ? `Salvage this ${rarityDef(sel.rarity).name} piece` : big ? 'Yes, break it down' : 'Salvage'}</button></div>${big && ask ? '<div class="sub" style="margin-top:4px;color:#ff7a7a">Tap again to confirm. This cannot be undone.</div>' : ''}`; }
   } else if(tab === 'reforge'){
     h += `<div class="sub" style="margin-bottom:6px">"Found something made for another kind of fighter? Give me Carbon and gold and I'll beat it into a new shape. Stats and upgrades stay."</div>`;
@@ -7752,7 +7934,7 @@ function renderShop(){
   return panelShell('Karmara\'s Forge', h, foot, true);
 }
 function buyShop(i){ const P = G.P, it = G.shop[i]; if(!it || P.gold < it.price) return; const slot = P.inv.indexOf(null); if(slot < 0){ toast('Your inventory is full.', '#e43b44'); return; } P.gold -= it.price; delete it.price; P.inv[slot] = it; G.shop[i] = null; sfx('coin'); UI.sel = null; autoSort(P); refreshPanel(); }
-function sellJunk(){ const P = G.P; let n = 0, g = 0; P.inv.forEach((it, i) => { if(it && it.rarity === 'typical' && !it.plus){ g += Math.round(itemValue(it)*0.4); P.inv[i] = null; n++; } }); P.gold += g; if(n){ sfx('coin'); toast(`Sold ${n} items for ${g} gold.`, '#ffcd75'); } UI.sel = null; autoSort(P); refreshPanel(); }
+function sellJunk(){ const P = G.P; let n = 0, g = 0; P.inv.forEach((it, i) => { if(it && it.slot && !it.stone && it.rarity === 'typical' && !it.plus){ g += Math.round(itemValue(it)*0.4); P.inv[i] = null; n++; } }); P.gold += g; if(n){ sfx('coin'); toast(`Sold ${n} items for ${g} gold.`, '#ffcd75'); } UI.sel = null; autoSort(P); refreshPanel(); }
 function renderStash(){   // two windows (2026-11-17, Mathis): the chest on the left, the inventory on the right
   const P = G.P, S = G.stash;
   let h = `<div class="sub" style="margin-bottom:6px">Every hero you create shares this chest.</div>`;
@@ -7806,6 +7988,88 @@ function renderImbue(){
   const dupBy = it && pw ? eqSlots(P).filter(s => s !== eqWhere(it, P) && P.eq[s] && P.eq[s].power === UI.imbPow).map(s => EQ_NAMES[s].toLowerCase()) : [];
   const foot = it && pw ? `${dupBy.length ? `<div class="bad" style="color:#ffcd75;margin-bottom:6px">Your ${dupBy.join(' and ')} already ${dupBy.length > 1 ? 'have' : 'has'} this power. Worn together, only one counts.</div>` : ''}<div class="row"><button class="btn gold" onclick="imbueApply()" ${P.carbon < c ? 'disabled' : ''}>Imbue: ${pw.name} for ${c} Carbon</button></div>` : null;
   const left = panelShell('Imbue', h, foot).replace('<div class="panel">', '<div class="panel chestwin">');
+  const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {})}`).replace('<div class="panel">', '<div class="panel inv">');
+  return `<div class="pair">${left}${right}</div>`;
+}
+// ---------- Mr. Greystone's window (2026-11-27): Notch (a weapon, chest or amulet goes in his hands on the left, from the inventory on the
+// right: tap it or drag it over; he carves a Notch into it, then any stone from the bag is set in it, or taken out, for free), Fuse (three
+// stones alike into one of the next tier) and Make (a Rough stone of any element). Prices: data.js notchCost, fuseCost, makeCost.
+function openArtificer(){ closeDialog(); UI.art = null; UI.artStone = null; UI.artTab = 'notch'; UI.sel = null; UI.panel = 'artificer'; refreshPanel(); $('modal').classList.remove('hide'); sfx('uiopen'); }
+function artPiece(){ const it = refItem(UI.art); return it && it.slot ? it : null; }
+function artPick(ref){ const P = G.P, it = refItem(ref); if(!it) return; UI.artTab = 'notch';
+  if(isStone(it)) UI.artStone = ref.inv; else { UI.art = ref; UI.artStone = null; } sfx('pickup'); refreshPanel(); }
+function artPay(c){ const P = G.P;
+  if(P.gold < c.gold){ toast(`You need ${c.gold} gold.`, '#e43b44'); sfx('error'); return false; }
+  if(P.carbon < c.carbon){ toast(`You need ${c.carbon} Carbon.`, '#e43b44'); sfx('error'); return false; }
+  P.gold -= c.gold; P.carbon -= c.carbon; return true; }
+function artCarve(){
+  const P = G.P, it = artPiece(); if(!it || it.notch || !NOTCH_SLOTS.includes(it.slot)) return;
+  if(P.aranya && P.aranya.free) P.aranya.free = 0; else if(!artPay(notchCost(it))) return;
+  it.notch = 1; sfx('repair'); sfx('upsuccess'); G.shake = 1; toast(`Mr. Greystone carved a Notch into ${itemName(it)}.`, '#ffcd75');
+  derive(P); saveGame(); uiDirty(); refreshPanel();
+}
+function artSet(i){
+  const P = G.P, st = P.inv[i], it = artPiece(); if(!isStone(st)) return;
+  if(!it || !it.notch){ UI.artStone = i; UI.artTab = 'notch'; toast(it ? 'Mr. Greystone must carve a Notch into it first.' : 'Choose a weapon, chest or amulet with a Notch first.', '#ffcd75'); sfx('error'); refreshPanel(); return; }
+  P.inv[i] = isStone(it.stone) ? it.stone : null; it.stone = st; UI.artStone = null;   // a stone already in it goes back to the bag, into this one's cell
+  derive(P); sfx('equip'); sfx('shrine'); toast(`${st.name} set in ${itemName(it)}.`, STONES[st.el].color); autoSort(P); saveGame(); uiDirty(); refreshPanel();
+}
+function artTakeOut(){
+  const P = G.P, it = artPiece(); if(!it || !isStone(it.stone)) return;
+  const i = P.inv.indexOf(null); if(i < 0){ toast('Your inventory is full.', '#e43b44'); sfx('error'); return; }
+  P.inv[i] = it.stone; it.stone = null; derive(P); sfx('pickup'); autoSort(P); saveGame(); uiDirty(); refreshPanel();
+}
+const bagStones = (el, rar) => G.P.inv.map((s, i) => [s, i]).filter(([s]) => isStone(s) && (!el || s.el === el) && (!rar || s.rarity === rar)).map(([, i]) => i);
+function artFuse(el, from){
+  const P = G.P, to = STONE_TIERS[STONE_TIERS.indexOf(from) + 1], idx = bagStones(el, from); if(!to || idx.length < 3 || !artPay(fuseCost(to, P.lvl))) return;
+  idx.slice(0, 3).forEach(i => P.inv[i] = null); const st = makeStone(el, to); P.inv[idx[0]] = st;
+  sfx('upsuccess'); if(to === 'heroic') sfx('legend'); G.shake = 1.5; toast(`Three became one: ${st.name}!`, rarityDef(to).color, 4); autoSort(P); saveGame(); uiDirty(); refreshPanel();
+}
+function artMake(el){
+  const P = G.P, i = P.inv.indexOf(null); if(i < 0){ toast('Your inventory is full.', '#e43b44'); sfx('error'); return; }
+  if(!artPay(makeCost(P.lvl))) return;
+  const st = makeStone(el, 'typical'); P.inv[i] = st; sfx('shrine'); toast(`Mr. Greystone made you a ${st.name}.`, STONES[el].color); autoSort(P); saveGame(); uiDirty(); refreshPanel();
+}
+function costHTML(c, free){ const P = G.P; return free ? '<span style="color:#a7f070">Free (his first Notch is on the house)</span>' : `<span style="color:${P.gold >= c.gold ? 'var(--gold)' : '#ff7a7a'}">${c.gold} gold</span> + <span style="color:${P.carbon >= c.carbon ? '#c3cad8' : '#ff7a7a'}">${c.carbon} Carbon</span>`; }
+const stoneImg = (el, rar) => `assets/icons/${stoneIconKey({el, rarity:rar})}.webp`;
+function renderArtificer(){
+  const P = G.P, tab = UI.artTab || 'notch', it = artPiece();
+  let h = `<div class="tabs">${[['notch', 'Notch'], ['fuse', 'Fuse'], ['make', 'Make']].map(([t, l]) => `<button class="btn${tab === t ? ' on' : ''}" onclick="UI.artTab='${t}';refreshPanel()">${l}</button>`).join('')}</div>`;
+  let foot = null;
+  if(tab === 'notch'){
+    h += `<div class="imbrow"><div class="imbslot" data-drop="art">${it ? `<button class="cell" style="border-color:${rarColor(it)}aa" onclick="UI.art=null;refreshPanel()"><img src="${itemIcon(it)}" draggable="false">${notchHTML(it)}</button>` : '<div class="sub">Weapon, chest or amulet</div>'}</div>`;
+    h += `<div style="flex:1;min-width:0">${it ? `<div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub">${!NOTCH_SLOTS.includes(it.slot) ? 'It cannot hold a Notch' : !it.notch ? 'No Notch yet' : isStone(it.stone) ? 'Holds a ' + esc(it.stone.name) : 'Its Notch is empty'}</div>` : '<div class="sub">Choose a weapon, chest or amulet from your inventory: tap it, or drag it here.</div>'}</div></div>`;
+    if(it && !NOTCH_SLOTS.includes(it.slot)) h += '<div class="card" style="color:#ffcd75;margin-top:8px">Only a weapon, a chest or an amulet can hold a Notch.</div>';
+    else if(it && !it.notch){ const free = !!(P.aranya && P.aranya.free);
+      h += `<div class="card" style="margin-top:8px">He carves a Notch into it. Any Aranyan Stone can then be set in it, and taken out again, for free.<div>Cost: ${costHTML(notchCost(it), free)}</div></div>`;
+      foot = `<div class="row"><button class="btn gold" onclick="artCarve()">Carve a Notch</button></div>`; }
+    else if(it){   // (the actions first and Take out in the foot, so a phone sees them without scrolling; the held stone's card after)
+      if(isStone(it.stone)) foot = `<div class="row"><button class="btn" onclick="artTakeOut()">Take the stone out</button></div>`;
+      const mine = bagStones();
+      h += `<div class="sub" style="margin:8px 0 4px">${mine.length ? (isStone(it.stone) ? 'Or set another stone in its place (the one in it goes back to your bag):' : 'Set a stone from your bag in it:') : 'You have no Aranyan Stones in your bag.'}</div><div class="list">`;
+      const grp = {};   // alike stones on one line (finest first), so the list stays short on a phone
+      for(const i of mine){ const st = P.inv[i], k = st.el + ':' + st.rarity; (grp[k] = grp[k] || []).push(i); }
+      const rank = ix => -STONE_TIERS.indexOf(P.inv[ix[0]].rarity)*10 + STONE_ELS.indexOf(P.inv[ix[0]].el);
+      for(const ix of Object.values(grp).sort((a, b) => rank(a) - rank(b))){ const on = ix.includes(UI.artStone), i = on ? UI.artStone : ix[0], st = P.inv[i], S = STONES[st.el];
+        h += `<button class="li${on ? ' on' : ''}" onclick="artSet(${i})" style="${on ? 'border-color:var(--gold)' : ''}"><img src="${itemIcon(st)}"><div style="flex:1"><div style="color:${rarColor(st)}">${esc(st.name)}${ix.length > 1 ? ` <span class="sub">×${ix.length}</span>` : ''}</div><div style="color:${S.color};font-size:15px">${S.one.text(S.one.v[Math.max(0, STONE_TIERS.indexOf(st.rarity))])}</div></div><div class="sub">Set</div></button>`; }
+      h += '</div>';
+      if(isStone(it.stone)) h += `<div style="margin-top:8px">${stoneCard(it.stone)}</div>`;
+    }
+    if(!it && UI.artStone != null && isStone(P.inv[UI.artStone])) h += `<div style="margin-top:8px">${stoneCard(P.inv[UI.artStone])}</div>`;
+    h += `<div style="margin-top:8px">${stonesHTML(P) || ''}</div>`;
+  } else if(tab === 'fuse'){
+    h += '<div class="sub" style="margin-bottom:6px">Three stones of one element and tier become one of the next tier.</div><div class="list">';
+    for(const el of STONE_ELS) for(const from of ['typical', 'grand']){ const to = STONE_TIERS[STONE_TIERS.indexOf(from) + 1], n = bagStones(el, from).length, c = fuseCost(to, P.lvl), can = n >= 3 && P.gold >= c.gold && P.carbon >= c.carbon;
+      h += `<button class="li" ${can ? '' : 'disabled'} onclick="artFuse('${el}','${from}')"><img src="${stoneImg(el, to)}"><div style="flex:1"><div style="color:${rarityDef(to).color}">${STONE_TIER_NAME[to]} ${STONES[el].name} Stone</div><div class="sub" style="font-size:15px">From 3 ${STONE_TIER_NAME[from]} ${STONES[el].name} Stones <span style="color:${n >= 3 ? '#a7f070' : '#ff7a7a'}">(you have ${n})</span></div></div><div style="text-align:right;font-size:15px">${costHTML(c)}</div></button>`; }
+    h += '</div>';
+  } else {
+    const c = makeCost(P.lvl);
+    h += '<div class="sub" style="margin-bottom:6px">He sets the power of an element into a Rough stone.</div><div class="list">';
+    for(const el of STONE_ELS){ const S = STONES[el], can = P.gold >= c.gold && P.carbon >= c.carbon;
+      h += `<button class="li" ${can ? '' : 'disabled'} onclick="artMake('${el}')"><img src="${stoneImg(el, 'typical')}"><div style="flex:1"><div>Rough ${S.name} Stone <span class="sub">(${S.elem})</span></div><div style="color:${S.color};font-size:15px">${S.one.text(S.one.v[0])}</div></div><div style="text-align:right;font-size:15px">${costHTML(c)}</div></button>`; }
+    h += '</div>';
+  }
+  const left = panelShell('Mr. Greystone, Artificer', h, foot).replace('<div class="panel">', '<div class="panel chestwin">');
   const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {})}`).replace('<div class="panel">', '<div class="panel inv">');
   return `<div class="pair">${left}${right}</div>`;
 }
@@ -7945,7 +8209,7 @@ function galPlay(id){
   $('screens').innerHTML = ''; menuScene('off'); sfx('click');
   playCutscene(g.shots(), () => showGallery());
 }
-function closeDialog(){ voStop(); npcHush(); UI.dialog = false; $('dlgwrap').classList.add('hide'); $('dlgwrap').innerHTML = ''; }
+function closeDialog(){ voStop(); npcHush(); UI.dialog = false; G.talkId = null; $('dlgwrap').classList.add('hide'); $('dlgwrap').innerHTML = ''; }
 function showNote(note, fresh){
   UI.dialog = true; const w = $('dlgwrap'); w.classList.remove('hide');
   w.innerHTML = `<div class="modal" style="background:rgba(3,2,6,.75)"><div class="note fadein${note.burnt ? ' burnt' : ''}"><h3>${esc(note.t)}</h3><div class="who">${esc(note.who)}</div><div class="tx">${esc(note.s)}</div><div class="row" style="margin-top:14px;justify-content:space-between"><span style="font-size:16px;color:#6a4a2a">${fresh ? 'Added to your journal.' : ''}</span><span class="row" style="gap:8px">${voHas(note) && VO.vol > 0 ? `<button class="btn vobtn" data-num="${note.num}" onclick="voToggle(${note.num})">\u25B6 Listen</button>` : ''}<button class="btn" onclick="closeDialog()">Close</button></span></div></div></div>`;
@@ -8951,6 +9215,7 @@ function loop(now){
       if(INPUT.mouseScreen) INPUT.mouseWorld = screenToWorld(INPUT.mouseScreen.x, INPUT.mouseScreen.y);
       padFrame(dt);
       if((G.state === 'play' || G.state === 'dead') && !UI.panel && !UI.dialog) update(dt);
+      if(UI.dialog) G.dlgT = (G.dlgT || 0) + dt;   // the world stands still in a conversation; the one talking keeps talking on this clock (render.js npcTalkT)
       else if(!UI.dialog) for(const h of party()) if(h.lying > 0) h.lying -= dt;
       if(G.state !== 'menu'){ if(!UI.panel || now - (G.drawnAt || 0) > 100){ G.drawnAt = now; render(); } updateHUD(dt); p2HUD(); shadeWatch(ms0); }   // behind an open panel the game stands still: 10 pictures a second are plenty
     } else padFrame(dt);
