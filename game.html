@@ -121,6 +121,10 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
 /* touch controls */
 #touch{position:absolute;inset:0}
 body:has(#modal:not(.hide)) #touch{pointer-events:none}   /* a menu is open: the game's buttons underneath can't be pressed */
+/* holding a HUD button on iOS must never open the save-image / copy menu or drag the icon */
+#hud,#hud *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+#hud img{pointer-events:none}
+#touch button,#skills .sk{touch-action:none}
 #atk{position:absolute;right:calc(14px + var(--sr));bottom:calc(150px + var(--sb));width:86px;height:86px;border-radius:50%;border:3px solid rgba(255,205,117,.6);background:radial-gradient(circle at 40% 35%,rgba(120,40,50,.75),rgba(30,8,14,.85));pointer-events:auto;display:flex;align-items:center;justify-content:center}
 #atk img{width:52px;height:52px;image-rendering:pixelated}#atk img.hd{image-rendering:auto;width:64px;height:64px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.7))}
 #dodgeb{position:absolute;right:calc(110px + var(--sr));bottom:calc(112px + var(--sb));width:62px;height:62px;border-radius:50%;border:2px solid rgba(125,249,255,.55);background:radial-gradient(circle at 40% 35%,rgba(36,52,84,.8),rgba(10,10,22,.9));pointer-events:auto;color:#d8f4ff;font-size:19px;padding:0;overflow:hidden}
@@ -588,7 +592,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.58';
+const GAME_VER = '0.1.59';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -8927,6 +8931,8 @@ addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr)
 const atkBtn = $('atk');
 atkBtn.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); auInit(); if(G.M && G.M.isTown){ toast('You cannot fight in Palli.', '#94b0c2', 1.4); return; } INPUT.attack = true; INPUT.mouseAim = false; try{ atkBtn.setPointerCapture && atkBtn.setPointerCapture(e.pointerId); }catch(err){} });
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => atkBtn.addEventListener(ev, () => { INPUT.attack = false; }));
+// iOS: a long press on a HUD button would open the save-image menu and cancel the hold; stop it at touchstart (pointer events still fire)
+$('hud').addEventListener('touchstart', e => { const b = e.target.closest && e.target.closest('#atk,#dodgeb,.potb,#skills .sk'); if(b && e.cancelable) e.preventDefault(); }, {passive:false});
 document.addEventListener('pointerdown', () => auInit(), {once:false});
 function screenToWorld(sx, sy){ const c = G.camR || G.cam; return {x:c.x + sx*DPR/zoom, y:c.y + sy*DPR/zoom}; }
 
