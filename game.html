@@ -661,7 +661,7 @@ const NOTES = [
    {t:"Vessa's Last Words", who:'Scratched into the floor beside her body', s:"You smell of river clay. You were never born. He MADE you. The old fool made you out of mud and his own heart. Ask him what it cost him."}],
   [{t:'Words on the Throne Steps', who:'Carved by the Seven', s:"HERE THE UNSHAPED SLEEPS. HERE THE SEVEN STOOD. LET NONE BORN OF FLESH DESCEND. ONLY THE MADE MAY PASS."}, null]
 ];
-NOTES.flat().filter(Boolean).forEach((n, i) => n.num = i + 1);   // note numbers match the narration script and assets/voice/note_NN.m4a
+NOTES.flat().filter(Boolean).forEach((n, i) => n.num = i + 1);   // note numbers match the narration script and assets/voice/note_NN.mp4
 
 const GANESH = [
   "Listen, Warden. Three moons ago, a portal opened in our town. There's a lot you may not understand right now, but in due time, you will. I just need you to trust me. The portal I speak of enters into a world called the Malformed. It is a place of great evil and uncertainty.",
@@ -1640,10 +1640,10 @@ function sfx(name, src){
 }
 
 // ============ SAMPLED SOUNDS: Mathis's ElevenLabs sounds, packed into sound sheets ============
-// Each sheet (assets/sfx/md_sfx_<sheet>.m4a) holds many short sounds back to back; SND_MAN lists each sound's takes as
+// Each sheet (assets/sfx/md_sfx_<sheet>.mp4) holds many short sounds back to back; SND_MAN lists each sound's takes as
 // [sheet, start ms, length ms]. A sound plays one of its takes at random (never the same one twice running), a touch higher
 // or lower each time, quieter and panned to its side when it happens away from the heroes, and through a room echo that
-// suits the place. Each place's ambience loops underneath (md_amb_<place>.m4a: two takes, each a seamless loop).
+// suits the place. Each place's ambience loops underneath (md_amb_<place>.mp4: two takes, each a seamless loop).
 // Until a sheet has loaded, or where files can't be read (the PC build opened without its launcher), sfx() plays the
 // synthesized sound instead.
 const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara', 'arrows', 'salvage', 'shimmer', 'hash', 'kids'];   // salvage (2026-11-19): metal breaking x2, leather tearing x2   // arrows (2026-11-19): the Bone Archer's bow, three takes, high end softened (report: it whistled)
@@ -1657,14 +1657,14 @@ SND_MAN.anvil = [[6, 0, 673], [6, 923, 522], [6, 1696, 772], [6, 2718, 702], [6,
 // z6d5QNJYFhLz78IGZinm, 3 takes (median pitch 372, 317, 295 Hz); the old takes stay in the bosses sheet, unused
 const VESSA_LAUGH = {vol:0.8, pv:0.02, room:0.35, lp:6000};   // her hall already echoes: only a little more room, and not sharp
 SND_MAN.vessa_laugh = [[7, 0, 2728], [7, 2978, 2798], [7, 6026, 2554]];   // softened (5.5 kHz low-pass), a little hall reverb and a slight echo baked in (Mathis)
-// Karmara's voice (2026-11-18, Mathis's voice actress): sheet 'karmara' (assets/sfx/md_sfx_karmara.m4a, made by tools_karmara_vo.py from
-// Mathis's own mix of Karmara_MD.m4a, his reverb and compression, nothing added): each sentence and greeting levelled to the same
+// Karmara's voice (2026-11-18, Mathis's voice actress): sheet 'karmara' (assets/sfx/md_sfx_karmara.mp4, made by tools_karmara_vo.py from
+// Mathis's own mix of Karmara_MD.mp4, his reverb and compression, nothing added): each sentence and greeting levelled to the same
 // loudness (clip gain only), her three long pauses tightened inside her reverb with crossfades, her speech at about -20 LUFS.
 // Eight greetings for when the hero walks up (the last is "What you need?"), and her first-meeting speech in two parts
 // ("Hah! The river spits out..." to "I'll buy it.", then "Here, take these potions...", its own page)
 SND_MAN.karmara_greet = [[8,0,710],[8,910,730],[8,1840,810],[8,2850,710],[8,3760,750],[8,4710,1070],[8,5980,810],[8,6990,970]];
 SND_MAN.karmara_intro1 = [[8,8160,18420]]; SND_MAN.karmara_intro2 = [[8,26780,3440]];
-// General Hash's voice (2026-11-27, Mathis's own recording General_Hash_MD.m4a): sheet 'hash' (assets/sfx/md_sfx_hash.m4a, made by
+// General Hash's voice (2026-11-27, Mathis's own recording General_Hash_MD.mp4): sheet 'hash' (assets/sfx/md_sfx_hash.mp4, made by
 // tools_hash_vo.py: cut into his three lines, his mix kept, his speech at about -20 LUFS). First meeting page 1 ("Hello..." to
 // "You have my thanks."), page 2 ("My name is General Hash..."), and his line after that ("Back again. Good...")
 SND_MAN.hash_intro1 = [[12,0,15550]]; SND_MAN.hash_intro2 = [[12,15750,10600]]; SND_MAN.hash_again = [[12,26550,7200]];
@@ -1691,7 +1691,7 @@ function sndLoad(sheet, then){
   if(SND.st[sheet]){ if(then) then(); return; }
   SND.st[sheet] = 'loading';
   const done = good => { SND.st[sheet] = good ? 'ok' : 'bad'; if(then) then(); };
-  sndGet('assets/sfx/md_sfx_' + sheet + '.m4a' + (SND_V[sheet] && location.protocol !== 'file:' ? '?v=' + SND_V[sheet] : ''), ab => sndDecode(ab, b => { SND.buf[sheet] = b; done(true); }, () => done(false)), () => done(false));
+  sndGet('assets/sfx/md_sfx_' + sheet + '.mp4' + (SND_V[sheet] && location.protocol !== 'file:' ? '?v=' + SND_V[sheet] : ''), ab => sndDecode(ab, b => { SND.buf[sheet] = b; done(true); }, () => done(false)), () => done(false));
 }
 function sndBoot(){                        // after the first tap: the room echo, then the sheets every game needs, one after another
   if(SND.booted || !AU.ctx) return; SND.booted = true;
@@ -1759,7 +1759,7 @@ function sndAmbGain(area){ if(area !== 'palli') return SND.ambVol; const r = typ
 function sndAmbLoad(area){
   if(SND.ambBuf[area]) return sndAmbStart(area);
   if(SND.ambSt[area]) return; SND.ambSt[area] = 1;
-  sndGet('assets/sfx/md_amb_' + (SND_AMB_FILE[area] || area) + '.m4a', ab => sndDecode(ab, b => {
+  sndGet('assets/sfx/md_amb_' + (SND_AMB_FILE[area] || area) + '.mp4', ab => sndDecode(ab, b => {
     SND.ambBuf[area] = b; SND.ambKeep = SND.ambKeep.filter(a => a !== area).concat(area);
     while(SND.ambKeep.length > 2){ const old = SND.ambKeep.shift(); delete SND.ambBuf[old]; SND.ambSt[old] = 0; }   // two places kept in memory
     if(SND.ambArea === area && !SND.amb) sndAmbStart(area);
@@ -1883,7 +1883,7 @@ function sndRoute(name, src){
 // start after it, so the loop points hold whatever delay the mp3 decoder adds. Decoded at 32 kHz like the sounds; picked up
 // where it left off when you come back; if the file can't load, the synth plays.
 const MUS = {buf:{}, st:{}, pos:{}, src:null};
-const MUS_TRACKS = {town:{file:'assets/music/md_music_palli.m4a', pad:0.5, len:143.322154, gain:0.5}};
+const MUS_TRACKS = {town:{file:'assets/music/md_music_palli.mp4', pad:0.5, len:143.322154, gain:0.5}};
 function musPlay(name){
   const T = MUS_TRACKS[name]; if(!T || MUS.st[name] === 'bad' || SND.off) return false;
   if(MUS.st[name] === 'ok'){ musStart(name); return true; }
@@ -2003,7 +2003,7 @@ function voUnlock(){
   try{ a.src = VO_SILENT; a.volume = 0; const p = a.play(); if(p && p.catch) p.catch(() => { VO.unlocked = false; }); }catch(e){ VO.unlocked = false; }
 }
 ['pointerup', 'touchend', 'click', 'keydown'].forEach(ev => window.addEventListener(ev, voUnlock, {capture:true, passive:true}));
-function voFile(num){ return 'assets/voice/note_' + String(num).padStart(2, '0') + '.m4a'; }
+function voFile(num){ return 'assets/voice/note_' + String(num).padStart(2, '0') + '.mp4'; }
 function voHas(note){ return !!(note && note.num && VO.have.has(note.num)); }
 function voPlay(note){
   voStop(true);
