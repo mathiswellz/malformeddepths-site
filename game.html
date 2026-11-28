@@ -235,6 +235,18 @@ body.touchui.upright #xp{width:calc(min(140px,32vw)*var(--uis,1))}
 .sidewin{width:330px;max-height:100%;overflow-y:auto;flex:none;align-self:center;margin-right:12px;padding:10px 12px;background:linear-gradient(#17121e,#0e0a12);border:2px solid var(--edge);box-shadow:0 0 0 2px #000,0 10px 40px #000;border-radius:6px}
 .pf{border-top:2px solid var(--edge);padding:6px 12px 10px;max-height:44vh;overflow-y:auto;background:#120e18;flex:none;border-radius:0 0 6px 6px}
 .pf .card{margin-top:0}
+/* item details by the item tapped (2026-11-28): small, beside the finger, the bag stays in view; a tap off it closes it (hud.js popPlace) */
+#ipop{position:fixed;z-index:55;width:min(250px,calc(100vw - 16px));overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 8px 8px;background:linear-gradient(#1b1524,#100c16);border:2px solid #c08a3e;border-radius:6px;box-shadow:0 0 0 2px #000,0 8px 28px rgba(0,0,0,.9);font-size:15px;line-height:1.1;pointer-events:auto;transform:scale(var(--ui,1));transform-origin:0 0;animation:ipopin .12s ease-out}
+@keyframes ipopin{from{opacity:0}to{opacity:1}}
+#ipop.hide{display:none}
+#ipop .card{margin-top:4px;padding:5px 7px;border-width:1px}
+#ipop .card:first-child{margin-top:0}
+#ipop .card .nm{font-size:18px;line-height:1}
+#ipop .card .sub,#ipop .sub{font-size:13px}
+#ipop .btn{font-size:16px;padding:4px 10px}
+#ipop .row{margin-top:5px !important;gap:5px}
+#ipop .ncard .ntc{width:26px;height:26px}
+.list .li.sel{border-color:var(--gold)}
 .btn.sm{font-size:17px;padding:5px 10px}
 .dlg .btn{font-size:18px;padding:6px 10px}
 #dlgopts.many{flex-direction:column;align-items:stretch;gap:5px}
@@ -516,9 +528,10 @@ const DEMO_TEXT = `You have reached the end of the free demo.\n\nBelow the Weepi
 // private corner (data/users/<id>/), so they survive closing the app. Everywhere else (the PC build, a local file) they
 // live in localStorage. The game reads synchronously from STORE.cache, filled from both at start-up (the newer save wins);
 // every write goes to localStorage at once and to the database a moment later, one write at a time per save.
-// graphics level: 2 Sharp, 1 Balanced, 0 Battery saver (phones start on Balanced). render.js resize() reads it, so it must exist before render.js runs
+// graphics level (Settings > Graphics): 0 Low, 1 Medium, 2 High (phones start on Medium, a PC on High; saved as gq, the same numbers as the old
+// Battery saver / Balanced / Sharp). render.js resize() reads it, so it must exist before render.js runs
 const SH_URL = (() => { try{ const v = new URLSearchParams(location.search).get('shade'); return v == null || v === '' ? null : Math.max(0, Math.min(2, +v || 0)); }catch(e){ return null; } })();   // ?shade=0..2 forces a lighting level (tests)
-const GFX = {cz:1, q:matchMedia('(pointer:coarse)').matches ? 1 : 2, low:false, minFrame:0, uis:1, sh:SH_URL != null ? SH_URL : matchMedia('(pointer:coarse)').matches ? 1 : 2};   // uis: the interface size from Settings (1 = 100%)
+const GFX = {touch:matchMedia('(pointer:coarse)').matches, cz:1, q:matchMedia('(pointer:coarse)').matches ? 1 : 2, low:false, minFrame:0, maxL:24, uis:1, sh:SH_URL != null ? SH_URL : matchMedia('(pointer:coarse)').matches ? 1 : 2};   // uis: the interface size from Settings (1 = 100%)
 const STORE = {cache:{}, ready:false, cloud:false, col:null, last:{}, dirty:{}, busy:{}, timer:{}, failed:false, note:''};
 function stLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function stGet(k){ return Object.prototype.hasOwnProperty.call(STORE.cache, k) ? STORE.cache[k] : stLocal(k); }
@@ -598,7 +611,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.60';
+const GAME_VER = '0.1.61';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -3686,7 +3699,23 @@ function unequip(slot){
   P.inv[i] = it; delete P.eq[slot]; derive(P); uiDirty();
 }
 function dropInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; P.inv[idx] = null; dropLoot({item:it, own:true}, P.x, P.y); G.loot[G.loot.length - 1].t = -0.6; uiDirty(); }   // it stays on the ground until picked up again
-function sellInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; if(!it.slot || it.stone){ toast(it.slot ? STONE_KEEP : 'Karmara does not buy Aranyan Stones.', '#ffcd75'); sfx('error'); return; } P.inv[idx] = null; if(UI.sel && UI.sel.inv === idx) UI.sel = null; const v = Math.round(itemValue(it)*0.4); P.gold += v; sfx('coin'); toast(`Sold ${itemName(it)} for ${v} gold.`, '#ffcd75'); uiDirty(); }
+function sellInv(idx){ const P = G.P, it = P.inv[idx]; if(!it) return; if(!it.slot){ toast('Karmara does not buy Aranyan Stones.', '#ffcd75'); sfx('error'); return; } P.inv[idx] = null; if(UI.sel && UI.sel.inv === idx) UI.sel = null; const v = Math.round(itemValue(it)*0.4); P.gold += v; sfx('coin');
+  const back = stoneOut(it); toast(`Sold ${itemName(it)} for ${v} gold.${back}`, '#ffcd75'); uiDirty(); }
+// a piece sold or salvaged with an Aranyan Stone in it: the stone comes out first, into the bag, or onto the ground at the hero's feet
+// when the bag is full (2026-11-28, Mathis). Returns the words for the toast.
+function stoneOut(it){ const P = G.P, st = it && isStone(it.stone) ? it.stone : null; if(!st) return ''; it.stone = null;
+  const j = P.inv.indexOf(null); if(j >= 0){ P.inv[j] = st; return ` The ${st.name} went to your bag.`; }
+  dropLoot({item:st, own:true}, P.x, P.y); G.loot[G.loot.length - 1].t = -0.6; return ` Your bag is full: the ${st.name} is at your feet.`; }
+// the player sets a stone in an empty Notch themselves (2026-11-28, Mathis); only Mr. Greystone can take one out or carve a Notch
+const notchFree = it => !!(it && it.notch && !isStone(it.stone));
+function notchTargets(P = G.P){ const L = []; for(const s of NOTCH_SLOTS) if(notchFree(P.eq[s])) L.push({eq:s}); P.inv.forEach((it, i) => { if(it && it.slot && notchFree(it)) L.push({inv:i}); }); return L; }
+function setStoneSelf(i, ref){
+  const P = G.P, st = P.inv[i], it = refItem(ref); if(!isStone(st) || !it || !it.slot) return false;
+  if(!it.notch){ toast('It has no Notch. Mr. Greystone carves them, in Palli.', '#ffcd75'); sfx('error'); return false; }
+  if(isStone(it.stone)){ toast('A stone is already set in it. Only Mr. Greystone can take it out.', '#ffcd75'); sfx('error'); return false; }
+  P.inv[i] = null; it.stone = st; derive(P); sfx('equip'); sfx('shrine'); toast(`${st.name} set in ${itemName(it)}.`, STONES[st.el].color);
+  autoSort(P); UI.sel = ref.eq ? {eq:ref.eq} : {inv:P.inv.indexOf(it)}; saveGame(); uiDirty(); return true;
+}
 function repairCost(it){ if(!it || !it.maxDur) return 0; return Math.ceil((it.maxDur - it.dur)*(1 + it.ilvl*0.25)*({typical:1, grand:1.4, heroic:2, godly:2.6}[it.rarity] || 1)); }
 function repairAll(){
   const P = G.P; let cost = 0; const all = [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean);
@@ -4624,7 +4653,8 @@ function shadeBuild(){
   SHADE.ok = true;
 }
 // which level runs now: the setting, lowered by Battery saver, by what this device can do and by slow frames
-function shadeLevel(){ const want = Math.min(GFX.sh == null ? 0 : GFX.sh, SHADE.cap); if(!want || GFX.low || SHADE.lost) return 0; if(!shadeInit()) return 0; if(want === 1 && !LIGHT_CSS) return 0; return want; }
+// a phone has no Lighting choice: it follows Settings > Graphics (Low: Classic, Medium and High: Shadows; Full is for a PC's graphics card)
+function shadeLevel(){ const want = Math.min(GFX.touch && SH_URL == null ? (GFX.q ? 1 : 0) : GFX.sh == null ? 0 : GFX.sh, SHADE.cap); if(!want || GFX.low || SHADE.lost) return 0; if(!shadeInit()) return 0; if(want === 1 && !LIGHT_CSS) return 0; return want; }
 function shadeShow(mode){ const el = SHADE.el || document.getElementById('shade'); if(!el || SHADE.cur === mode) return; SHADE.cur = mode;
   el.className = mode === 2 ? 'full' : mode === 1 ? 'lite' : ''; if(LIGHT_EL && LIGHT_CSS) LIGHT_EL.style.display = mode ? 'none' : ''; }
 function shadeOff(){ if(SHADE.cur) shadeShow(0); SHADE.in = null; }
@@ -4698,7 +4728,7 @@ function shadeFront(){ const gl = SHADE.gl; if(typeof FRONT === 'undefined' || !
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, FRONT.c); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); return SHADE.tFront; }
 // the canvas and the pictures drawn into on the way, sized for the level
 function shadeSize(mode){
-  const touch = matchMedia('(pointer:coarse)').matches, ss = mode === 2 ? Math.min(2, Math.max(1, RES)) : touch ? 1 : Math.min(2, RES);
+  const touch = matchMedia('(pointer:coarse)').matches, ss = mode === 2 ? Math.min(2, Math.max(1, RES)) : touch ? (GFX.q < 2 ? 0.5 : 1) : Math.min(2, RES);   // a phone below High works the light out at half the world's sharpness (a quarter of the work; the light is soft anyway)
   const LW = Math.round(BW*ss), LH = Math.round(BH*ss), key = [mode, BW, BH, RES, ss, buf.width, buf.height].join(',');
   if(SHADE.size === key) return; SHADE.size = key;
   const gl = SHADE.gl, el = SHADE.el, F = SHADE.fb;
@@ -4731,7 +4761,7 @@ function shadeDraw(){
       if(!(L.i > 0.01) || !(r > 1) || x < x0 + 2 || y < y0 + 2 || x > x1 - 2 || y > y1 - 2) continue;
       const ddx = Math.max(cx - x, 0, x - cx - BW), ddy = Math.max(cy - y, 0, y - cy - BH); if(!hero && ddx*ddx + ddy*ddy > r*r) continue;
       list.push({x, y, r, c:L.c, i:L.i, hero, hot:!!L.h, w:(hero ? 1e6 : 0) + L.i*r}); }
-    list.sort((a, c) => c.w - a.w); if(list.length > SH_MAXL) list.length = SH_MAXL;
+    list.sort((a, c) => c.w - a.w); if(list.length > Math.min(SH_MAXL, GFX.maxL || SH_MAXL)) list.length = Math.min(SH_MAXL, GFX.maxL || SH_MAXL);
     let nH = 0; for(const L of list) if(L.hero) nH++;
     list.forEach((L, i) => { const R = L.hero ? 4 : 5; if(!M.isTown) shadeClear(S, L, R + 1.5);   // a light in or against a wall (a torch on it, a hero under it) stands just clear of it
       aL[i*4] = L.x; aL[i*4 + 1] = L.y; aL[i*4 + 2] = L.r; aL[i*4 + 3] = R;
@@ -4786,7 +4816,7 @@ function shadeWatch(ms){
   if(!SHADE.cur || G.state !== 'play' || UI.panel || document.hidden){ SHADE.seen = 0; SHADE.slow = 0; return; }
   if(SHADE.hold > 0){ SHADE.hold--; return; }
   SHADE.fps = SHADE.fps ? SHADE.fps*0.95 + (1000/Math.max(1, ms))*0.05 : 1000/Math.max(1, ms);
-  SHADE.seen++; if(ms > 25) SHADE.slow++;
+  SHADE.seen++; if(ms > (GFX.minFrame > 20 ? 45 : 25)) SHADE.slow++;   // slow: a frame late by more than about half a frame at the cap
   if(SHADE.seen >= 180){ if(SHADE.slow >= 110){ SHADE.cap = SHADE.cur - 1; SHADE.hold = 600;
       try{ toast(SHADE.cap ? 'Lighting lowered to Shadows to keep the game smooth' : 'Lighting set to Classic to keep the game smooth', '#cfc4e0', 4); }catch(e){} }
     SHADE.seen = 0; SHADE.slow = 0; }
@@ -5491,13 +5521,16 @@ function setUIVars(){ const coarse = matchMedia('(pointer:coarse)').matches, s =
   st.setProperty('--uis', coarse ? s : 1); }
 function resize(){
   const q = new URLSearchParams(location.search).get('res'), touch = matchMedia('(pointer:coarse)').matches, dev = window.devicePixelRatio || 1;
-  // phones draw 2, 1.6 or 1.25 pixels per screen point (Sharp, Balanced, Battery saver) and let the screen scale the picture up:
+  // phones draw 1.25, 1.5 or 2 pixels per screen point (Low, Medium, High) and let the screen scale the picture up:
   // at the full 3 the game kept the phone's graphics chip flat out and it overheated
   GFX.low = GFX.q === 0;
-  DPR = Math.min(dev, touch && !q ? [1.25, 1.6, 2][GFX.q] : 3);
+  DPR = Math.min(dev, touch && !q ? [1.25, 1.5, 2][GFX.q] : 3);
   cv.width = Math.round(innerWidth*DPR); cv.height = Math.round(innerHeight*DPR);
   cv.style.imageRendering = DPR < dev - 0.01 ? 'auto' : '';   // a smooth upscale, not uneven blocky pixels
-  GFX.minFrame = GFX.low ? 1000/30 - 2 : 1000/60 - 2;           // at most 60 frames a second (30 on Battery saver), even on 120 Hz screens
+  // frames a second (2026-11-28, phones still ran hot): a phone draws 30 on Low and Medium and 60 only on High; a PC 30 on Low, else 60.
+  // Never more than 60, even on 120 Hz screens. The shader lighting on a phone takes the 10 strongest lights below High (24 on High).
+  GFX.minFrame = GFX.low || (touch && GFX.q < 2) ? 1000/30 - 2 : 1000/60 - 2;
+  GFX.maxL = touch && GFX.q < 2 ? 10 : 24;
   if(touch && !q){   // phones: the same 11 tiles across the short side at every graphics level; only the sharpness of the picture changes
     const zc = Math.min(innerWidth, innerHeight)/(11*TS)*(GFX.cz || 1);   // cz: the player's camera zoom (Settings, mouse wheel, Z)
     BW = Math.ceil(innerWidth/zc); BH = Math.ceil(innerHeight/zc); zoom = cv.width/BW;
@@ -7267,14 +7300,17 @@ function duoSel(i){ const D = UI.duo; return !D ? UI.sel : D.active === i ? UI.s
 function duoTurn(name){ UI.panel = name; UI.sel = null; UI.armSlot = null; UI.slotMsg = null; UI.dndMsg = null; sfx('click'); refreshPanel(); }   // this side to another page
 for(const t of ['pointerdown', 'mousedown', 'click', 'contextmenu', 'dblclick']) addEventListener(t, e => { if(!UI.duo) return; const sd = e.target && e.target.closest ? e.target.closest('#modal .side[data-hero]') : null; if(sd) duoActive(+sd.dataset.hero); }, true);
 addEventListener('keydown', () => { if(UI.duo) duoActive(0); }, true);
-function openPanel(name){ if(G.state !== 'play') return; auInit(); sfx(name === 'inv' || name === 'stash' ? 'uiopen' : 'click');
+// a conversation (or a note being read) ends when a menu opens: the bag, Settings, the map... never sit over someone talking (2026-11-28,
+// Mathis: "I was able to go into the settings and or my inventory while also talking to Karmara"). Cutscenes and the game's own notices stay.
+function talkOpen(){ return UI.dialog && !CUT.on && (G.talkId != null || !!document.querySelector('#dlgwrap .note')); }
+function openPanel(name){ if(G.state !== 'play') return; auInit(); if(talkOpen()) closeDialog(); sfx(name === 'inv' || name === 'stash' ? 'uiopen' : 'click');
   if(coop() && DUO_PANELS.includes(name)){
     if(UI.duo){ duoSave(); UI.duo.sides[UI.duo.active] = {panel:name, sortBy:UI.sortBy, sortDir:UI.sortDir}; duoLoad(UI.duo.active); }
     else { const a = Math.max(0, G.heroes.indexOf(G.P)); UI.duo = {active:a, sides:G.heroes.map(h => ({panel:name, sortBy:h.sortBy || null, sortDir:h.sortDir || null}))}; duoLoad(a); }
     for(const h of G.heroes) if(h.inp){ h.inp.attack = false; h.inp.padAtk = false; if(h !== host()) h.inp.mx = h.inp.my = 0; }
   } else { if(UI.duo){ duoSave(); UI.duo = null; } UI.panel = name; UI.sel = null; UI.armSlot = null; UI.sortBy = G.P.sortBy || null; UI.sortDir = G.P.sortDir || null; }
   G.lastUp = null; refreshPanel(); $('modal').classList.remove('hide'); INPUT.attack = false; INPUT.mx = INPUT.my = 0; }
-function closePanel(){ if(VO.num && !UI.dialog) voStop(); if(UI.duo){ duoSave(); UI.duo.sides.forEach((sd, i) => { const h = G.heroes && G.heroes[i]; if(h){ h.sortBy = sd.sortBy; h.sortDir = sd.sortDir; } }); UI.duo = null; } UI.panel = null; UI.sel = null; UI.armSlot = null; UI.shopOpen = false; $('modal').classList.add('hide'); $('modal').innerHTML = ''; sfx('click'); }
+function closePanel(){ if(VO.num && !UI.dialog) voStop(); if(UI.duo){ duoSave(); UI.duo.sides.forEach((sd, i) => { const h = G.heroes && G.heroes[i]; if(h){ h.sortBy = sd.sortBy; h.sortDir = sd.sortDir; } }); UI.duo = null; } UI.panel = null; UI.sel = null; UI.armSlot = null; UI.shopOpen = false; UI.pop = null; popPlace(); $('modal').classList.add('hide'); $('modal').innerHTML = ''; sfx('click'); }
 $('modal').addEventListener('pointerdown', e => { if(e.target.id === 'modal') closePanel(); });
 // one player on a wide screen: item details open in their own window to the left of the bag, so they never cover it
 function sideDetails(wide){ if(coop()) return false; const z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui')) || 1; return innerWidth/z >= (wide ? 760 : 960) && innerHeight/z >= (wide ? 300 : 420); }   // wide: the chest, which is side by side already, puts the details beside it on a phone held sideways too
@@ -7295,9 +7331,54 @@ function refreshPanel(){
   }
   const fn = PANEL_FN[p];
   const keepScroll = m.querySelector('.pb') ? m.querySelector('.pb').scrollTop : 0;
-  m.innerHTML = fn(); const pb = m.querySelector('.pb'); if(pb) pb.scrollTop = keepScroll;
+  UI.pop = null; m.innerHTML = fn(); const pb = m.querySelector('.pb'); if(pb) pb.scrollTop = keepScroll;
+  popPlace();
   if(p === 'map') drawFullMap();
 }
+// ---------- item details in a small window by the item tapped (2026-11-28, Mathis: "I can't see my inventory to tap other gear pieces").
+// The bag, the chest and Karmara's forge put an item's details in #ipop, beside the spot that was tapped, instead of the panel's foot
+// (which covered the bag on a phone). A tap anywhere off it closes it; a tap on another item moves it there; the same item again closes
+// it. A wide screen keeps the details window to the left of the bag (sideDetails); couch co-op and a controller keep the foot.
+const POP = {x:null, y:null};
+function floatDet(){ return !UI.duo && !(typeof PAD !== 'undefined' && PAD.seen) && (UI.panel === 'stash' || !sideDetails()); }   // (a controller steers the panel's own buttons: the foot stays)
+function popPlace(){
+  let el = $('ipop'); const html = UI.panel && UI.pop;
+  if(!html){ if(el) el.classList.add('hide'); return; }
+  if(!el){ el = document.createElement('div'); el.id = 'ipop'; el.className = 'hide'; document.body.appendChild(el); }
+  const same = !el.classList.contains('hide') && el.dataset.k === UI.popKey, keep = same ? el.scrollTop : 0;
+  el.dataset.k = UI.popKey || ''; el.innerHTML = html; el.classList.remove('hide'); el.scrollTop = keep;
+  if(same) return;   // the same item, redrawn (a sale, an upgrade): it stays where it is
+  const css = getComputedStyle(document.documentElement), z = parseFloat(css.getPropertyValue('--ui')) || 1, st = parseFloat(css.getPropertyValue('--st')) || 0, sb = parseFloat(css.getPropertyValue('--sb')) || 0;
+  const W = innerWidth, H = innerHeight, mg = 8, gap = 16, top = mg + st, bot = H - mg - sb;
+  el.style.maxHeight = Math.max(160, (bot - top)/z) + 'px'; el.style.left = '0px'; el.style.top = '0px';
+  const r = el.getBoundingClientRect(), w = r.width, h = Math.min(r.height, bot - top), x = POP.x != null ? POP.x : W/2, y = POP.y != null ? POP.y : H/2;
+  const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+  // where: beside the finger (either side, level with it, or with its top or bottom there), or above or below it; the spot that covers the
+  // least of the bag, the chest and the lists wins (the worn gear counts for less), never over the item tapped, then the nearest
+  const hit = [...$('modal').querySelectorAll('.grid, .list, .doll')].map(e => [e.getBoundingClientRect(), e.classList.contains('doll') ? 0.5 : 1]);
+  const selE = $('modal').querySelector('.cell.sel, .li.sel'), sr = selE ? selE.getBoundingClientRect() : {left:x - 20, right:x + 20, top:y - 20, bottom:y + 20};
+  const ov = (a, b) => Math.max(0, Math.min(a.r, b.right) - Math.max(a.l, b.left))*Math.max(0, Math.min(a.b, b.bottom) - Math.max(a.t, b.top));
+  const cand = [];
+  for(const l of [sr.right + gap, sr.left - gap - w]) for(const t of [y - h*0.35, sr.top, sr.bottom - h]) cand.push([l, t]);
+  for(const t of [sr.bottom + gap, sr.top - gap - h]) for(const l of [x - w/2, sr.left, sr.right - w]) cand.push([l, t]);
+  let best = null;
+  for(const [l0, t0] of cand){ const l = cl(l0, mg, W - mg - w), t = cl(t0, top, bot - h), a = {l, t, r:l + w, b:t + h};
+    let s = ov(a, sr) > 0 ? 1e9 : 0; for(const [r, k] of hit) s += ov(a, r)*k;
+    s += Math.hypot(l + w/2 - x, t + h/2 - y)*2;   // nearer is better when the cover is the same
+    if(!best || s < best[0]) best = [s, l, t]; }
+  const L = best[1], T = best[2];
+  el.style.left = Math.round(L) + 'px'; el.style.top = Math.round(T) + 'px';
+}
+function popClose(){ UI.sel = null; UI.pop = null; UI.sellAsk = null; UI.salvAsk = null; const el = $('ipop'); if(el) el.classList.add('hide');
+  $('modal').querySelectorAll('.cell.sel, .li.sel').forEach(c => c.classList.remove('sel')); }
+// show the details (float mode): k names the item, so a redraw of the same one keeps its place
+function popSet(det, k){ if(UI.dndMsg){ toast(UI.dndMsg, '#ff7a7a'); UI.dndMsg = null; } UI.pop = det || null; UI.popKey = k || JSON.stringify(UI.sel || null); }
+addEventListener('pointerdown', e => {
+  const c = e.target && e.target.closest ? e.target.closest('#modal .cell:not(.empty), #modal .li') : null;
+  if(c){ POP.x = e.clientX; POP.y = e.clientY; }   // where the details will open
+  const el = $('ipop'); if(!el || el.classList.contains('hide') || el.contains(e.target) || c) return;
+  popClose();   // a tap anywhere else closes the details (and still does whatever it tapped)
+}, true);
 function rarColor(it){ return rarityDef(it.rarity).color; }
 function cellHTML(it, sel, onclick, opts = {}){
   const P = G.P, dd = (opts.drop ? ` data-drop="${opts.drop}"` : '') + (it && opts.drag ? ` data-drag="${opts.drag}"` : '') + (it && opts.sell != null ? ` data-sell="${opts.sell}"` : '');
@@ -7337,7 +7418,7 @@ function itemCard(it, ctx){
       h += `<div style="margin-top:4px;color:${GODLY_COL}">${S.name}</div>` + S.pieces.map(u => `<div style="font-size:15px;color:${worn.has(u) ? '#e8e0d0' : '#6a6080'}">${worn.has(u) ? '◆' : '◇'} ${esc(UNIQUES[u].name)}</div>`).join('')
         + S.tiers.map((t, i) => `<div style="font-size:15px;color:${tier > i ? '#a7f070' : '#6a6080'}">${t.text}</div>`).join(''); } }
   if(it.notch){ const st = isStone(it.stone) ? it.stone : null, S = st && STONES[st.el], sleeps = st && place && !NOTCH_SLOTS.includes(place);   // its Notch, and the stone in it (batch 35)
-    h += `<div class="ncard">${notchHTML(it, 'ntc')}<div>${st ? `<span style="color:${rarColor(st)}">${esc(st.name)}</span><div style="color:${sleeps ? '#7d7484' : S.color}">${S.one.text(S.one.v[Math.max(0, STONE_TIERS.indexOf(st.rarity))])}</div>${sleeps ? '<div class="sub">Its stone sleeps in the off-hand.</div>' : ''}` : '<span class="sub">An empty Notch. Mr. Greystone can set an Aranyan Stone in it.</span>'}</div></div>`; }
+    h += `<div class="ncard">${notchHTML(it, 'ntc')}<div>${st ? `<span style="color:${rarColor(st)}">${esc(st.name)}</span><div style="color:${sleeps ? '#7d7484' : S.color}">${S.one.text(S.one.v[Math.max(0, STONE_TIERS.indexOf(st.rarity))])}</div>${sleeps ? '<div class="sub">Its stone sleeps in the off-hand.</div>' : ''}` : '<span class="sub">An empty Notch. Set an Aranyan Stone from your bag in it.</span>'}</div></div>`; }
   if(it.slot) h += `<div class="sub">Upgrade level: +${it.plus || 0} of +${maxPlus(it)}</div>`;
   if(it.maxDur) h += `<div class="${it.dur === 0 ? 'bad' : 'sub'}">Durability: ${it.dur}/${it.maxDur}${it.dur === 0 ? ' — BROKEN' : ''}</div>`;
   if(ctx === 'shop') h += `<div style="color:var(--gold)">Price: ${it.price} gold</div>`;
@@ -7351,7 +7432,7 @@ function stoneCard(st){
     + `<div style="color:${S.color}">${S.one.text(S.one.v[ti])}</div>`
     + `<div style="font-size:15px;margin-top:4px"><span style="color:${S.color}">Two worn, ${S.two.name}:</span> ${S.two.text(S.two.v[ti])}</div>`
     + `<div style="font-size:15px"><span style="color:${S.color}">Three worn, ${S.three.name}:</span> ${S.three.text(S.three.v[ti])}</div>`
-    + `<div class="sub" style="font-size:15px;margin-top:4px">Two or three worn together are as strong as the weakest of them. Mr. Greystone sets stones into a Notch in a weapon, chest or amulet.</div></div>`;
+    + `<div class="sub" style="font-size:15px;margin-top:4px">Two or three worn together are as strong as the weakest of them. Set it in an empty Notch in a weapon, chest or amulet. Only Mr. Greystone can take a stone out again.</div></div>`;
 }
 // what the stones in the hero's weapon, chest and amulet give now (the Character page and Mr. Greystone's window)
 function stonesHTML(P = G.P){
@@ -7397,24 +7478,39 @@ function bagHTML(P = G.P, opts = {}){
 // the backpack and the silhouette side by side: the Inventory, and the right-hand window at the chest and at Karmara's imbuing
 function invCols(P = G.P, opts = {}){ return `<div class="invcols"><div class="bagcol">${bagHTML(P, opts)}</div><div class="dollcol">${dollHTML(P)}</div></div>`; }
 function invDetails(){
-  const P = G.P; let det = '';
+  const P = G.P, fl = floatDet(); let det = '';
   if(UI.sel){
-    if(UI.sel.eq){ const it = P.eq[UI.sel.eq]; if(it) det = itemCard(it) + `<div class="row" style="margin-top:8px"><button class="btn" onclick="unequip('${UI.sel.eq}');UI.sel=null;refreshPanel()">Unequip</button></div>`; }
-    else if(isStone(P.inv[UI.sel.inv])) det = stoneCard(P.inv[UI.sel.inv]) + `<div class="row" style="margin-top:8px"><button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`;
+    if(UI.sel.eq){ const it = P.eq[UI.sel.eq]; if(it) det = itemCard(it) + stonePick(UI.sel) + `<div class="row" style="margin-top:8px"><button class="btn" onclick="unequip('${UI.sel.eq}');UI.sel=null;refreshPanel()">Unequip</button></div>`; }
+    else if(isStone(P.inv[UI.sel.inv])) det = stoneCard(P.inv[UI.sel.inv]) + stoneSetRow(UI.sel.inv) + `<div class="row" style="margin-top:8px"><button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`;
     else { const it = P.inv[UI.sel.inv]; if(it){ const why = equipBlock(it), tgt = eqTarget(it, P), cur = tgt && P.eq[tgt];
-      det = itemCard(it) + (cur && !why ? `<div class="sub" style="margin-top:6px">${eqPlaces(it, P).length > 1 ? `Would replace your ${EQ_NAMES[tgt].toLowerCase()} (the weaker one):` : 'Currently equipped:'}</div>` + itemCard(cur) : '') + (why ? `<div class="bad" style="margin-top:6px;color:#ff7a7a">${esc(why)}</div>` : '') + `<div class="row" style="margin-top:8px">${!why ? `<button class="btn gold" onclick="equipItem(${UI.sel.inv});UI.sel=null;refreshPanel()">Equip</button>` : ''}<button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`; } }
+      det = itemCard(it) + stonePick(UI.sel) + (cur && !why && !fl ? `<div class="sub" style="margin-top:6px">${eqPlaces(it, P).length > 1 ? `Would replace your ${EQ_NAMES[tgt].toLowerCase()} (the weaker one):` : 'Currently equipped:'}</div>` + itemCard(cur) : '') + (why ? `<div class="bad" style="margin-top:6px;color:#ff7a7a">${esc(why)}</div>` : '') + `<div class="row" style="margin-top:8px">${!why ? `<button class="btn gold" onclick="equipItem(${UI.sel.inv});UI.sel=null;refreshPanel()">Equip</button>` : ''}<button class="btn red" onclick="dropInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Drop</button></div>`; } }
   }
-  if(UI.dndMsg){ det = `<div class="bad" style="color:#ff7a7a;margin-bottom:4px">${esc(UI.dndMsg)}</div>` + det; UI.dndMsg = null; }
+  if(UI.dndMsg && !fl){ det = `<div class="bad" style="color:#ff7a7a;margin-bottom:4px">${esc(UI.dndMsg)}</div>` + det; UI.dndMsg = null; }
   return det;
+}
+// setting a stone yourself (2026-11-28, Mathis): a stone's details list the empty Notches it can go in; a piece with an empty Notch lists
+// the stones in the bag. Nobody but Mr. Greystone takes a stone out, so a Notch that holds one is not offered.
+function stoneSetRow(i){
+  const P = G.P, T = notchTargets(P); if(!T.length) return `<div class="sub" style="margin-top:6px">No empty Notch to set it in. Mr. Greystone carves them, in Palli.</div>`;
+  return `<div class="sub" style="margin-top:6px">Set it in:</div><div class="row" style="margin-top:3px">` + T.slice(0, 6).map(r => { const it = refItem(r);
+    return `<button class="btn sm gold" onclick='setStoneSelf(${i},${JSON.stringify(r)})'>${r.eq ? EQ_NAMES[r.eq] : esc(itemName(it))}</button>`; }).join('') + '</div>';
+}
+function stonePick(ref){
+  const P = G.P, it = refItem(ref); if(!notchFree(it)) return '';
+  const seen = {}, L = []; P.inv.forEach((s, i) => { if(isStone(s) && !seen[s.el + s.rarity]){ seen[s.el + s.rarity] = 1; L.push(i); } });
+  if(!L.length) return '';
+  return `<div class="sub" style="margin-top:6px">Set a stone in its Notch:</div><div class="row" style="margin-top:3px">` + L.map(i => { const s = P.inv[i];
+    return `<button class="cell stset" title="${esc(s.name)}" style="width:40px;border-color:${rarColor(s)}aa" onclick='setStoneSelf(${i},${JSON.stringify(ref)})'><img src="${itemIcon(s)}" draggable="false"></button>`; }).join('') + '</div>';
 }
 function renderInv(){
   const det = invDetails(), body = `${moneyRow()}${invCols()}`;
+  if(floatDet()){ popSet(UI.sel && det); return panelShell('Inventory', body).replace('<div class="panel">', '<div class="panel inv">'); }
   // a wide screen: the details in their own window to the left (an empty, invisible one keeps the place while nothing is chosen)
   if(sideDetails()) return `<div class="sidewin${det ? '' : ' blank'}">${det}</div>` + panelShell('Inventory', body).replace('<div class="panel">', '<div class="panel inv">');
   return panelShell('Inventory', body, det || null).replace('<div class="panel">', '<div class="panel inv">');
 }
-function selEq(s){ if(UI.panel === 'imbue'){ imbPick({eq:s}); return; } if(UI.panel === 'artificer'){ artPick({eq:s}); return; } UI.sel = G.P.eq[s] ? {eq:s} : null; G.lastUp = null; refreshPanel(); }
-function selInv(i){ if(UI.panel === 'imbue'){ imbPick({inv:i}); return; } if(UI.panel === 'artificer'){ artPick({inv:i}); return; } UI.sel = G.P.inv[i] ? {inv:i} : null; G.lastUp = null; UI.sellAsk = null; refreshPanel(); }
+function selEq(s){ if(UI.panel === 'imbue'){ imbPick({eq:s}); return; } if(UI.panel === 'artificer'){ artPick({eq:s}); return; } if(floatDet() && UI.sel && UI.sel.eq === s){ popClose(); return; } UI.sel = G.P.eq[s] ? {eq:s} : null; G.lastUp = null; refreshPanel(); }
+function selInv(i){ if(UI.panel === 'imbue'){ imbPick({inv:i}); return; } if(UI.panel === 'artificer'){ artPick({inv:i}); return; } if(floatDet() && UI.sel && UI.sel.inv === i){ popClose(); return; } UI.sel = G.P.inv[i] ? {inv:i} : null; G.lastUp = null; UI.sellAsk = null; refreshPanel(); }
 // ---------- bag sorting: tap a sort to apply it, tap the same one again to flip the order ----------
 const BAG_SORTS = [['level', 'Level'], ['rarity', 'Rarity'], ['type', 'Type'], ['value', 'Value'], ['usable', 'Usable']];
 function bagKey(it, by){
@@ -7455,7 +7551,8 @@ function autoSort(P = G.P){
 function quickEquip(kind, key){
   const P = G.P;
   if(kind === 'inv'){ const i = +key, it = P.inv[i]; if(!it) return;
-    if(isStone(it)){ const msg = 'Aranyan Stones are set into a Notch by Mr. Greystone, in Palli.'; toast(msg, '#ffcd75'); UI.dndMsg = msg; uiDirty(); return; }
+    if(isStone(it)){ const T = notchTargets(P).filter(r => r.eq); if(T.length){ setStoneSelf(i, T[0]); return; }   // into the first empty Notch worn
+      const msg = 'No empty Notch in your weapon, chest or amulet. Mr. Greystone carves them, in Palli.'; toast(msg, '#ffcd75'); UI.dndMsg = msg; uiDirty(); return; }
     const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); UI.dndMsg = why; uiDirty(); return; }
     const s = equipItem(i); UI.sel = s ? {eq:s} : null; refreshPanel(); return; }
   const it = P.eq[key]; if(!it) return; const j = P.inv.indexOf(null);
@@ -7470,7 +7567,7 @@ function dndOK(src, dst){
   const [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
   if(sk === 'st') return !!G.stash.items[+sv] && (dk === 'inv' || dk === 'bag' || dk === 'st');   // out of the shared chest
   if(sk === 'inv' && (dk === 'st' || dk === 'stg')) return !!P.inv[+sv];   // into it
-  if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'imb' || dk === 'art') return true; if(dk === 'inv') return true; if(dk === 'eq') return eqPlaces(it, P).includes(dv); return dk === 'eqall' && !!it.slot; }
+  if(sk === 'inv'){ const it = P.inv[+sv]; if(!it) return false; if(dk === 'imb' || dk === 'art') return true; if(dk === 'inv') return true; if(isStone(it)) return dk === 'eq' && notchFree(P.eq[dv]); if(dk === 'eq') return eqPlaces(it, P).includes(dv); return dk === 'eqall' && !!it.slot; }
   if(sk === 'eq'){ if(!P.eq[sv]) return false; return dk === 'inv' || dk === 'bag' || dk === 'imb' || dk === 'art'; }
   if(sk === 'sk') return dk === 'sl';
   if(sk === 'sl') return dk === 'sl' || dk === 'sklist';
@@ -7479,6 +7576,7 @@ function dndOK(src, dst){
 // where the dragged thing would land, so only the cells that matter light up
 function dndHot(src, dst){
   const P = G.P, [sk, sv] = src.split(':'), [dk, dv] = dst.split(':');
+  if(sk === 'inv' && dk === 'eq' && isStone(P.inv[+sv])) return notchFree(P.eq[dv]) ? 'ok' : false;   // a stone lights the worn pieces with an empty Notch
   if(sk === 'inv' && dk === 'eq'){ const it = P.inv[+sv]; return it && eqPlaces(it, P).includes(dv) ? (equipBlock(it) ? 'no' : 'ok') : false; }
   if(dk === 'imb' || dk === 'art') return 'ok';
   if(dk === 'sl') return dndOK(src, dst);
@@ -7502,6 +7600,7 @@ function dndDrop(src, dst){
     if(dk === 'inv'){ const j = +dv; [P.inv[i], P.inv[j]] = [P.inv[j], P.inv[i]]; if(UI.sel && UI.sel.inv === i) UI.sel = {inv:j}; else if(UI.sel && UI.sel.inv === j) UI.sel = {inv:i};
       if(P.sortBy){ P.sortBy = P.sortDir = UI.sortBy = UI.sortDir = null; UI.dndMsg = 'You moved an item, so the bag no longer sorts itself. Pick a sort to turn it back on.'; }   // arranged by hand: the auto-sort steps aside
       sfx('pickup'); uiDirty(); return; }
+    if(isStone(it)){ if(dk === 'eq') setStoneSelf(i, {eq:dv}); return; }   // a stone dropped on a worn piece with an empty Notch is set in it
     // anywhere on the equipment: into its own slot (what was there drops into this bag cell)
     const why = equipBlock(it); if(why){ toast(why, '#e43b44'); sfx('error'); UI.dndMsg = why; uiDirty(); return; }
     const s = equipItem(i, dk === 'eq' ? dv : null); UI.sel = s ? {eq:s} : null; refreshPanel(); return;
@@ -7599,7 +7698,7 @@ function dndDrop(src, dst){
   });
   m.addEventListener('dragstart', e => e.preventDefault());
 })();
-function selStash(j){ UI.sel = G.stash.items[j] ? {stash:j} : null; refreshPanel(); }
+function selStash(j){ if(floatDet() && UI.sel && UI.sel.stash === j){ popClose(); return; } UI.sel = G.stash.items[j] ? {stash:j} : null; refreshPanel(); }
 function renderChar(){
   const P = G.P, d = P.d, C = CLASSES[P.cls];
   const names = {str:'Strength', dex:'Dexterity', int:'Intelligence', vit:'Vitality'};
@@ -7719,10 +7818,17 @@ function uiRow(){ const p = Math.round((GFX.uis || 1)*100);
 function setNoHud(on){ UI.noHud = !!on; document.body.classList.toggle('nohud', UI.noHud); UI.dirty = true; }
 function hudRow(){ return `<div class="row" style="justify-content:space-between;margin:10px 0"><span>HUD<div class="sub" style="font-size:14px">${isTouch ? 'Hide the bars and labels for clean screenshots and videos. The controls stay, faint; tap HUD in the corner to bring it all back' : `Hide the bars, buttons and labels for clean screenshots and videos (${bindKey('hud')} hides and shows it)`}</div></span><button class="btn sm" onclick="setNoHud(!UI.noHud);refreshPanel()">${UI.noHud ? 'Hidden' : 'Shown'}</button></div>`; }
 function setUISize(s){ GFX.uis = clamp(s, 0.7, 1.3); setUIVars(); TOUCH.placed = false; layoutTouch(); saveSettings(); UI.dirty = true; }
-function gfxRow(after){ return `<div class="row" style="justify-content:space-between;margin:10px 0"><span>Graphics<div class="sub" style="font-size:14px">${['Battery saver: lightest, 30 frames a second, no glow', 'Balanced: runs cooler on phones', 'Sharp: full detail, works the phone hardest'][GFX.q]}</div></span><button class="btn sm" onclick="GFX.q=(GFX.q+2)%3;saveSettings();resize();${after}">${['Battery saver', 'Balanced', 'Sharp'][GFX.q]}</button></div>`; }
+// Graphics: Low, Medium or High (2026-11-28, Mathis). Each changes what the game draws and how often (render.js resize, shade.js shadeLevel).
+const GFX_NAMES = ['Low', 'Medium', 'High'];
+function gfxRow(after){ const t = GFX.touch;
+  const sub = (t ? ['Coolest, longest battery: 30 frames a second, simple lighting, no glow', 'Real shadows at 30 frames a second. Runs cool', 'Sharpest, 60 frames a second. Warms the phone']
+    : ['Lightest: 30 frames a second, simple lighting, no glow', 'Less sharp art, 60 frames a second', 'Full detail, 60 frames a second'])[GFX.q];
+  return `<div style="margin:10px 0"><div class="row" style="justify-content:space-between"><span>Graphics</span><span class="row" style="gap:4px">${GFX_NAMES.map((n, i) => `<button class="btn sm${GFX.q === i ? ' gold' : ''}" onclick="setGfx(${i});${after}">${n}</button>`).join('')}</span></div><div class="sub" style="font-size:14px">${sub}</div></div>`; }
+function setGfx(q){ GFX.q = q; SHADE.cap = 2; SHADE.hold = 240; SHADE.seen = SHADE.slow = 0; saveSettings(); resize(); UI.dirty = true; }
 // Lighting: Classic, Shadows or Full (shade.js). Choosing one also lifts any lowering the game did by itself for slow frames.
-function shadeRow(after){ const can = !GFX.low && shadeInit(), lv = can ? Math.min(GFX.sh, 2) : 0, auto = can && SHADE.cap < GFX.sh;
-  const sub = !can ? (GFX.low ? 'Battery saver uses the classic lighting' : 'Shader lighting is not available on this device') : auto ? 'Lowered for now to keep the game smooth; tap to choose again'
+function shadeRow(after){ if(GFX.touch) return '';   // a phone's lighting follows Graphics
+  const can = !GFX.low && shadeInit(), lv = can ? Math.min(GFX.sh, 2) : 0, auto = can && SHADE.cap < GFX.sh;
+  const sub = !can ? (GFX.low ? 'Low graphics use the classic lighting' : 'Shader lighting is not available on this device') : auto ? 'Lowered for now to keep the game smooth; tap to choose again'
     : ['Classic: the soft lighting from before', 'Shadows: walls and creatures cast real shadows', 'Full: shadows, bounced light, glow, heat haze, reflections. For a PC with a strong graphics card'][lv]
       + (lv && SHADE.cur && SHADE.fps > 1 ? ` (running at ${Math.round(SHADE.fps)} frames a second)` : '');
   return `<div class="row" style="justify-content:space-between;margin:10px 0"><span>Lighting<div class="sub" style="font-size:14px">${sub}</div></span><button class="btn sm" ${can ? '' : 'disabled'} onclick="setShade((GFX.sh+1)%3);${after}">${['Classic', 'Shadows', 'Full'][lv]}</button></div>`; }
@@ -7872,13 +7978,12 @@ function salvageBase(it){ if(!it) return 0; if(it.rarity === 'godly') return 18;
 function salvageBack(it){ return Math.round(upgradeSpent(it)/4); }   // a quarter of the Carbon spent upgrading it (2026-11-19, Mathis)
 function salvageValue(it){ return it ? salvageBase(it) + salvageBack(it) : 0; }
 function salvageSoft(it){ return ['helm', 'chest', 'gloves', 'boots'].includes(it.slot) && it.cls && CLASSES[it.cls].armor !== 'heavy'; }
-const STONE_KEEP = 'An Aranyan Stone is set in it. Mr. Greystone can take it out first.';   // Karmara never sells or breaks a stone
+const STONE_KEEP = 'Its Aranyan Stone comes out first and goes to your bag (or to your feet, if the bag is full).';   // Karmara never buys or breaks a stone (2026-11-28: it comes out by itself)
 function salvageItem(i){
   const P = G.P, it = P.inv[i]; if(!it || !it.slot) return;
-  if(it.stone){ toast(STONE_KEEP, '#ffcd75'); sfx('error'); return; }
   if((it.rarity === 'heroic' || it.rarity === 'godly') && UI.salvAsk !== it.id){ UI.salvAsk = it.id; sfx('click'); refreshPanel(); return; }   // Heroic and Godly: tap twice
-  const n = salvageValue(it); UI.salvAsk = null; P.inv[i] = null; P.carbon += n; UI.sel = null;
-  sfx(salvageSoft(it) ? 'salvage_rip' : 'salvage_break'); toast(`${itemName(it)} broken down: +${n} Carbon`, '#c3cad8');
+  const n = salvageValue(it); UI.salvAsk = null; P.inv[i] = null; P.carbon += n; UI.sel = null; const back = stoneOut(it);
+  sfx(salvageSoft(it) ? 'salvage_rip' : 'salvage_break'); toast(`${itemName(it)} broken down: +${n} Carbon.${back}`, '#c3cad8');
   if(typeof autoSort === 'function') autoSort(P); saveGame(); uiDirty(); refreshPanel();
 }
 function renderShop(){
@@ -7886,13 +7991,13 @@ function renderShop(){
   let h = `${karmaraTabs(tab)}${moneyRow()}`;
   const sel = refItem(UI.sel); let foot = '';
   if(tab === 'buy'){
-    h += '<div class="list">'; G.shop.forEach((it, i) => { if(!it) return; h += `<button class="li" onclick="UI.sel={shop:${i}};refreshPanel()"><img src="${itemIcon(it)}"><div style="flex:1"><div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub" style="font-size:15px">${SLOT_NAMES[it.slot]}${it.slot === 'weapon' ? ` · ${itMin(it)}–${itMax(it)} dmg` : it.armor ? ` · ${itArmor(it)} armor` : ''} · Lv ${it.req}</div></div><div style="color:var(--gold)">${it.price}g</div></button>`; }); h += '</div>';
+    h += '<div class="list">'; G.shop.forEach((it, i) => { if(!it) return; h += `<button class="li${UI.sel && UI.sel.shop === i ? ' sel' : ''}" onclick="selShop(${i})"><img src="${itemIcon(it)}"><div style="flex:1"><div style="color:${rarColor(it)}">${esc(itemName(it))}</div><div class="sub" style="font-size:15px">${SLOT_NAMES[it.slot]}${it.slot === 'weapon' ? ` · ${itMin(it)}–${itMax(it)} dmg` : it.armor ? ` · ${itArmor(it)} armor` : ''} · Lv ${it.req}</div></div><div style="color:var(--gold)">${it.price}g</div></button>`; }); h += '</div>';
     if(UI.sel && UI.sel.shop !== undefined && G.shop[UI.sel.shop]){ const it = G.shop[UI.sel.shop]; foot += itemCard(it, 'shop') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="buyShop(${UI.sel.shop})" ${P.gold < it.price ? 'disabled' : ''}>Buy for ${it.price}g</button></div>`; }
   } else if(tab === 'sell'){
     const sets = SELL_SETS.map(([k, label]) => { const L = bulkList(k), g = L.reduce((t, [it]) => t + Math.round(itemValue(it)*0.4), 0), ask = UI.sellAsk === k;
       return `<button class="btn sm${ask ? ' gold' : ''}" ${L.length ? '' : 'disabled'} style="${ask || k === 'all' ? '' : `color:${rarityDef(k).color}`}" onclick="sellBulk('${k}')">${ask ? `Sell ${L.length} for ${g}g?` : `${label} (${L.length})`}</button>`; }).join('');
-    h += gearPicker(false, it => !!it.slot, true) + `<div class="sub" style="margin-top:8px">${isTouch ? '' : 'Right-click an item to sell it at once. '}Upgraded (+) items are only sold one at a time.</div><div class="row" style="margin-top:4px;flex-wrap:wrap;gap:6px">${sets}</div>`;
-    if(UI.sel && UI.sel.inv !== undefined && sel){ foot += itemCard(sel) + (sel.stone ? `<div class="card" style="margin-top:6px;color:#ffcd75">${STONE_KEEP}</div>` : `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="sellInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Sell for ${Math.round(itemValue(sel)*0.4)}g</button></div>`); }
+    h += gearPicker(false, it => !!it.slot, true) + `<div class="sub" style="margin-top:8px">${isTouch ? '' : 'Right-click an item to sell it at once. '}Upgraded (+) items and pieces holding a stone are only sold one at a time.</div><div class="row" style="margin-top:4px;flex-wrap:wrap;gap:6px">${sets}</div>`;
+    if(UI.sel && UI.sel.inv !== undefined && sel){ foot += itemCard(sel) + (isStone(sel.stone) ? `<div class="sub" style="margin-top:6px;color:#ffcd75">${STONE_KEEP}</div>` : '') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="sellInv(${UI.sel.inv});UI.sel=null;refreshPanel()">Sell for ${Math.round(itemValue(sel)*0.4)}g</button></div>`; }
   } else if(tab === 'repair'){
     let cost = 0, list = ''; [...EQ_SLOTS.map(s => P.eq[s]), ...P.inv].filter(Boolean).forEach(it => { const c = repairCost(it); if(c > 0){ cost += c; list += `<div class="stat"><span style="color:${rarColor(it)}">${esc(itemName(it))}</span><span class="sub">${it.dur}/${it.maxDur} · ${c}g</span></div>`; } });
     h += list || '<div class="card sub">"Your gear\'s in good shape. For now."</div>';
@@ -7917,9 +8022,8 @@ function renderShop(){
   } else if(tab === 'salvage'){   // Karmara breaks gear down for Carbon (2026-11-19, Mathis)
     h += `<div class="sub" style="margin-bottom:6px">"Something you'll never wear? Hand it here. I'll break it down to the Carbon in it."</div>`;
     h += gearPicker(false, it => !!it.slot);
-    if(sel && UI.sel.inv !== undefined && sel.stone) foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px;color:#ffcd75">${STONE_KEEP}</div>`;
-    else if(sel && UI.sel.inv !== undefined){ const n = salvageValue(sel), big = sel.rarity === 'heroic' || sel.rarity === 'godly', ask = UI.salvAsk === sel.id;
-      foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Salvage for <b style="color:#c3cad8">${n} Carbon</b>. The item is destroyed.${salvageBack(sel) ? `<div class="sub" style="font-size:15px">${salvageBase(sel)} for the piece + ${salvageBack(sel)} back from the ${upgradeSpent(sel)} Carbon spent upgrading it</div>` : ''}</div><div class="row" style="margin-top:8px"><button class="btn gold" onclick="salvageItem(${UI.sel.inv})">${big && !ask ? `Salvage this ${rarityDef(sel.rarity).name} piece` : big ? 'Yes, break it down' : 'Salvage'}</button></div>${big && ask ? '<div class="sub" style="margin-top:4px;color:#ff7a7a">Tap again to confirm. This cannot be undone.</div>' : ''}`; }
+    if(sel && UI.sel.inv !== undefined){ const n = salvageValue(sel), big = sel.rarity === 'heroic' || sel.rarity === 'godly', ask = UI.salvAsk === sel.id;
+      foot += itemCard(sel, 'nosell') + `<div class="card" style="margin-top:6px">Salvage for <b style="color:#c3cad8">${n} Carbon</b>. The item is destroyed.${isStone(sel.stone) ? `<div class="sub" style="font-size:15px;color:#ffcd75">${STONE_KEEP}</div>` : ''}${salvageBack(sel) ? `<div class="sub" style="font-size:15px">${salvageBase(sel)} for the piece + ${salvageBack(sel)} back from the ${upgradeSpent(sel)} Carbon spent upgrading it</div>` : ''}</div><div class="row" style="margin-top:8px"><button class="btn gold" onclick="salvageItem(${UI.sel.inv})">${big && !ask ? `Salvage this ${rarityDef(sel.rarity).name} piece` : big ? 'Yes, break it down' : 'Salvage'}</button></div>${big && ask ? '<div class="sub" style="margin-top:4px;color:#ff7a7a">Tap again to confirm. This cannot be undone.</div>' : ''}`; }
   } else if(tab === 'reforge'){
     h += `<div class="sub" style="margin-bottom:6px">"Found something made for another kind of fighter? Give me Carbon and gold and I'll beat it into a new shape. Stats and upgrades stay."</div>`;
     h += gearPicker(false, it => !!it.cls);
@@ -7931,8 +8035,10 @@ function renderShop(){
       foot += '</div>';
     }
   }
+  if(floatDet()){ popSet(foot); return panelShell('Karmara\'s Forge', h); }
   return panelShell('Karmara\'s Forge', h, foot, true);
 }
+function selShop(i){ if(floatDet() && UI.sel && UI.sel.shop === i){ popClose(); return; } UI.sel = {shop:i}; refreshPanel(); }
 function buyShop(i){ const P = G.P, it = G.shop[i]; if(!it || P.gold < it.price) return; const slot = P.inv.indexOf(null); if(slot < 0){ toast('Your inventory is full.', '#e43b44'); return; } P.gold -= it.price; delete it.price; P.inv[slot] = it; G.shop[i] = null; sfx('coin'); UI.sel = null; autoSort(P); refreshPanel(); }
 function sellJunk(){ const P = G.P; let n = 0, g = 0; P.inv.forEach((it, i) => { if(it && it.slot && !it.stone && it.rarity === 'typical' && !it.plus){ g += Math.round(itemValue(it)*0.4); P.inv[i] = null; n++; } }); P.gold += g; if(n){ sfx('coin'); toast(`Sold ${n} items for ${g} gold.`, '#ffcd75'); } UI.sel = null; autoSort(P); refreshPanel(); }
 function renderStash(){   // two windows (2026-11-17, Mathis): the chest on the left, the inventory on the right
@@ -7949,6 +8055,7 @@ function renderStash(){   // two windows (2026-11-17, Mathis): the chest on the 
   if(UI.sel && UI.sel.stash !== undefined && S.items[UI.sel.stash]) foot = itemCard(S.items[UI.sel.stash], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashTake(${UI.sel.stash})">Take</button></div>`;
   else if(UI.sel && UI.sel.inv !== undefined && P.inv[UI.sel.inv]) foot = itemCard(P.inv[UI.sel.inv], 'nosell') + `<div class="row" style="margin-top:8px"><button class="btn gold" onclick="stashPut(${UI.sel.inv})">Store in chest</button></div>`;
   else if(UI.sel && UI.sel.eq && P.eq[UI.sel.eq]) foot = itemCard(P.eq[UI.sel.eq], 'nosell') + '<div class="sub" style="margin-top:6px">Take it off first to store it.</div>';
+  if(floatDet()){ popSet(foot); foot = null; }
   const left = panelShell('Shared Chest', h, foot || null).replace('<div class="panel">', '<div class="panel chestwin">');
   const right = panelShell('Inventory', `${moneyRow()}${invCols(P, {})}`).replace('<div class="panel">', '<div class="panel inv">');
   return `<div class="pair">${left}${right}</div>`;
@@ -8382,7 +8489,7 @@ function reportInfo(){
   const P = G.P, M = G.M, n = navigator;
   return [DEMO ? 'Free demo' : 'Full game', 'v' + GAME_VER, P ? `${CLASSES[P.cls].name} Lv ${P.lvl}` : 'no hero', M ? (M.isTown ? 'Palli' : `Depth ${M.level} (${M.diff})`) : '',
     isTouch ? 'touch' : 'mouse/keys', `${innerWidth}x${innerHeight} @${devicePixelRatio || 1}`,
-    `graphics ${['saver', 'balanced', 'sharp'][GFX.q] ?? GFX.q} light ${GFX.sh}`, (n.userAgent || '').replace(/\s*\([^)]*\)\s*/, ' ').slice(0, 140),
+    `graphics ${['low', 'medium', 'high'][GFX.q] ?? GFX.q} light ${typeof SHADE !== 'undefined' ? SHADE.cur : GFX.sh}`, (n.userAgent || '').replace(/\s*\([^)]*\)\s*/, ' ').slice(0, 140),
     ERRLOG.length ? 'errors: ' + ERRLOG.join(' | ') : ''].filter(Boolean).join(' · ');
 }
 function renderReport(){
@@ -8427,7 +8534,7 @@ const HELP_FAQ = [
   ['How do Nightmare and Malformed open up?', 'Every hero begins in Breeze. Conquer the depths and the harder difficulties open, with stronger monsters and better rewards. Change difficulty at the Rift.'],
   ['Why are some questions darker when I talk to someone?', "You've already asked those. You can still ask again; the darker shade just shows what you haven't heard yet."],
   ['Can I change the keys?', 'Yes: Settings → Controls. Pick any action and press the key you want.'],
-  ['The game feels slow on my device.', 'Open Settings and lower Graphics or Lighting. The game also turns lighting down on its own if it notices slow frames.'],
+  ['The game feels slow on my device, or my phone gets warm.', 'Open Settings and set Graphics to Medium or Low. On a phone, Low and Medium run at 30 frames a second and High at 60. On a PC you can also lower Lighting. The game turns lighting down on its own if it notices slow frames.'],
   ['I found a bug, or I have an idea.', 'Open the pause menu and choose Report a Bug / Share an Idea. Every report is read.'],
 ];
 function helpKeys(){
@@ -9201,9 +9308,16 @@ document.addEventListener('pointerdown', () => auInit(), {once:false});
 function screenToWorld(sx, sy){ const c = G.camR || G.cam; return {x:c.x + sx*DPR/zoom, y:c.y + sy*DPR/zoom}; }
 
 // ---------- loop ----------
+// the time between frames: the graphics level's cap (render.js resize), and less while little moves (2026-11-28, phones ran hot):
+// a conversation or a cutscene 30 frames a second, a phone's title screen 30, and on a phone with a menu open (the world stands
+// still behind it) 15, unless a controller is in use or an item is being dragged
+function frameGap(){ let m = GFX.minFrame;
+  if(UI.dialog || (GFX.touch && G.state === 'menu')) m = Math.max(m, 1000/30 - 2);
+  if(GFX.touch && UI.panel && G.state === 'play' && !PAD.seen && !DND.p) m = Math.max(m, 1000/15 - 2);
+  return m; }
 let lastT = performance.now();
 function loop(now){
-  if(now - lastT < GFX.minFrame){ requestAnimationFrame(loop); return; }   // frame cap (see resize)
+  if(now - lastT < frameGap()){ requestAnimationFrame(loop); return; }   // frame cap (see resize, frameGap)
   const ms0 = now - lastT, dt = Math.min(0.05, ms0/1000); lastT = now;
   try{
     menuFrame(now, dt);
