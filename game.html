@@ -611,7 +611,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.62';
+const GAME_VER = '0.1.63';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -2099,7 +2099,7 @@ const GREY_SPOT = [598, 597];
 // door: in front of Karmara's door (the walk ends here, then they step in); play: [x, y, radius] round the places they keep to
 // (Karmara at her anvil, Ganesh by his door, the crossroads between); bridge: where they stand to stare [x, y, facing]
 const TOD = {door:[1078, 388], inDoor:[1078, 379], play:[[1140, 440, 70], [1040, 430, 60], [806, 600, 70], [880, 560, 60], [960, 470, 60]],
-  bridge:[[500, 466, 'nw'], [506, 480, 'w']], start:[[1110, 446], [1158, 452]], spd:34, step:2.5};
+  bridge:[[500, 466, 'nw'], [506, 480, 'w']], start:[[1110, 446], [1126, 450]], spd:34, step:2.5};
 function genTown2(){
   const D = TOWN2, M = newMap(D.w, D.h, T_GRASS), S = D.spots;
   M.isTown = true; M.name = 'Palli'; M.theme = 'town'; M.v2 = true;
@@ -4061,17 +4061,33 @@ function todPath(M, x0, y0, x1, y1){
   return way;
 }
 function todBad(){ return townRain() > 0.02 || townNight() > 0.2; }   // rain, or dusk getting dark (about 19:25 to 6:15)
-function todPlaySpot(M, o){
-  const Gd = todGrid(M), other = M.tods[1 - o.i];
+function todPlaySpot(M, o){   // the girl leads: a new spot in one of the play areas round Karmara, Ganesh and the crossroads
+  const Gd = todGrid(M);
   for(let tries = 0; tries < 30; tries++){
-    let x, y;
-    if(other && other.st === 'play' && R() < 0.3){ x = other.x + (R() - 0.5)*40; y = other.y + (R() - 0.5)*26; }   // run after the other one
-    else { const p = TOD.play[Math.floor(R()*TOD.play.length)], a = R()*Math.PI*2, r = Math.sqrt(R())*p[2]; x = p[0] + Math.cos(a)*r; y = p[1] + Math.sin(a)*r*0.7; }
+    const p = TOD.play[Math.floor(R()*TOD.play.length)], a = R()*Math.PI*2, r = Math.sqrt(R())*p[2], x = p[0] + Math.cos(a)*r, y = p[1] + Math.sin(a)*r*0.7;
     if(Math.hypot(x - o.x, y - o.y) < 30 || !todFree(Gd, x, y)) continue;
-    if(!TOD.play.some(p => Math.hypot(x - p[0], y - p[1]) < p[2] + 40)) continue;   // (chasing the other one never leads away from Karmara and Ganesh)
     return [x, y];
   }
   return null;
+}
+// the boy never leaves her side (Mathis, 2026-11-28: "the two kids always stay together"): his spot is right beside where she is or
+// is running to, on whichever side of her he's nearer
+function todBeside(M, o, tx, ty){
+  const Gd = todGrid(M), c = [[16, 3], [-16, 3], [12, 12], [-12, 12], [0, 14], [12, -10], [-12, -10]].map(([dx, dy]) => todNearFree(Gd, tx + dx, ty + dy)).filter(Boolean);
+  c.sort((a, b) => Math.hypot(a[0] - o.x, a[1] - o.y) - Math.hypot(b[0] - o.x, b[1] - o.y));
+  return c.find(p => Math.hypot(p[0] - tx, p[1] - ty) > 8) || c[0] || null;
+}
+function todFollow(M, o, L){
+  if(L.hide || (L.st !== 'play' && L.st !== 'stare')) return;
+  const stare = L.st === 'stare', b = TOD.bridge[1];
+  const tgt = stare ? [b[0], b[1]] : L.walk && L.way ? L.way[L.way.length - 1] : [L.x, L.y];
+  const same = o.tgt && Math.hypot(o.tgt[0] - tgt[0], o.tgt[1] - tgt[1]) < 6 && o.tgtSt === L.st;
+  if(same && (o.walk || G.time < (o.rt || 0))) return;
+  if(same && !o.walk && Math.hypot(o.x - (o.spot ? o.spot[0] : tgt[0]), o.y - (o.spot ? o.spot[1] : tgt[1])) < 10) return;   // there already
+  o.tgt = tgt; o.tgtSt = L.st; o.rt = G.time + 1;
+  const sp = stare ? tgt : todBeside(M, o, tgt[0], tgt[1]); if(!sp) return; o.spot = sp;
+  if(Math.hypot(sp[0] - o.x, sp[1] - o.y) < 10){ o.st = L.st; return; }
+  if(todGo(M, o, sp[0], sp[1], L.st)) o.dirLock = stare ? b[2] : null;
 }
 function todGo(M, o, x, y, st){ const w = todPath(M, o.x, o.y, x, y); if(!w || w.length < 2){ o.t = 1 + R()*2; return false; } o.way = w; o.wi = 1; o.walk = true; o.st = st; return true; }
 // their voices (Mathis's recordings, sound sheet 'kids'): heard only close by, fading to nothing 230 px away. Laughs (both of them)
@@ -4091,14 +4107,20 @@ function todTick(M, dt){
       continue; }
     if(bad && o.st !== 'home' && o.st !== 'enter' && o.st !== 'out'){ if(!todGo(M, o, D.door[0], D.door[1], 'home')) { o.st = 'home'; o.walk = false; } }
     if(o.st === 'home' && !o.walk){ o.st = 'enter'; o.walk = true; o.way = [[o.x, o.y], D.door, D.inDoor]; o.wi = 1; }
-    if(o.st === 'play' || o.st === 'stare'){
-      if(!o.walk){ o.t -= dt; if(o.t <= 0){
+    const L = M.tods[0], F = M.tods[1];
+    if((o.st === 'play' || o.st === 'stare') && o !== L){ todFollow(M, o, L);
+      if(!o.walk && !L.walk && L.st === 'play' && L.t > 1 && o.heard !== L.stopN && G.time - (o.said ?? -99) > 10){ o.heard = L.stopN; o.said = G.time; todVoice(o, 'tod_catch', 0.7); } }   // they stop together for a while: his line
+    else if(o.st === 'play' || o.st === 'stare'){
+      if(!o.walk){ o.t -= dt;
+        if(o.t <= 0 && F && (o.wt || 0) < 8 && (F.st === 'in' || F.st === 'out' || (!F.hide && Math.hypot(F.x - o.x, F.y - o.y) > 40))){ o.t = 0.25; o.wt = (o.wt || 0) + 0.25; }   // she waits for him (8 s at most)
+        if(o.t <= 0) o.wt = 0;
+        if(o.t <= 0){
         o.dirLock = null;
-        if(R() < 0.14 && (G.time - (o.stared || -99)) > 40 && !M.tods.some(k => k !== o && k.st === 'stare')){ const b = D.bridge[o.i]; if(todGo(M, o, b[0], b[1], 'stare')){ o.stared = G.time; o.dirLock = b[2]; } }
+        if(R() < 0.14 && (G.time - (o.stared || -99)) > 40){ const b = D.bridge[0]; if(todGo(M, o, b[0], b[1], 'stare')){ o.stared = G.time; o.dirLock = b[2]; } }
         else { const sp = todPlaySpot(M, o); if(sp) todGo(M, o, sp[0], sp[1], 'play'); else o.t = 1; } } }
     }
     if(!o.walk) continue;
-    let step = (o.st === 'enter' || o.st === 'out' ? 0.5 : 1)*D.spd*dt;
+    let step = (o.st === 'enter' || o.st === 'out' ? 0.5 : o.i && Math.hypot(o.x - M.tods[0].x, o.y - M.tods[0].y) > 26 ? 1.25 : 1)*D.spd*dt;   // he catches up with her
     while(step > 0.01 && o.wi < o.way.length){
       const [tx, ty] = o.way[o.wi], fx = tx - o.x, fy = ty - o.y, d = Math.hypot(fx, fy);
       if(d < 0.4){ o.wi++; continue; }
@@ -4114,8 +4136,7 @@ function todTick(M, dt){
       if(o.st === 'enter'){ o.st = 'in'; o.hide = true; o.a = 0; o.clear = 0; }
       else if(o.st === 'out'){ o.st = 'play'; o.a = 1; o.t = 0.4 + R()*1.2; }
       else if(o.st === 'stare'){ o.dir = o.dirLock || 'w'; o.t = 8 + R()*7; }
-      else if(o.st === 'play'){ o.t = R() < 0.5 ? 1.5 + R()*4 : 0.15 + R()*0.4;   // stand a while about half the time, else run straight on
-        if(o.id === 'boy' && o.t > 1 && G.time - (o.said ?? -99) > 10){ o.said = G.time; todVoice(o, 'tod_catch', 0.7); } }
+      else if(o.st === 'play' && !o.i){ o.t = R() < 0.5 ? 1.5 + R()*4 : 0.15 + R()*0.4; o.stopN = (o.stopN || 0) + 1; }   // she stands a while about half the time, else runs straight on
     }
   }
 }
