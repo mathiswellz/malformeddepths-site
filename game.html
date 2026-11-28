@@ -611,7 +611,7 @@ setTimeout(stInit, 0);
 // ---- Report a bug / share an idea. Each report is posted to Mathis's Google Form (its answers fill a Google Sheet that Claude reads).
 // REPORT.form: the form's /formResponse address; REPORT.f: the entry ids of its questions. Empty = not wired yet: reports wait on the device.
 const REPORT = {form:'https://docs.google.com/forms/d/e/1FAIpQLScxkx9EH5JrIl3sv-kmJCeBhfmK7VFl6_9q2C7KEp91dp3fpg/formResponse', f:{kind:'entry.1266972860', text:'entry.559001655', contact:'entry.927686679', info:'entry.1743785591'}};
-const GAME_VER = '0.1.61';
+const GAME_VER = '0.1.62';
 const ERRLOG = [];
 window.addEventListener('error', e => { ERRLOG.push(String(e.message || e).slice(0, 160) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); if(ERRLOG.length > 5) ERRLOG.shift(); });
 
@@ -1646,9 +1646,9 @@ function sfx(name, src){
 // suits the place. Each place's ambience loops underneath (md_amb_<place>.mp3: two takes, each a seamless loop).
 // Until a sheet has loaded, or where files can't be read (the PC build opened without its launcher), sfx() plays the
 // synthesized sound instead.
-const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara', 'arrows', 'salvage', 'shimmer', 'hash'];   // salvage (2026-11-19): metal breaking x2, leather tearing x2   // arrows (2026-11-19): the Bone Archer's bow, three takes, high end softened (report: it whistled)
+const SND_SHEETS = ['heroes', 'monsters', 'bosses', 'world', 'v3', 'v3_bosses', 'forge', 'vessa', 'karmara', 'arrows', 'salvage', 'shimmer', 'hash', 'kids'];   // salvage (2026-11-19): metal breaking x2, leather tearing x2   // arrows (2026-11-19): the Bone Archer's bow, three takes, high end softened (report: it whistled)
 // SND_MAN:BEGIN (made by sfx/gen_snd.py from the sheets' manifests; times in ms)
-const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[9,100,600],[9,1000,600],[9,1900,600]],"salvage_metal":[[10,100,1230],[10,1600,690]],"salvage_leather":[[10,3100,1340],[10,4600,500]],"set_shimmer":[[11,100,2030]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]]};
+const SND_MAN = {"acid_splash":[[1,100,1457],[1,1807,1422]],"aldren_charge":[[2,100,1716],[2,2066,1457]],"aldren_death":[[5,100,2628],[5,2978,3022]],"aldren_rally":[[5,6250,2928],[5,9429,3000],[5,12679,2958],[5,15887,2864]],"aldren_roar":[[2,3773,1580],[2,5603,1780]],"aldren_slam":[[2,7634,1277],[2,9161,1552]],"archer_shoot":[[9,100,600],[9,1000,600],[9,1900,600]],"salvage_metal":[[10,100,1230],[10,1600,690]],"salvage_leather":[[10,3100,1340],[10,4600,500]],"set_shimmer":[[11,100,2030]],"asura_dance":[[2,10962,1616],[2,12829,1816]],"asura_death":[[5,19001,3662]],"asura_plunge":[[2,14895,1307],[2,16452,1252]],"asura_roar":[[2,17954,2480],[2,20684,2350],[5,22912,2829],[5,25991,2973]],"asura_transform":[[5,29214,3000]],"bat_death":[[1,7209,1000],[1,8459,1000]],"bat_screech":[[1,9709,1000],[1,10959,1000],[1,12209,1000]],"blink":[[0,100,1000],[0,1350,853]],"bloated_attack":[[1,13459,793],[1,14503,584]],"bloated_burst":[[1,15336,1212],[1,16799,933],[1,17982,918]],"brood_birth":[[2,23284,2345],[2,25879,2464]],"brood_death":[[5,32464,3910],[5,36625,3282]],"brood_shriek":[[2,28593,2000],[2,30843,1771]],"brood_spit":[[2,32864,1367],[2,34481,1452]],"burn_ignite":[[1,19150,807],[1,20207,674]],"chest_open":[[3,100,733],[3,1083,928]],"coins":[[3,2261,718],[3,3230,1000]],"crit":[[0,2453,599],[0,3302,798]],"cultist_cast":[[1,21130,613],[1,21993,669],[1,22912,559]],"cultist_death":[[1,23721,1480],[1,25451,1113]],"death_blossom":[[0,4350,1961],[0,6561,2375]],"fan_of_knives":[[0,9185,878],[0,10314,1000]],"fire_explosion":[[0,11564,1332],[0,13146,1108],[0,14503,1222]],"fireball_cast":[[0,15976,793],[0,17019,823]],"fleshling_attack":[[1,26813,1000],[1,28063,1000],[1,29313,993]],"fleshling_death":[[1,30556,853],[1,31659,798]],"forge_fail":[[3,4480,1866],[3,6596,1552]],"forge_repair":[[3,8397,1376],[3,10023,1142]],"forge_upgrade":[[3,11416,1736],[3,13402,2160]],"freeze":[[0,18092,858],[0,19200,708]],"frost_nova":[[0,20159,1452],[0,21860,1397]],"ghoul_attack":[[1,32707,918],[1,33875,848],[1,34974,649]],"ghoul_death":[[1,35872,1480],[1,37602,1480]],"gold_pickup":[[3,15812,938],[3,17000,998],[3,18248,1000]],"hero_impact":[[0,23507,747],[0,24505,888],[0,25643,828]],"heroic_drop":[[3,19498,2480],[3,22228,1736]],"holy_charge":[[0,26721,1432],[0,28403,1480]],"horror_death":[[1,39332,1412],[1,40994,1716]],"horror_roar":[[1,42960,1362],[1,44572,1242],[1,46065,1442]],"ilvaroth_death":[[5,40156,5528],[5,45934,5797],[5,51981,5712],[5,57943,5647]],"ilvaroth_orbs":[[2,36183,1671],[2,38104,2000]],"ilvaroth_roar":[[5,63840,3412],[5,67502,3986],[5,71739,3632],[5,75620,3491]],"ilvaroth_slam":[[2,40354,1840],[2,42444,1441]],"item_drop":[[3,24214,529],[3,24993,878],[3,26121,594]],"item_pickup":[[3,26965,982],[3,28197,958],[3,29404,937]],"khala_death":[[5,79361,3946]],"khala_hands":[[2,44135,1072],[2,45457,928]],"khala_roar":[[2,46635,1856],[2,48740,2370]],"khala_time_stop":[[2,51360,1771],[2,53381,1800],[2,55431,1635]],"khala_toll":[[5,83558,4944],[5,88751,4580],[5,93581,4570],[5,98401,4924]],"knight_death":[[4,100,1781],[4,2131,1930],[4,4311,1955],[4,6515,1840]],"knight_hit":[[0,30133,659],[0,31041,793],[0,32085,474]],"knight_hurt":[[0,32809,928],[0,33987,738],[0,34975,913]],"knight_roll":[[0,36138,594],[0,36982,838]],"knight_swing":[[0,38070,668],[0,38988,1000],[0,40238,220],[0,40707,644]],"level_up":[[3,30591,1781],[3,32622,1976]],"lightning_arc":[[1,47756,260],[1,48266,474],[1,48990,629],[1,49869,1000]],"mage_bolt_hit":[[0,41601,803],[0,42654,644],[0,43548,274]],"mage_cast":[[0,44072,758],[0,45081,1000],[0,46331,1000]],"mage_death":[[4,8605,2928],[4,11784,2623],[4,14657,2824],[4,17731,2859]],"mage_hurt":[[0,47581,644],[0,48474,479],[0,49203,479]],"mage_slide":[[0,49932,1000],[0,51182,928]],"malformed_pulse":[[1,51119,1000],[1,52369,913]],"meteor_fall":[[0,52360,1337],[0,53947,1422]],"meteor_impact":[[0,55619,2255],[0,58124,2105]],"oil_apply":[[3,34848,679],[3,35777,838]],"page":[[3,36865,1000],[3,38115,1000]],"portal":[[3,39365,1680],[3,41295,1083]],"potion_drink":[[3,42628,1480],[3,44358,1480]],"rare_drop":[[3,46088,1422],[3,47760,1452]],"revive":[[3,49461,1906],[3,51617,1577]],"rogue_dash":[[0,60479,693],[0,61422,559]],"rogue_death":[[4,20839,2539],[4,23628,2693],[4,26571,2654],[4,29475,2473]],"rogue_hit":[[0,62231,792],[0,63273,379],[0,63902,1000]],"rogue_hurt":[[0,65152,494],[0,65896,205],[0,66351,195]],"rogue_slash":[[0,66796,574],[0,67619,584],[0,68453,514]],"sac_burst":[[1,53532,1000],[1,54782,928]],"sac_hatch":[[1,55960,1421],[1,57630,1462]],"seal_open":[[4,32199,2834]],"shadow_step":[[0,69217,903],[0,70370,873]],"shield_bash":[[0,71493,843],[0,72586,968]],"shrine":[[3,53444,2000],[3,55694,1242]],"singularity":[[4,35283,4360]],"skeleton_attack":[[1,59342,354],[1,59946,373],[1,60570,240]],"skeleton_death":[[1,61059,933],[1,62242,1172],[1,63665,793]],"slime_splat":[[1,64708,877],[1,65835,1000]],"spitter_death":[[1,67085,1000],[1,68335,943]],"spitter_spit":[[1,69528,1000],[1,70778,1000],[1,72028,728]],"step_armor":[[0,73804,429],[0,74483,245],[0,74978,364],[0,75592,314]],"step_grass":[[0,76157,379],[0,76786,394],[0,77430,374]],"step_light":[[0,78054,155],[0,78459,289],[0,78999,449]],"thousand_cuts":[[4,39893,2005]],"title_thunder":[[4,42147,6000],[4,48397,6000],[4,54647,5984]],"ui_click":[[3,57186,150],[3,57586,95]],"ui_equip":[[3,57931,549],[3,58729,942]],"ui_error":[[3,59921,480]],"ui_open":[[3,60651,480],[3,61381,464]],"ultimate_unlock":[[4,60881,2788]],"urn_break":[[3,62095,843],[3,63189,679],[3,64117,793]],"venom_coat":[[0,79698,1480],[0,81428,1480]],"vessa_death":[[5,103575,3163]],"vessa_laugh":[[2,57316,1966],[2,59532,1996]],"vessa_nova":[[2,61777,843],[2,62870,1028]],"vessa_summon":[[2,64148,2016],[2,66414,1871]],"war_cry":[[0,83158,1856],[0,85264,1981]],"whirlwind":[[0,87494,1033],[0,88777,1176]],"whispers":[[3,65160,3152],[3,68562,2863]],"wraith_death":[[1,73006,1337],[1,74593,1088]],"wraith_shot":[[1,75931,863],[1,77044,838],[1,78132,768]],"wrath_impact":[[4,63919,3402]],"tod_catch":[[13,0,1922]],"tod_laugh":[[13,2122,2375],[13,4697,1752],[13,6649,2172],[13,9020,1939],[13,11160,2122],[13,13482,2203],[13,15885,2214],[13,18299,1274],[13,19773,1507]]};
 const SND_AMB = {"out":[[500,18500],[20000,18500]],"crypt":[[500,18500],[20000,18500]],"flesh":[[500,18500],[20000,18500]],"palli":[[500,18500],[20000,18500]],"throne":[[500,18500],[20000,18500]],"void":[[500,18500],[20000,18500]]};
 // SND_MAN:END
 // Karmara's anvil (2026-11-17, ElevenLabs v2 on flow vT2BRiBb4wz9rul1fSwX: 3 heavy + 3 ringing blows, one each; packed in the sandbox, -16 LUFS)
@@ -1671,7 +1671,7 @@ SND_MAN.hash_intro1 = [[12,0,15550]]; SND_MAN.hash_intro2 = [[12,15750,10600]]; 
 const SND = {buf:{}, st:{}, last:{}, prev:{}, vo:{}, nvo:0, dec:undefined, roomIn:null, amb:null, ambArea:undefined, ambBuf:{}, ambSt:{}, ambKeep:[], ambVol:0.3, booted:false, map:null};
 const SND_ROOM = {palli:0.05, crypt:0.3, flesh:0.16, void:0.42, throne:0.45, out:0.06};
 const SND_AMB_FILE = {out:'void'};   // the Outskirts borrow the void's hollow drone for now (open air: hardly any echo)   // how much echo each place gives
-const SND_V = {karmara:3};   // remade sheets: bump to make browsers fetch the new file
+const SND_V = {karmara:3, kids:4};   // remade sheets: bump to make browsers fetch the new file
 function sndGet(url, ok, fail){            // XHR, not fetch: with the PC launcher's flag it can read the game's own files
   try{
     const x = new XMLHttpRequest(); x.open('GET', url, true); x.responseType = 'arraybuffer';
@@ -1704,7 +1704,7 @@ function sndBoot(){                        // after the first tap: the room echo
 }
 function sndHas(name){ const p = SND_MAN[name]; return !!(p && p.some(t => SND.buf[SND_SHEETS[t[0]]])); }
 function sndEar(){ const h = party(); if(!h.length) return null; let x = 0, y = 0; for(const p of h){ x += p.x; y += p.y; } return {x:x/h.length, y:y/h.length}; }
-// o: vol, rate, pv (random pitch spread), at (where it happens), delay, cut (fade out by then), room (echo), gap (ms before it can play again), max (voices)
+// o: vol, rate, pv (random pitch spread), at (where it happens), near/far (heard in full within near, not at all past far), roomFar (the echo at far), echo/echoFar (one repeat after echoT s, its gain up close and at far), delay, cut (fade out by then), room (echo), gap (ms before it can play again), max (voices)
 function snd(name, o = {}){
   const pool = SND_MAN[name]; if(!pool || !AU.ctx || SND.off) return false;
   if(!SND.booted) sndBoot();
@@ -1718,7 +1718,9 @@ function snd(name, o = {}){
   SND.prev[name] = k;
   const [sh, st, du] = pool[k], c = AU.ctx;
   let vol = o.vol ?? 0.7, pan = 0;
-  if(o.at && o.at.x != null){ const L = sndEar(); if(L){ const dx = o.at.x - L.x, d = Math.hypot(dx, o.at.y - L.y); vol *= Math.max(0.1, Math.min(1, 1 - (d - 90)/340)); pan = Math.max(-0.7, Math.min(0.7, dx/260)); } }
+  if(o.at && o.at.x != null){ const L = sndEar(); if(L){ const dx = o.at.x - L.x, d = Math.hypot(dx, o.at.y - L.y);
+    if(o.far){ const k = 1 - (d - (o.near || 0))/(o.far - (o.near || 0)); if(k <= 0.02) return false; vol *= Math.min(1, k*k); const fk = Math.max(0, Math.min(1, 1 - k)); if(o.roomFar != null || o.echoFar != null) o = Object.assign({}, o, {room:(o.room || 0) + ((o.roomFar ?? o.room ?? 0) - (o.room || 0))*fk, echo:(o.echo || 0) + ((o.echoFar ?? o.echo ?? 0) - (o.echo || 0))*fk}); }   // roomFar: more echo the farther it is   // near/far: heard only close by, fading to nothing at far (the toddlers)
+    else vol *= Math.max(0.1, Math.min(1, 1 - (d - 90)/340)); pan = Math.max(-0.7, Math.min(0.7, dx/260)); } }
   const s = c.createBufferSource(); s.buffer = SND.buf[SND_SHEETS[sh]];
   const rate = (o.rate || 1)*(1 + (Math.random()*2 - 1)*(o.pv ?? 0.04)); s.playbackRate.value = rate;
   const t0 = c.currentTime + (o.delay || 0), len = Math.min(du/1000 + 0.03, o.cut || 99), g = c.createGain();
@@ -1728,6 +1730,7 @@ function snd(name, o = {}){
   src.connect(g); let out = g;
   if(pan && c.createStereoPanner){ const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); out = p; }
   out.connect(AU.sfxBus);
+  if(o.echo > 0.003){ const dl = c.createDelay(1), eg = c.createGain(); dl.delayTime.value = o.echoT || 0.21; eg.gain.value = o.echo; out.connect(dl); dl.connect(eg); eg.connect(AU.sfxBus); }   // echo/echoFar: one faint repeat (the toddlers)
   const wet = o.room ?? 1; if(wet > 0 && SND.roomIn){ if(wet === 1) out.connect(SND.roomIn); else { const w = c.createGain(); w.gain.value = wet; out.connect(w); w.connect(SND.roomIn); } }
   SND.vo[name] = (SND.vo[name] || 0) + 1; SND.nvo++;
   s.onended = () => { SND.vo[name]--; SND.nvo--; };
@@ -1744,7 +1747,7 @@ function sndTick(){
     if(SND.amb){ const a = SND.amb; a.g.gain.setTargetAtTime(0.0001, t, 0.7); try{ a.s.stop(t + 4); }catch(e){} SND.amb = null; }
     if(area && SND_AMB[area]) sndAmbLoad(area);
   }
-  if(M && M !== SND.map){ SND.map = M; if(M.monsters && M.monsters.some(m => m.boss)){ sndLoad('bosses'); sndLoad('v3_bosses'); if(M.monsters.some(m => m.boss && /vessa/.test(m.type || m.kind || m.id || ''))) sndLoad('vessa'); } if(M.isTown) sndLoad('karmara'); if(M.out) sndLoad('hash'); }
+  if(M && M !== SND.map){ SND.map = M; if(M.monsters && M.monsters.some(m => m.boss)){ sndLoad('bosses'); sndLoad('v3_bosses'); if(M.monsters.some(m => m.boss && /vessa/.test(m.type || m.kind || m.id || ''))) sndLoad('vessa'); } if(M.isTown) sndLoad('karmara'); if(M.tods) sndLoad('kids'); if(M.out) sndLoad('hash'); }
   // Palli's background is recorded in the rain: when it is dry the rain's hiss is filtered out and it plays softer, so the village
   // only sounds rainy when it is raining (it used to rain in the ears all the time); snow muffles it further
   const a = SND.amb; if(a && a.f && !AU.held && (SND.wxT = (SND.wxT || 0) + 1) % 15 === 0){ const t = AU.ctx.currentTime; a.f.frequency.setTargetAtTime(sndAmbCut(), t, 1.2); a.g.gain.setTargetAtTime(sndAmbGain(a.area), t, 1.2); }
@@ -2090,6 +2093,13 @@ function makeDummy(x, y){ return {type:'dummy', dummy:true, name:'Training dummy
 function inTraining(P){ P = P || G.P; const M = G.M; if(M && M.out) return true; const T = M && M.isTown && M.train; return !!(T && P && P.x > T[0] && P.x < T[2] && P.y > T[1] && P.y < T[3]); }   // the Outskirts: every attack and skill works
 // Mr. Greystone (batch 34, 2026-11-26): Palli's town drunk, on his stool left of house_h's door, facing it, the road and Ganesh's house
 const GREY_SPOT = [598, 597];
+// Palli's two toddlers (batch 36, 2026-11-28, Mathis): they run about town and stop now and then, keep near Karmara and Ganesh, sometimes
+// stand at the bridge staring at the dome's glowing chains, and stay away from the training ground. When it rains or gets dark they run
+// home to Karmara's house and go in at her door (they come back out when it clears); snow doesn't stop them. sim.js todTick moves them.
+// door: in front of Karmara's door (the walk ends here, then they step in); play: [x, y, radius] round the places they keep to
+// (Karmara at her anvil, Ganesh by his door, the crossroads between); bridge: where they stand to stare [x, y, facing]
+const TOD = {door:[1078, 388], inDoor:[1078, 379], play:[[1140, 440, 70], [1040, 430, 60], [806, 600, 70], [880, 560, 60], [960, 470, 60]],
+  bridge:[[500, 466, 'nw'], [506, 480, 'w']], start:[[1110, 446], [1158, 452]], spd:34, step:2.5};
 function genTown2(){
   const D = TOWN2, M = newMap(D.w, D.h, T_GRASS), S = D.spots;
   M.isTown = true; M.name = 'Palli'; M.theme = 'town'; M.v2 = true;
@@ -2107,6 +2117,8 @@ function genTown2(){
     {type:'stone', x:S.stone[0], y:S.stone[1], name:'Portal Stone'},
     {type:'stash', x:S.stash[0], y:S.stash[1], name:'Shared Chest'}
   ];
+  M.tods = ['girl', 'boy'].map((id, i) => ({type:'tod', id, i, x:TOD.start[i][0], y:TOD.start[i][1], dir:i ? 'w' : 'e', st:'new', t:0, stride:0, seed:i*1.7, a:1}));
+  M.objects.push(...M.tods);
   M.props = []; M.items = [];
   M.train = D.train; M.monsters = D.dummies.map(([x, y]) => makeDummy(x, y));   // the training ground: attacks and skills work inside it, on its dummies
   M.solids = townSolids(M).concat(D.solids.map(([x, y, rx, ry]) => ({x, y, rx, ry})), D.rects.map(([x, y, w, h]) => ({x, y, w, h})), [{x:GREY_SPOT[0], y:GREY_SPOT[1] - 1, rx:9, ry:4}]);
@@ -3561,7 +3573,7 @@ function fightNear(P, M){ return !M.isTown && M.monsters.some(m => m.hp > 0 && !
 function nearestInteract(){
   const P = G.P, M = G.M; let best = null, bd = 1e9, lore;
   for(const o of M.objects){
-    if(o.type === 'bossbody' || o.type === 'camp' || (o.used && (o.type === 'chest' || o.type === 'shrine' || o.type === 'sarc'))) continue;   // (the camp's knights, archer and healer have nothing to say yet)
+    if(o.type === 'bossbody' || o.type === 'camp' || o.type === 'tod' || (o.used && (o.type === 'chest' || o.type === 'shrine' || o.type === 'sarc'))) continue;   // (the camp's knights, archer and healer have nothing to say yet)
     if(o.type === 'seal' && M.sealOpen) continue;
     if((o.type === 'papyrus' || o.type === 'corpse') && (lore === undefined ? (lore = !lootNear() && !fightNear(P, M)) : lore) === false) continue;   // items and fights come first
     const d = Math.hypot(o.x - P.x, o.y - P.y); const rr = o.type === 'rift' || o.type === 'oscar' ? 34 : o.type === 'ogate' ? 46 : o.type === 'npc' || o.type === 'oshrine' || o.type === 'seal' || o.type === 'stairsup' || o.type === 'stairsdown' || o.type === 'sarc' ? 30 : 24;
@@ -3916,6 +3928,7 @@ function update(dt){
   if(M.isTown && !G.fading && G.state === 'play' && typeof OUTSK !== 'undefined'){   // Palli's west edge and the Outskirts' east edge lead into each other
     const X = M.out ? OUTSK.exitE : M.exitW; if(X && party().some(h => h.x > X[0] && h.x < X[2] && h.y > X[1] && h.y < X[3])) fadeTo(M.out ? goTownFromOut : goOut); }
   if(M.camp) campTick(M, dt);   // the Camp of Fortitude's knights on their rounds
+  if(M.tods) todTick(M, dt);   // Palli's toddlers at play
   updateProjectiles(dt);
   updateFx(dt);
   // loot spawn anim
@@ -4001,6 +4014,108 @@ function campTick(M, dt){
       k.walk = false; k.halt = false; k.stuck = 0;
       if(k.st === 'out'){ k.st = 'guard'; k.t = 25 + R()*20; k.dir = PO[k.post][2]; k.work = k.id === 'knight1' && k.dir === 'w'; }   // knight 1 looks about (his work) at the west gap
       else { k.st = 'home'; k.t = 20 + R()*30; k.dir = k.home; k.post = null; k.work = true; }
+    }
+  }
+}
+// ---------------- Palli's toddlers (batch 36, 2026-11-28, Mathis) ----------------
+// Two toddlers run about town (world.js TOD): to a spot near Karmara or Ganesh or the crossroads between, or after each other; they
+// stop there about half the time (standing a few seconds, blinking), then run on. Now and then one runs to the bridge and stands
+// staring at the dome's glowing chains. When it rains or gets dark they run home to Karmara's door and go in; they come back out
+// (one after the other) once it's clear and light again. Snow doesn't stop them. They keep off the training ground. Not solid:
+// they're small and run round everyone. Their ways: A* on a 4 px grid of where a small body can stand (built once from Palli's walk
+// grid and solids, the training ground and its edge left out), pulled straight where the grid allows.
+const TODG = {M:null};
+function todGrid(M){
+  if(TODG.M === M) return TODG;
+  const C = 4, W = Math.ceil(M.w*TS/C), H = Math.ceil(M.h*TS/C), g = new Uint8Array(W*H), T = M.train, pad = 34;
+  for(let j = 0; j < H; j++) for(let i = 0; i < W; i++){ const x = i*C + C/2, y = j*C + C/2;
+    if(T && x > T[0] - pad && x < T[2] + pad && y > T[1] - pad && y < T[3] + pad) continue;
+    if(!blockedCircle(M, x, y, 3.5, true)) g[j*W + i] = 1; }
+  Object.assign(TODG, {M, C, W, H, g}); return TODG;
+}
+function todFree(Gd, x, y){ const i = Math.floor(x/Gd.C), j = Math.floor(y/Gd.C); return i >= 0 && j >= 0 && i < Gd.W && j < Gd.H && Gd.g[j*Gd.W + i] === 1; }
+function todNearFree(Gd, x, y){   // the nearest free cell to a spot (in rings out to 40 px)
+  if(todFree(Gd, x, y)) return [x, y];
+  for(let r = Gd.C; r <= 40; r += Gd.C) for(let a = 0; a < 16; a++){ const px = x + Math.cos(a*Math.PI/8)*r, py = y + Math.sin(a*Math.PI/8)*r; if(todFree(Gd, px, py)) return [px, py]; }
+  return null;
+}
+function todSight(Gd, x0, y0, x1, y1){ const d = Math.hypot(x1 - x0, y1 - y0), n = Math.ceil(d/(Gd.C*0.5)); for(let k = 1; k < n; k++){ const f = k/n; if(!todFree(Gd, x0 + (x1 - x0)*f, y0 + (y1 - y0)*f)) return false; } return true; }
+function todPath(M, x0, y0, x1, y1){
+  const Gd = todGrid(M), C = Gd.C, W = Gd.W, s0 = todNearFree(Gd, x0, y0), s1 = todNearFree(Gd, x1, y1); if(!s0 || !s1) return null;
+  const si = Math.floor(s0[1]/C)*W + Math.floor(s0[0]/C), ti = Math.floor(s1[1]/C)*W + Math.floor(s1[0]/C), tx = ti % W, ty = Math.floor(ti/W);
+  const gs = new Float32Array(W*Gd.H).fill(1e9), from = new Int32Array(W*Gd.H).fill(-1), shut = new Uint8Array(W*Gd.H), heap = [];
+  const push = (i, f) => { heap.push([f, i]); let k = heap.length - 1; while(k){ const p = (k - 1) >> 1; if(heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if(heap.length){ heap[0] = last; let k = 0; for(;;){ const l = 2*k + 1, r = l + 1; let m = k; if(l < heap.length && heap[l][0] < heap[m][0]) m = l; if(r < heap.length && heap[r][0] < heap[m][0]) m = r; if(m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
+  const hh = i => { const dx = Math.abs(i % W - tx), dy = Math.abs(Math.floor(i/W) - ty); return Math.max(dx, dy) + 0.414*Math.min(dx, dy); };
+  gs[si] = 0; push(si, hh(si)); let n = 0;
+  while(heap.length && n++ < 60000){ const [, i] = pop(); if(shut[i]) continue; shut[i] = 1; if(i === ti) break;
+    const x = i % W, y = Math.floor(i/W);
+    for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++){ if(!dx && !dy) continue; const nx = x + dx, ny = y + dy; if(nx < 0 || ny < 0 || nx >= W || ny >= Gd.H) continue;
+      const k = ny*W + nx; if(!Gd.g[k] || shut[k]) continue; if(dx && dy && (!Gd.g[y*W + nx] || !Gd.g[ny*W + x])) continue;   // no cutting corners
+      const c = gs[i] + (dx && dy ? 1.414 : 1); if(c < gs[k]){ gs[k] = c; from[k] = i; push(k, c + hh(k)); } } }
+  if(from[ti] < 0 && ti !== si) return null;
+  const cells = []; for(let i = ti; i >= 0; i = from[i]){ cells.push([(i % W + 0.5)*C, (Math.floor(i/W) + 0.5)*C]); if(i === si) break; }
+  cells.reverse(); cells[cells.length - 1] = s1;
+  const way = [[x0, y0]]; let a = [x0, y0], k = 0;   // pulled straight: from each corner, the farthest cell still in sight
+  while(k < cells.length - 1){ let far = k + 1; for(let q = cells.length - 1; q > k + 1; q--) if(todSight(Gd, a[0], a[1], cells[q][0], cells[q][1])){ far = q; break; } a = cells[far]; way.push(a); k = far; }
+  return way;
+}
+function todBad(){ return townRain() > 0.02 || townNight() > 0.2; }   // rain, or dusk getting dark (about 19:25 to 6:15)
+function todPlaySpot(M, o){
+  const Gd = todGrid(M), other = M.tods[1 - o.i];
+  for(let tries = 0; tries < 30; tries++){
+    let x, y;
+    if(other && other.st === 'play' && R() < 0.3){ x = other.x + (R() - 0.5)*40; y = other.y + (R() - 0.5)*26; }   // run after the other one
+    else { const p = TOD.play[Math.floor(R()*TOD.play.length)], a = R()*Math.PI*2, r = Math.sqrt(R())*p[2]; x = p[0] + Math.cos(a)*r; y = p[1] + Math.sin(a)*r*0.7; }
+    if(Math.hypot(x - o.x, y - o.y) < 30 || !todFree(Gd, x, y)) continue;
+    if(!TOD.play.some(p => Math.hypot(x - p[0], y - p[1]) < p[2] + 40)) continue;   // (chasing the other one never leads away from Karmara and Ganesh)
+    return [x, y];
+  }
+  return null;
+}
+function todGo(M, o, x, y, st){ const w = todPath(M, o.x, o.y, x, y); if(!w || w.length < 2){ o.t = 1 + R()*2; return false; } o.way = w; o.wi = 1; o.walk = true; o.st = st; return true; }
+// their voices (Mathis's recordings, sound sheet 'kids'): heard only close by, fading to nothing 230 px away. Laughs (both of them)
+// every 5-14 s while they play (Mathis's recordings are a boy's laugh: the girl's play about 2 semitones higher, pitch and tone); the boy shouts "You will never catch me!" when he stops to stand (at most every 10 s).
+const TOD_EAR = {near:40, far:230, room:0, roomFar:7, echo:0.035, echoFar:0.16};   // their own light reverb up close; Palli's echo (x 0.05) grows to about a third wet at 230 px, and the one faint repeat (210 ms) with it: -29 dB up close, -16 dB far
+function todVoice(o, name, vol){ if(G.state !== 'play' || o.hide || typeof snd !== 'function') return; snd(name, Object.assign({at:o, vol, rate:o.id === 'girl' ? 1.13 : 1, pv:name === 'tod_laugh' ? 0.04 : 0.015, gap:name === 'tod_laugh' ? 900 : 0, max:2}, TOD_EAR)); }
+function todTick(M, dt){
+  const bad = todBad(), D = TOD;
+  for(const o of M.tods){
+    if((o.st === 'play' || o.st === 'stare') && !o.hide && (o.lt = (o.lt ?? 2 + R()*6) - dt) <= 0){ o.lt = 5 + R()*9; todVoice(o, 'tod_laugh', 0.55); }
+    if(o.st === 'new'){   // arriving in Palli: indoors if it's raining or dark, else already out playing near Karmara's
+      if(bad){ o.st = 'in'; o.hide = true; o.a = 0; o.x = D.inDoor[0]; o.y = D.inDoor[1]; }
+      else { o.st = 'play'; o.hide = false; o.a = 1; o.t = 0.5 + R()*2 + o.i*1.2; }
+      o.clear = 0; continue; }
+    if(o.st === 'in'){ o.clear = bad ? 0 : o.clear + dt;
+      if(o.clear > 2 + o.i*1.6){ o.st = 'out'; o.hide = false; o.a = 0; o.x = D.inDoor[0]; o.y = D.inDoor[1]; o.dir = 's'; o.walk = true; o.way = [[o.x, o.y], [D.door[0] + (o.i ? 6 : -6), D.door[1] + 6]]; o.wi = 1; }
+      continue; }
+    if(bad && o.st !== 'home' && o.st !== 'enter' && o.st !== 'out'){ if(!todGo(M, o, D.door[0], D.door[1], 'home')) { o.st = 'home'; o.walk = false; } }
+    if(o.st === 'home' && !o.walk){ o.st = 'enter'; o.walk = true; o.way = [[o.x, o.y], D.door, D.inDoor]; o.wi = 1; }
+    if(o.st === 'play' || o.st === 'stare'){
+      if(!o.walk){ o.t -= dt; if(o.t <= 0){
+        o.dirLock = null;
+        if(R() < 0.14 && (G.time - (o.stared || -99)) > 40 && !M.tods.some(k => k !== o && k.st === 'stare')){ const b = D.bridge[o.i]; if(todGo(M, o, b[0], b[1], 'stare')){ o.stared = G.time; o.dirLock = b[2]; } }
+        else { const sp = todPlaySpot(M, o); if(sp) todGo(M, o, sp[0], sp[1], 'play'); else o.t = 1; } } }
+    }
+    if(!o.walk) continue;
+    let step = (o.st === 'enter' || o.st === 'out' ? 0.5 : 1)*D.spd*dt;
+    while(step > 0.01 && o.wi < o.way.length){
+      const [tx, ty] = o.way[o.wi], fx = tx - o.x, fy = ty - o.y, d = Math.hypot(fx, fy);
+      if(d < 0.4){ o.wi++; continue; }
+      const st = Math.min(step, d), before = Math.floor(o.stride/D.step) % 4;
+      o.x += fx/d*st; o.y += fy/d*st; o.stride += st; step -= st;
+      o.dir = HDIR_SEC[((Math.round(Math.atan2(fy, fx)/(Math.PI/4)) % 8) + 8) % 8];
+      if(Math.floor(o.stride/D.step) % 4 === 0 && before !== 0 && typeof footPrint === 'function'){ o._f = (o._f || 0) ^ 1; footPrint(o, o._f); }   // prints in the snow, as the heroes leave
+    }
+    if(o.st === 'enter'){ o.dir = 'n'; o.a = Math.max(0, Math.min(1, (o.y - D.inDoor[1])/(D.door[1] - D.inDoor[1]))); }
+    if(o.st === 'out'){ o.a = Math.min(1, o.a + dt*2.5); }
+    if(o.wi >= o.way.length){
+      o.walk = false; o.way = null;
+      if(o.st === 'enter'){ o.st = 'in'; o.hide = true; o.a = 0; o.clear = 0; }
+      else if(o.st === 'out'){ o.st = 'play'; o.a = 1; o.t = 0.4 + R()*1.2; }
+      else if(o.st === 'stare'){ o.dir = o.dirLock || 'w'; o.t = 8 + R()*7; }
+      else if(o.st === 'play'){ o.t = R() < 0.5 ? 1.5 + R()*4 : 0.15 + R()*0.4;   // stand a while about half the time, else run straight on
+        if(o.id === 'boy' && o.t > 1 && G.time - (o.said ?? -99) > 10){ o.said = G.time; todVoice(o, 'tod_catch', 0.7); } }
     }
   }
 }
@@ -5084,6 +5199,28 @@ function campDraw(o, t){
   if(breath > 0.05) drawAtlBreath(im, r, o.x, o.y, face, breath); else drawAtl(im, r, o.x, o.y, face, 1);
   return true;
 }
+// <TOD>
+const TOD_MAN = {"n":1,"f":{"boy":{"idl_e_1":[519,236,42,75,21.2,0],"idl_e_2":[563,236,42,75,21.2,0],"idl_e_3":[607,236,42,75,21.2,0],"idl_e_4":[659,390,42,74,21.2,0],"idl_e_5":[703,390,42,74,21.1,0],"idl_e_6":[651,236,42,75,21.3,0],"idl_e_7":[747,390,42,74,21.2,0],"idl_e_8":[695,236,42,75,21.1,0],"idl_n_1":[848,313,39,75,18.7,0],"idl_n_2":[889,313,39,75,18.7,0],"idl_n_3":[871,81,39,76,18.6,0],"idl_n_4":[912,81,39,76,18.5,0],"idl_n_5":[930,313,39,75,18.7,0],"idl_n_6":[276,466,40,74,19.1,0],"idl_n_7":[318,466,40,74,19.1,0],"idl_n_8":[360,466,40,74,19.1,0],"idl_ne_1":[765,313,40,75,19.6,0],"idl_ne_2":[486,0,39,77,19.8,0],"idl_ne_3":[41,0,39,78,19.0,0],"idl_ne_4":[0,0,39,79,19.1,0],"idl_ne_5":[807,313,39,75,19.3,0],"idl_ne_6":[50,466,39,74,19.0,0],"idl_ne_7":[91,466,39,74,19.4,0],"idl_ne_8":[132,466,39,74,18.9,0],"idl_s_1":[947,236,41,75,20.3,0],"idl_s_2":[535,81,41,76,20.4,0],"idl_s_3":[0,313,40,75,19.8,0],"idl_s_4":[42,313,41,75,20.6,0],"idl_s_5":[85,313,41,75,20.4,0],"idl_s_6":[128,313,41,75,20.4,0],"idl_s_7":[171,313,40,75,20.0,0],"idl_s_8":[213,313,41,75,20.4,0],"idl_se_1":[400,313,43,75,22.1,0],"idl_se_2":[445,313,43,75,21.9,0],"idl_se_3":[490,313,43,75,22.2,0],"idl_se_4":[535,313,43,75,22.1,0],"idl_se_5":[893,390,43,74,22.1,0],"idl_se_6":[580,313,43,75,22.2,0],"idl_se_7":[625,313,43,75,21.9,0],"idl_se_8":[670,313,43,75,21.9,0],"run_e_1":[739,236,51,75,31.1,0],"run_e_2":[792,236,51,75,31.1,0],"run_e_3":[845,236,50,75,30.2,0],"run_e_4":[484,81,49,76,29.2,0],"run_e_5":[958,466,53,73,33.0,0],"run_e_6":[708,542,51,72,31.1,0],"run_e_7":[791,390,52,74,32.0,0],"run_e_8":[897,236,48,75,28.2,0],"run_n_1":[527,0,46,77,22.1,0],"run_n_2":[82,0,47,78,23.8,0],"run_n_3":[131,0,48,78,25.0,0],"run_n_4":[575,0,48,77,25.1,0],"run_n_5":[625,0,48,77,23.5,0],"run_n_6":[181,0,46,78,24.2,0],"run_n_7":[675,0,48,77,24.3,0],"run_n_8":[725,0,45,77,22.9,0],"run_ne_1":[245,542,52,73,29.0,0],"run_ne_2":[173,466,47,74,29.2,0],"run_ne_3":[770,81,47,76,29.2,0],"run_ne_4":[819,81,50,76,29.8,0],"run_ne_5":[222,466,52,74,28.8,0],"run_ne_6":[299,542,49,73,26.6,0],"run_ne_7":[761,542,47,72,26.1,0],"run_ne_8":[350,542,46,73,24.1,0],"run_s_1":[578,81,45,76,22.6,0],"run_s_2":[625,81,46,76,23.1,0],"run_s_3":[256,313,45,75,21.6,0],"run_s_4":[673,81,46,76,23.1,0],"run_s_5":[303,313,46,75,22.9,0],"run_s_6":[721,81,47,76,23.0,0],"run_s_7":[351,313,47,75,23.3,0],"run_s_8":[845,390,46,74,21.2,0],"run_se_1":[0,542,47,73,26.1,0],"run_se_2":[938,390,47,74,25.9,0],"run_se_3":[0,466,48,74,26.9,0],"run_se_4":[715,313,48,75,27.5,0],"run_se_5":[49,542,48,73,27.4,0],"run_se_6":[99,542,47,73,26.8,0],"run_se_7":[148,542,47,73,26.3,0],"run_se_8":[197,542,46,73,25.3,0]},"girl":{"idl_e_1":[953,81,49,75,23.9,0],"idl_e_2":[0,159,49,75,23.8,0],"idl_e_3":[51,159,49,75,23.8,0],"idl_e_4":[102,159,49,75,23.8,0],"idl_e_5":[153,159,49,75,23.3,0],"idl_e_6":[204,159,49,75,23.8,0],"idl_e_7":[255,159,49,75,24.5,0],"idl_e_8":[306,159,49,75,23.8,0],"idl_n_1":[498,390,53,74,27.5,0],"idl_n_2":[308,236,53,75,26.9,0],"idl_n_3":[430,81,52,76,26.4,0],"idl_n_4":[378,0,52,77,26.1,0],"idl_n_5":[432,0,52,77,25.9,0],"idl_n_6":[363,236,52,75,25.8,0],"idl_n_7":[553,390,53,74,26.4,0],"idl_n_8":[798,466,53,73,26.6,0],"idl_ne_1":[558,466,45,73,22.7,0],"idl_ne_2":[256,390,45,74,22.7,0],"idl_ne_3":[336,81,45,76,22.6,0],"idl_ne_4":[284,0,45,77,22.4,0],"idl_ne_5":[331,0,45,77,22.3,0],"idl_ne_6":[383,81,45,76,22.5,0],"idl_ne_7":[605,466,44,73,22.0,0],"idl_ne_8":[651,466,45,73,22.5,0],"idl_s_1":[462,159,53,75,26.2,0],"idl_s_2":[517,159,53,75,26.0,0],"idl_s_3":[572,159,53,75,26.0,0],"idl_s_4":[627,159,52,75,25.7,0],"idl_s_5":[681,159,52,75,25.7,0],"idl_s_6":[735,159,52,75,25.7,0],"idl_s_7":[789,159,53,75,25.8,0],"idl_s_8":[844,159,53,75,26.0,0],"idl_se_1":[899,159,50,75,25.1,0],"idl_se_2":[951,159,49,75,24.7,0],"idl_se_3":[0,236,49,75,24.6,0],"idl_se_4":[102,390,49,74,24.5,0],"idl_se_5":[153,390,49,74,24.6,0],"idl_se_6":[51,236,49,75,24.7,0],"idl_se_7":[102,236,49,75,24.5,0],"idl_se_8":[153,236,49,75,24.5,0],"run_e_1":[772,0,49,76,25.7,0],"run_e_2":[823,0,49,76,25.3,0],"run_e_3":[874,0,51,76,27.3,0],"run_e_4":[357,159,52,75,28.5,0],"run_e_5":[971,313,52,74,27.4,0],"run_e_6":[0,390,49,74,24.2,0],"run_e_7":[51,390,49,74,24.3,0],"run_e_8":[411,159,49,75,23.9,0],"run_n_1":[602,542,51,72,25.3,0],"run_n_2":[853,466,51,73,24.9,0],"run_n_3":[608,390,49,74,24.0,0],"run_n_4":[417,236,49,75,24.0,0],"run_n_5":[468,236,49,75,24.0,0],"run_n_6":[906,466,50,73,24.6,0],"run_n_7":[655,542,51,72,25.3,0],"run_n_8":[810,542,52,71,25.9,0],"run_ne_1":[698,466,48,73,23.4,0],"run_ne_2":[303,390,47,74,23.6,0],"run_ne_3":[352,390,47,74,22.8,0],"run_ne_4":[401,390,47,74,22.4,0],"run_ne_5":[450,390,46,74,22.3,0],"run_ne_6":[502,542,48,72,23.1,0],"run_ne_7":[552,542,48,72,22.8,0],"run_ne_8":[748,466,48,73,24.1,0],"run_s_1":[927,0,54,76,27.0,0],"run_s_2":[0,81,54,76,26.8,0],"run_s_3":[229,0,53,77,26.3,0],"run_s_4":[56,81,54,76,26.7,0],"run_s_5":[112,81,54,76,26.8,0],"run_s_6":[168,81,54,76,26.8,0],"run_s_7":[224,81,54,76,26.9,0],"run_s_8":[280,81,54,76,26.7,0],"run_se_1":[402,466,50,73,24.8,0],"run_se_2":[204,390,50,74,26.5,0],"run_se_3":[204,236,50,75,26.3,0],"run_se_4":[256,236,50,75,26.1,0],"run_se_5":[454,466,50,73,24.4,0],"run_se_6":[398,542,50,72,24.4,0],"run_se_7":[450,542,50,72,25.1,0],"run_se_8":[506,466,50,73,24.3,0]}}};   // tools_toddlers.py
+// </TOD>
+// ---------------- Palli's toddlers (batch 36, 2026-11-28): the girl and the boy, their frames in assets/toddlers.webp ----------------
+// (TOD_MAN: tools_toddlers.py; every frame stands on its row's ground line, anchored on the middle of the head.) Running, a frame
+// every TOD.step px of the way; standing, the idle loop (a breath, a blink on frames 4-5). Views e, se, s, ne, n; sw, w, nw mirrored.
+// They fade at Karmara's door going in and coming out (o.a).
+const TOD_IM = new Image(); let TOD_ON = false;
+function todArt(){ if(!TOD_ON && typeof TOD_MAN !== 'undefined'){ TOD_ON = true; TOD_IM.src = assetV('toddlers.webp'); } return TOD_IM; }
+const TOD_IDLE = [[1, .7], [2, .45], [3, .5], [4, .08], [5, .1], [6, .5], [7, .45], [8, .6]], TOD_IL = TOD_IDLE.reduce((a, s) => a + s[1], 0);
+function todDraw(o, t){
+  if(typeof TOD_MAN === 'undefined') return false;
+  const F = TOD_MAN.f[o.id], im = todArt(); if(!F || !im.naturalWidth) return false;
+  const [v, mir] = HDIR_SRC[o.dir] || HDIR_SRC.e; let key;
+  if(o.walk) key = 'run_' + v + '_' + (1 + Math.floor(o.stride/TOD.step) % 8);
+  else { let c = ((t + o.seed*2.3) % TOD_IL + TOD_IL) % TOD_IL, f = 1; for(const s of TOD_IDLE){ if(c < s[1]){ f = s[0]; break; } c -= s[1]; } key = 'idl_' + v + '_' + f; }
+  const r = F[key] || F['idl_e_1'];
+  if(o.a < 1) b.globalAlpha = Math.max(0, o.a);
+  drawAtl(im, r, o.x, o.y, mir ? -1 : 1);
+  if(o.a < 1) b.globalAlpha = 1;
+  return true;
+}
 // <GREY>
 const GREY_MAN = {"n":1,"f":{"greystone":{"btl":[557,133,35,29,17.5,0],"btl_snow":[594,133,35,29,17.5,0],"idl":[364,0,91,130,44.7,0],"tlk_1":[732,0,91,130,44.7,0],"tlk_2":[0,133,89,127,44.8,0],"tlk_3":[91,133,89,127,45.0,0],"tlk_4":[182,133,89,127,45.0,0],"tlk_5":[916,0,90,128,45.8,0],"tlk_6":[273,133,99,127,50.0,0],"tlk_7":[374,133,90,127,45.8,0],"tlk_8":[466,133,89,127,45.0,0],"wrk_1":[457,0,91,130,44.7,0],"wrk_2":[825,0,89,129,44.8,0],"wrk_3":[550,0,89,130,45.0,0],"wrk_4":[641,0,89,130,44.8,0],"wrk_5":[0,0,89,131,45.0,0],"wrk_6":[91,0,89,131,45.0,0],"wrk_7":[182,0,89,131,44.8,0],"wrk_8":[273,0,89,131,44.8,0]}}};   // tools_greystone.py
 // </GREY>
@@ -5589,7 +5726,7 @@ function silDraw(e, s, ux, uy, len, alpha){   // (ux, uy): away from the light. 
   b.restore(); }
 function drawCastShadows(M, cx, cy){
   const L = G.lits; SIL.on = false;
-  const ents = []; for(const h of party()) ents.push(h); for(const m of M.monsters) if(!m.dead && !m.dummy) ents.push(m); for(const o of M.objects) if(o.type === 'npc' || o.type === 'camp') ents.push(o);
+  const ents = []; for(const h of party()) ents.push(h); for(const m of M.monsters) if(!m.dead && !m.dummy) ents.push(m); for(const o of M.objects) if(o.type === 'npc' || o.type === 'camp' || (o.type === 'tod' && !o.hide)) ents.push(o);
   if(!CAST_ON || GFX.low || RES <= 1 || !L || L.map !== M){ for(const e of ents) e.silK = 0; return; }
   SIL.on = true;
   const town = M.isTown && townOK(), tn = town ? townNight() : 1, ambL = L.amb[0]*0.3 + L.amb[1]*0.5 + L.amb[2]*0.2;
@@ -5770,7 +5907,7 @@ function worldReady(M, P){
   const need = [];
   if(HDP_ATL[P.cls]) need.push(HDP_ATL[P.cls]);
   if(M.out) need.push(...outArt(), ...campArt());
-  else if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA), ...new Set(Object.values(TOWN_MAN.im || {}))); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); if(M.objects.some(o => o.id === 'greystone')) need.push(greyArt()); }
+  else if(M.isTown){ need.push(TOWNIMG, ...Object.values(HDA), ...new Set(Object.values(TOWN_MAN.im || {}))); for(const o of M.objects) if(o.type === 'npc') for(const k in NPC_MAN) if(k.startsWith(o.id + '_')) need.push(NPCHD[k]); if(M.objects.some(o => o.id === 'greystone')) need.push(greyArt()); if(M.tods) need.push(todArt()); }
   else { need.push(DSH); if(!depthArt(M.theme)) need.push(null); for(const m of M.monsters){ const a = MON_ART[m.type]; if(a){ const k = a + '_' + (m.kind || 'common'); if(MONHD[k]) need.push(MONHD[k]); } } }
   WAIT.ok = need.every(imOK) || performance.now() - WAIT.t > 30000;
   return WAIT.ok;
@@ -6436,6 +6573,7 @@ function drawObject(o){
   if(o.type === 'stairsup'){ const r = DEPTH_MAN[G.M.theme] && DEPTH_MAN[G.M.theme].s.stairs_up, A = r && depthArt(G.M.theme); if(A) depthKey(A.img, r, o.x, o.y); return; }   // batch 12: steps rising to the depth above, sorted with the hero
   if(o.type === 'stairsdown' || o.type === 'sarc') return;   // drawn with the floor or as a prop
   switch(o.type){
+    case 'tod': { if(o.hide || o.a <= 0) break; drawShadow(o.x, o.y, 7, o.a*(1 - (o.silK || 0))); SIL.ent = o; todDraw(o, t); SIL.ent = null; break; }
     case 'camp': { drawShadow(o.x, o.y, o.id === 'archer' || o.id === 'healer' ? 10 : 12, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
     case 'npc': {
       if(o.id === 'hash'){ drawShadow(o.x, o.y, 14, 1 - (o.silK || 0)); SIL.ent = o; campArt(); campDraw(o, t); SIL.ent = null; break; }
